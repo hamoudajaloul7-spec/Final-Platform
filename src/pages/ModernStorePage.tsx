@@ -32,6 +32,7 @@ import UnifiedStoreSlider from '@/components/UnifiedStoreSlider';
 import SheirineSlider from '@/data/stores/sheirine/Slider';
 import { getDefaultProductImageSync, handleImageError } from '@/utils/imageUtils';
 import { getTagColor, calculateBadge } from '@/utils/badgeCalculator';
+import { getProxyImageUrl, convertProductImages } from '@/utils/assetProxyUtil';
 
 const getDynamicStores = () => {
   try {
@@ -664,7 +665,7 @@ const ModernStorePage: React.FC<ModernStorePageProps> = ({
                         </div>
                         <div className="relative flex justify-center">
                           <img
-                            src={product.images?.[0] || product.image || getDefaultProductImageSync(store?.slug)}
+                            src={getProxyImageUrl(product.images?.[0] || product.image || getDefaultProductImageSync(store?.slug), store?.slug, 'products')}
                             alt={product.name}
                             className="w-64 h-64 object-cover rounded-2xl shadow-2xl"
                           />
@@ -1056,7 +1057,7 @@ const ProductCard: React.FC<{
               {/* الصورة الحالية */}
               <LazyImage
                 key={`${product.id}-${currentImageIndex}`}
-                src={product.images[currentImageIndex] || ''}
+                src={getProxyImageUrl(product.images[currentImageIndex] || '', store?.slug, 'products')}
                 alt={`${product.name} - صورة ${currentImageIndex + 1}`}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 onError={() => {}}              
@@ -1293,14 +1294,14 @@ const ProductCard: React.FC<{
               <div className="w-full h-64 bg-gray-100 relative">
                 {product.images && product.images.length > 0 ? (
                   <LazyImage
-                    src={product.images[currentImageIndex] || ''}
+                    src={getProxyImageUrl(product.images[currentImageIndex] || '', storeSlug, 'products')}
                     alt={product.name}
                     className="w-full h-full object-cover"
                     onError={() => {}}
                   />
                 ) : (
                   <LazyImage
-                    src={getDefaultProductImageSync(storeSlug)}
+                    src={getProxyImageUrl(getDefaultProductImageSync(storeSlug), storeSlug, 'products')}
                     alt={product.name}
                     className="w-full h-full object-cover"
                   />

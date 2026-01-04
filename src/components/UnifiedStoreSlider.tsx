@@ -28,6 +28,15 @@ const DEFAULT_SLIDER_HEIGHT = {
   desktop: 800
 };
 
+const DEFAULT_CONFIG = {
+  sliderHeight: DEFAULT_SLIDER_HEIGHT,
+  colors: {
+    primary: '#000000',
+    secondary: '#333333',
+    accent: '#666666'
+  }
+};
+
 const UnifiedStoreSlider: React.FC<UnifiedStoreSliderProps> = ({ 
   storeSlug, 
   height,
@@ -35,7 +44,7 @@ const UnifiedStoreSlider: React.FC<UnifiedStoreSliderProps> = ({
 }) => {
   const staticConfig = getStoreConfig(storeSlug);
   const [sliders, setSliders] = useState<Slider[]>([]);
-  const [config, setConfig] = useState(staticConfig);
+  const [config, setConfig] = useState<any>(staticConfig || DEFAULT_CONFIG);
   const [activeSlide, setActiveSlide] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const [isMobile, setIsMobile] = useState(() => {
@@ -103,15 +112,39 @@ const UnifiedStoreSlider: React.FC<UnifiedStoreSliderProps> = ({
       if (response.ok) {
         const result = await response.json();
         if (result.data && Array.isArray(result.data) && result.data.length > 0) {
-          const loadedSliders = result.data.map((slider: any) => ({
-            id: slider.id,
-            title: slider.title,
-            subtitle: slider.subtitle,
-            buttonText: slider.buttonText,
-            imagePath: slider.imagePath,
-            image: slider.imagePath,
-            sortOrder: slider.sortOrder,
-          }));
+          const loadedSliders = result.data.map((slider: any) => {
+            // Fix image URL logic
+            let imagePath = slider.imagePath || slider.image;
+            
+            if (imagePath) {
+              if (imagePath.includes('localhost:5000')) {
+                imagePath = imagePath.replace(/^https?:\/\/localhost:5000/, '');
+              } else if (imagePath.includes('eishro-backend.onrender.com')) {
+                imagePath = imagePath.replace(/^https?:\/\/eishro-backend\.onrender\.com/, '');
+              }
+              
+              if (imagePath.startsWith('/assets/')) {
+                const parts = imagePath.split('/');
+                if (parts.length >= 4) {
+                  const storeSlug = parts[2];
+                  const imageType = parts[3];
+                  const fileName = parts.slice(4).join('/');
+                  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+                  imagePath = `${apiUrl}/assets-proxy/${storeSlug}/${imageType}/${fileName}`;
+                }
+              }
+            }
+
+            return {
+              id: slider.id,
+              title: slider.title,
+              subtitle: slider.subtitle,
+              buttonText: slider.buttonText,
+              imagePath: imagePath,
+              image: imagePath,
+              sortOrder: slider.sortOrder,
+            };
+          });
           
           loadedSliders.sort((a: Slider, b: Slider) => (a.sortOrder || 0) - (b.sortOrder || 0));
           setSliders(loadedSliders);
@@ -138,8 +171,8 @@ const UnifiedStoreSlider: React.FC<UnifiedStoreSliderProps> = ({
   }, []);
 
   const sliderHeight = {
-    mobile: height?.mobile ?? config?.sliderHeight?.mobile ?? DEFAULT_SLIDER_HEIGHT.mobile,
-    desktop: height?.desktop ?? config?.sliderHeight?.desktop ?? DEFAULT_SLIDER_HEIGHT.desktop,
+    mobile: height?.mobile ?? activeConfig?.sliderHeight?.mobile ?? DEFAULT_SLIDER_HEIGHT.mobile,
+    desktop: height?.desktop ?? activeConfig?.sliderHeight?.desktop ?? DEFAULT_SLIDER_HEIGHT.desktop,
   };
   const resolvedHeight = isMobile ? sliderHeight.mobile : sliderHeight.desktop;
 
@@ -162,9 +195,11 @@ const UnifiedStoreSlider: React.FC<UnifiedStoreSliderProps> = ({
     return () => clearInterval(interval);
   }, [isAutoPlaying, sliders.length]);
 
-  if (!config || sliders.length === 0) {
+  if (sliders.length === 0) {
     return null;
   }
+
+  const activeConfig = config || DEFAULT_CONFIG;
 
   const nextSlide = () => {
     setActiveSlide((prev) => (prev + 1) % sliders.length);
@@ -216,15 +251,15 @@ const UnifiedStoreSlider: React.FC<UnifiedStoreSliderProps> = ({
                 <button
                   className="px-8 py-3 rounded-lg font-bold text-white transition-all duration-300"
                   style={{
-                    backgroundColor: config.colors.primary,
-                    boxShadow: `0 0 20px ${config.colors.primary}40`,
+                    backgroundColor: activeConfig.colors?.primary || '#000000',
+                    boxShadow: `0 0 20px ${activeConfig.colors?.primary || '#000000'}40`,
                   }}
                   onMouseEnter={(e) => {
-                    (e.target as HTMLElement).style.boxShadow = `0 0 30px ${config.colors.primary}80`;
+                    (e.target as HTMLElement).style.boxShadow = `0 0 30px ${activeConfig.colors?.primary || '#000000'}80`;
                     (e.target as HTMLElement).style.transform = 'scale(1.05)';
                   }}
                   onMouseLeave={(e) => {
-                    (e.target as HTMLElement).style.boxShadow = `0 0 20px ${config.colors.primary}40`;
+                    (e.target as HTMLElement).style.boxShadow = `0 0 20px ${activeConfig.colors?.primary || '#000000'}40`;
                     (e.target as HTMLElement).style.transform = 'scale(1)';
                   }}
                 >
@@ -265,7 +300,7 @@ const UnifiedStoreSlider: React.FC<UnifiedStoreSliderProps> = ({
                 className="w-2 h-2 rounded-full transition-all duration-300"
                 style={{
                   backgroundColor:
-                    index === activeSlide ? config.colors.primary : 'rgba(255,255,255,0.5)',
+                    index === activeSlide ? (activeConfig.colors?.primary || '#000000') : 'rgba(255,255,255,0.5)',
                   width: index === activeSlide ? '24px' : '8px',
                 }}
                 aria-label={`Go to slide ${index + 1}`}

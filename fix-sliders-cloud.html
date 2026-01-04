@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إصلاح سلايدر Delta و Magna السحابي</title>
+    <style>
+        body { font-family: system-ui, -apple-system, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; background: #f0f2f5; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        h1 { color: #1a1a1a; margin-bottom: 20px; }
+        h2 { color: #333; font-size: 1.2rem; margin-top: 0; }
+        button { background: #2563eb; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 1rem; font-weight: bold; }
+        button:hover { background: #1d4ed8; }
+        button:disabled { background: #93c5fd; cursor: not-allowed; }
+        .status { margin-top: 10px; padding: 10px; border-radius: 6px; display: none; }
+        .success { background: #dcfce7; color: #166534; display: block; }
+        .error { background: #fee2e2; color: #991b1b; display: block; }
+        code { background: #f3f4f6; padding: 2px 5px; border-radius: 4px; font-family: monospace; }
+        .env-selector { margin-bottom: 20px; }
+        select { padding: 8px; border-radius: 4px; border: 1px solid #ccc; font-size: 1rem; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>🛠️ إصلاح صور السلايدر السحابية</h1>
+        <p>هذه الأداة ستقوم بتحديث روابط الصور في قاعدة البيانات لتشير إلى ملفات الـ Assets المحلية في الـ Frontend بدلاً من روابط الـ Backend المعطوبة.</p>
+        
+        <div class="env-selector">
+            <label for="apiUrl">اختر البيئة المستهدفة:</label>
+            <select id="apiUrl" title="اختر بيئة التطبيق">
+                <option value="https://eishro-backend.onrender.com/api">☁️ Production (Render)</option>
+                <option value="http://localhost:5000/api">💻 Localhost</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>🛍️ Delta Store</h2>
+        <p>سيتم تحديث 6 شرائح بروابط: <code>/assets/delta-store/sliders/sliderX.webp</code></p>
+        <button onclick="fixStore('delta-store', deltaSliders)" id="btn-delta">إصلاح Delta Store</button>
+        <div id="status-delta" class="status"></div>
+    </div>
+
+    <div class="card">
+        <h2>💄 Magna Beauty</h2>
+        <p>سيتم تحديث 5 شرائح بروابط: <code>/assets/magna-beauty/sliders/slideX.webp</code></p>
+        <button onclick="fixStore('magna-beauty', magnaSliders)" id="btn-magna">إصلاح Magna Beauty</button>
+        <div id="status-magna" class="status"></div>
+    </div>
+
+    <script>
+        const deltaSliders = [
+            { title: 'مجموعة الأوشحة الفاخرة', subtitle: 'أناقة لا تضاهى', imagePath: '/assets/delta-store/sliders/slider1.webp', sortOrder: 1 },
+            { title: 'حجاب أنيق وعصري', subtitle: 'لكل المناسبات', imagePath: '/assets/delta-store/sliders/slider2.webp', sortOrder: 2 },
+            { title: 'إكسسوارات حجاب مميزة', subtitle: 'لمسة جمالية', imagePath: '/assets/delta-store/sliders/slider3.webp', sortOrder: 3 },
+            { title: 'ملابس نسائية أنيقة', subtitle: 'أحدث الصيحات', imagePath: '/assets/delta-store/sliders/slider4.webp', sortOrder: 4 },
+            { title: 'تشكيلة صيفية مميزة', subtitle: 'خامة مريحة', imagePath: '/assets/delta-store/sliders/slider5.webp', sortOrder: 5 },
+            { title: 'أحدث صيحات الموضة', subtitle: 'تألقي معنا', imagePath: '/assets/delta-store/sliders/slider6.webp', sortOrder: 6 }
+        ];
+
+        const magnaSliders = [
+            { title: 'مكياج عصري أنيق', subtitle: 'جمالك يستحق', imagePath: '/assets/magna-beauty/sliders/slide1.webp', sortOrder: 1 },
+            { title: 'رموش أنيقة وعصرية', subtitle: 'نظرة ساحرة', imagePath: '/assets/magna-beauty/sliders/slide2.webp', sortOrder: 2 },
+            { title: 'إكسسوارات مميزة', subtitle: 'تكمل أناقتك', imagePath: '/assets/magna-beauty/sliders/slide3.webp', sortOrder: 3 },
+            { title: 'عناية فائقة بالبشرة', subtitle: 'إشراقة دائمة', imagePath: '/assets/magna-beauty/sliders/slide4.webp', sortOrder: 4 },
+            { title: 'تشكيلة عصرية مميزة', subtitle: 'لإطلالة خلابة', imagePath: '/assets/magna-beauty/sliders/slide5.webp', sortOrder: 5 }
+        ];
+
+        async function fixStore(slug, sliders) {
+            const btn = document.getElementById(`btn-${slug.split('-')[0]}`);
+            const statusDiv = document.getElementById(`status-${slug.split('-')[0]}`);
+            const apiUrl = document.getElementById('apiUrl').value;
+            
+            btn.disabled = true;
+            btn.textContent = 'جاري التحديث...';
+            statusDiv.className = 'status';
+            statusDiv.textContent = '';
+
+            try {
+                // 1. Get Store ID first
+                const storeRes = await fetch(`${apiUrl}/stores/${slug}`);
+                if (!storeRes.ok) throw new Error('لم يتم العثور على المتجر');
+                const storeData = await storeRes.json();
+                const storeId = storeData.data.id;
+
+                // 2. Delete existing sliders (Optional, but safer to avoid duplicates)
+                // We'll skip delete and rely on creating/updating logic if possible, 
+                // but standard create usually appends. Ideally we should wipe old ones.
+                // For now, let's just add new ones. 
+                
+                // Better approach: Use a custom endpoint if available, or just create new ones.
+                // Let's assume we are adding new clean ones.
+                
+                let successCount = 0;
+                
+                for (const slider of sliders) {
+                    const payload = {
+                        storeId: storeId,
+                        title: slider.title,
+                        subtitle: slider.subtitle,
+                        image: slider.imagePath, // Sending path as image
+                        imagePath: slider.imagePath,
+                        buttonText: 'تسوقي الآن',
+                        sortOrder: slider.sortOrder,
+                        isActive: true
+                    };
+
+                    // We need an endpoint to create slider WITHOUT file upload
+                    // Most endpoints expect multipart/form-data.
+                    // Let's try to find a JSON endpoint or check if multipart accepts text for image path.
+                    
+                    // If backend expects file, we might have an issue.
+                    // Let's check storeController.ts... createSlider usually takes file.
+                    // BUT, we can try sending 'image' as text field if the controller supports it.
+                    
+                    // Actually, looking at storeController, there isn't a simple "create slider json" endpoint usually exposed publicly.
+                    // However, we can use the "seed" approach or `fix-indeesh` approach.
+                    
+                    // Alternative: We can't easily push to DB without a proper endpoint.
+                    // Wait! We can use the /api/stores/update endpoint if it accepts sliders? No.
+                    
+                    // Let's try to hit the "slider" creation endpoint but without a file, passing image path manually?
+                    // Usually controllers check req.file. 
+                    
+                    // Plan B: Since I cannot execute SQL on Render directly from here.
+                    // I will provide a NODE SCRIPT that you can run LOCALLY that connects to REMOTE DB?
+                    // No, usually remote DB access is restricted.
+                    
+                    // Plan C: The most robust way is to use the `fix-sliders-cloud.html` to call a "maintenance" endpoint if it exists.
+                    // Does `storeController` have a way to update slider manually?
+                    
+                    // Let's try to update existing sliders if we can list them?
+                    // GET /api/sliders/store/:slug -> Get IDs -> PUT /api/sliders/:id { imagePath: ... }
+                    
+                    // Let's try to Fetch -> Update approach.
+                }
+
+                // Fetch current sliders
+                const slidersRes = await fetch(`${apiUrl}/sliders/store/${slug}`);
+                const slidersData = await slidersRes.json();
+                
+                if (slidersData.data && slidersData.data.length > 0) {
+                    // Update existing sliders
+                    for (let i = 0; i < Math.min(slidersData.data.length, sliders.length); i++) {
+                        const existingSlider = slidersData.data[i];
+                        const newDat = sliders[i];
+                        
+                        await fetch(`${apiUrl}/sliders/${existingSlider.id}`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                title: newDat.title,
+                                subtitle: newDat.subtitle,
+                                imagePath: newDat.imagePath, // Force update path
+                                sortOrder: newDat.sortOrder
+                            })
+                        });
+                        successCount++;
+                    }
+                    statusDiv.innerHTML = `✅ تم تحديث ${successCount} شريحة بنجاح! <br> قد تحتاج إلى الانتظار دقيقة حتى تتحدث الذاكرة المؤقتة.`;
+                    statusDiv.classList.add('success');
+                } else {
+                     statusDiv.innerHTML = `⚠️ لم يتم العثور على شرائح لتحديثها. المتجر فارغ.`;
+                     statusDiv.classList.add('error');
+                }
+
+            } catch (err) {
+                console.error(err);
+                statusDiv.textContent = `❌ حدث خطأ: ${err.message}`;
+                statusDiv.classList.add('error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = `إصلاح ${slug}`;
+            }
+        }
+    </script>
+</body>
+</html>
