@@ -14,6 +14,15 @@ interface AssetProxyRequest extends Request {
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://wbakbuqvdbmweujkbzxn.supabase.co';
 const SUPABASE_BUCKET = process.env.SUPABASE_STORAGE_BUCKET || 'ishro-assets';
 
+router.options('/:storeSlug/:imageType/:fileName', (req: AssetProxyRequest, res: Response) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+  res.setHeader('Access-Control-Max-Age', '86400');
+  res.status(200).end();
+});
+
 router.get('/:storeSlug/:imageType/:fileName', async (req: AssetProxyRequest, res: Response) => {
   try {
     const { storeSlug, imageType, fileName } = req.params;
@@ -48,7 +57,7 @@ router.get('/:storeSlug/:imageType/:fileName', async (req: AssetProxyRequest, re
     res.setHeader('Cache-Control', 'public, max-age=86400');
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
     if (contentLength) {
       res.setHeader('Content-Length', contentLength);

@@ -12,6 +12,7 @@ import StoreSlider from '@models/StoreSlider';
 import StoreAd from '@models/StoreAd';
 import UnavailableNotification from '@models/UnavailableNotification';
 import { moveUploadedFiles, cleanupTempUploads } from '@middleware/storeImageUpload';
+import { uploadImageToSupabase, uploadMultipleImagesToSupabase } from '@services/supabaseImageUpload';
 import fs from 'fs';
 import { promises as fsPromises } from 'fs';
 import path from 'path';
@@ -32,6 +33,14 @@ interface ProductData {
   inStock: boolean;
   tags: string[];
 }
+
+const getTempUploadPath = (): string => {
+  let basePath = process.cwd();
+  if (basePath.endsWith('backend')) {
+    basePath = path.join(basePath, '..');
+  }
+  return path.join(basePath, '.tmp-uploads');
+};
 
 async function runGeneration(data: any): Promise<void> {
   try {
@@ -460,7 +469,24 @@ export const createStoreWithImages = async (
       return;
     }
 
-    logger.info(`\n📦 Assigning images to ${parsedProducts.length} product(s)...\n`);
+    logger.info(`\n🔄 Uploading product images to Supabase...\n`);
+
+    const uploadedProductUrls: Record<string, string> = {};
+    
+    for (const [productIdx, files] of Object.entries(productFilesMap)) {
+      for (const file of files) {
+        const tempPath = path.join(getTempUploadPath(), file.filename);
+        if (fs.existsSync(tempPath)) {
+          const result = await uploadImageToSupabase(tempPath, storeSlug, 'products');
+          if (result.success) {
+            uploadedProductUrls[file.filename] = result.path;
+            logger.info(`  ✅ Product image uploaded to Supabase: ${file.filename}`);
+          } else {
+            logger.warn(`  ⚠️ Failed to upload ${file.filename}: ${result.error}`);
+          }
+        }
+      }
+    }
 
     if (aggregatedProductFiles.length > 0) {
       logger.info(`  🔄 Distributing ${aggregatedProductFiles.length} aggregated product image(s)`);
@@ -499,7 +525,7 @@ export const createStoreWithImages = async (
     const allUploadedImages: string[] = [];
     Object.values(productFilesMap).forEach(files => {
       files.forEach(f => {
-        const imgPath = `/assets/${storeSlug}/products/${f.filename}`;
+        const imgPath = uploadedProductUrls[f.filename] || `/assets/${storeSlug}/products/${f.filename}`;
         allUploadedImages.push(imgPath);
       });
     });
@@ -512,7 +538,7 @@ export const createStoreWithImages = async (
       
       let images: string[] = [];
       if (filesForThisProduct.length > 0) {
-        images = filesForThisProduct.map(f => `/assets/${storeSlug}/products/${f.filename}`);
+        images = filesForThisProduct.map(f => uploadedProductUrls[f.filename] || `/assets/${storeSlug}/products/${f.filename}`);
         logger.info(`  📦 Product ${idx} (${product.name}): ✅ ${images.length} image(s) assigned (specific)`);
       } else if (allUploadedImages.length > 0) {
         images = [allUploadedImages[imageIndex % allUploadedImages.length]];
@@ -546,7 +572,39 @@ export const createStoreWithImages = async (
       };
     });
 
-    logger.info(`\n✅ Image assignment complete - All products have unique images\n`);
+    logger.info(`\n✅ Product image assignment complete - All products have unique images\n`);
+
+    logger.info(`\n🔄 Uploading slider images to Supabase...\n`);
+
+    const uploadedSliderUrls: Record<string, string> = {};
+    for (const file of sliderFiles) {
+      const tempPath = path.join(getTempUploadPath(), file.filename);
+      if (fs.existsSync(tempPath)) {
+        const result = await uploadImageToSupabase(tempPath, storeSlug, 'sliders');
+        if (result.success) {
+          uploadedSliderUrls[file.filename] = result.path;
+          logger.info(`  ✅ Slider image uploaded to Supabase: ${file.filename}`);
+        } else {
+          logger.warn(`  ⚠️ Failed to upload slider ${file.filename}: ${result.error}`);
+        }
+      }
+    }
+
+    logger.info(`\n🔄 Uploading store logo to Supabase...\n`);
+    
+    let uploadedLogoUrl = '';
+    if (logoFile) {
+      const logoPath = path.join(getTempUploadPath(), logoFile.filename);
+      if (fs.existsSync(logoPath)) {
+        const logoResult = await uploadImageToSupabase(logoPath, storeSlug, 'logo');
+        if (logoResult.success) {
+          uploadedLogoUrl = logoResult.path;
+          logger.info(`  ✅ Logo uploaded to Supabase: ${logoFile.filename}`);
+        } else {
+          logger.warn(`  ⚠️ Failed to upload logo: ${logoResult.error}`);
+        }
+      }
+    }
 
     const defaultSliderImages = [
       {
@@ -568,10 +626,10 @@ export const createStoreWithImages = async (
     const slidersWithImages: SliderImage[] = (parsedSliders.length > 0 ? parsedSliders : defaultSliderImages).map((slider, i) => {
       const file = sliderFiles[i];
       const image = file 
-        ? `/assets/${storeSlug}/sliders/${file.filename}` 
+        ? (uploadedSliderUrls[file.filename] || `/assets/${storeSlug}/sliders/${file.filename}`)
         : (slider.image && slider.image.trim() ? slider.image : defaultSliderImages[i]?.image || '/assets/default-slider.png');
       
-      logger.info(`  🖼️ Slider ${slider.id}: ${file ? 'uploaded image' : 'using default/provided image'}`);
+      logger.info(`  🖼️ Slider ${slider.id}: ${file ? 'uploaded image to Supabase' : 'using default/provided image'}`);
       
       return {
         ...slider,
@@ -579,9 +637,7 @@ export const createStoreWithImages = async (
       };
     });
 
-    const logoUrl = logoFile 
-      ? `/assets/${storeSlug}/logo/${logoFile.filename}` 
-      : `/assets/default-store.png`;
+    const logoUrl = uploadedLogoUrl || (logoFile ? `/assets/${storeSlug}/logo/${logoFile.filename}` : `/assets/default-store.png`);
     logger.info(`  🏷️ Logo: ${logoUrl}`);
 
     logger.info(`📝 Generating store files for: ${storeName}`);
