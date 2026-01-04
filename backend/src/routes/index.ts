@@ -11,6 +11,7 @@ import categoryRoutes from './categoryRoutes';
 import adRoutes from './adRoutes';
 import sliderRoutes from './sliderRoutes';
 import inventoryRoutes from './inventoryRoutes';
+import assetProxyRoutes from './assetProxyRoutes';
 
 const router = Router();
 
@@ -24,5 +25,6 @@ router.use(`${API_PREFIX}/categories`, categoryRoutes);
 router.use(`${API_PREFIX}/ads`, adRoutes);
 router.use(`${API_PREFIX}/sliders`, sliderRoutes);
 router.use(`${API_PREFIX}/inventory`, inventoryRoutes);
+router.use(`${API_PREFIX}/assets-proxy`, assetProxyRoutes);
 
 export default router;
