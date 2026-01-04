@@ -46,6 +46,10 @@ router.get('/:storeSlug/:imageType/:fileName', async (req: AssetProxyRequest, re
 
     res.setHeader('Content-Type', contentType);
     res.setHeader('Cache-Control', 'public, max-age=86400');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
     if (contentLength) {
       res.setHeader('Content-Length', contentLength);
     }
