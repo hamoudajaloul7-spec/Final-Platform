@@ -17,6 +17,36 @@ const getDefaultApiUrl = (): string => {
 
 const API_BASE_URL = getDefaultApiUrl();
 const BACKEND_BASE_URL = API_BASE_URL.replace('/api', '');
+const TOKEN_KEY = 'eishro_auth_token';
+const REFRESH_TOKEN_KEY = 'eishro_refresh_token';
+
+const getAuthToken = (): string | null => {
+  try {
+    return localStorage.getItem(TOKEN_KEY);
+  } catch {
+    return null;
+  }
+};
+
+const setAuthTokens = (token: string, refreshToken?: string) => {
+  try {
+    localStorage.setItem(TOKEN_KEY, token);
+    if (refreshToken) {
+      localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+    }
+  } catch {
+    console.warn('Failed to store auth tokens');
+  }
+};
+
+const clearAuthTokens = () => {
+  try {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(REFRESH_TOKEN_KEY);
+  } catch {
+    console.warn('Failed to clear auth tokens');
+  }
+};
 
 const MINIMAX_API_CONFIG = {
   baseURL: import.meta.env.VITE_MINIMAX_API_URL || 'https://api.minimax.chat/v1',
@@ -88,10 +118,14 @@ class UnifiedApiService {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), MINIMAX_API_CONFIG.timeout);
 
+        const authToken = isMinimaxRequest ? null : getAuthToken();
+        const authHeader = authToken ? { 'Authorization': `Bearer ${authToken}` } : {};
+
         const response = await fetch(url, {
           ...options,
           headers: {
             'Content-Type': 'application/json',
+            ...authHeader,
             ...(isMinimaxRequest && MINIMAX_API_CONFIG.apiKey ? { 'Authorization': `Bearer ${MINIMAX_API_CONFIG.apiKey}` } : {}),
             ...options.headers,
           },
@@ -137,9 +171,36 @@ class UnifiedApiService {
     options: RequestInit = {}
   ): Promise<ApiResponse<T>> {
     return this.requestWithRetry(endpoint, options, 3, false);
+    }
+
+  async login(email: string, password: string): Promise<ApiResponse> {
+    const response = await this.request('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    });
+    if (response.success && response.data?.token) {
+      setAuthTokens(response.data.token, response.data.refreshToken);
+    }
+    return response;
+  }
+
+  async register(userData: any): Promise<ApiResponse> {
+    const response = await this.request('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(userData),
+    });
+    if (response.success && response.data?.token) {
+      setAuthTokens(response.data.token, response.data.refreshToken);
+    }
+    return response;
+  }
+
+  async logout(): Promise<void> {
+    clearAuthTokens();
   }
 
   async createStoreWithImages(formData: FormData): Promise<ApiResponse> {
+
     try {
       const url = `${BACKEND_BASE_URL}/api/stores/create-with-images`;
 
