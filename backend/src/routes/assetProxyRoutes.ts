@@ -38,7 +38,7 @@ router.get('/:storeSlug/:imageType/:fileName', async (req: AssetProxyRequest, re
       return;
     }
 
-    const supabaseUrl = `${SUPABASE_URL}/storage/v1/object/public/${SUPABASE_BUCKET}/${storeSlug}/${imageType}/${fileName}`;
+    const supabaseUrl = `${SUPABASE_URL}/storage/v1/object/public/${SUPABASE_BUCKET}/${imageType}/stores/${storeSlug}/${fileName}`;
 
     logger.info(`🔗 Proxying asset: ${supabaseUrl}`);
 
