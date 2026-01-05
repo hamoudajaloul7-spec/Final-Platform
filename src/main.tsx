@@ -1,4 +1,3 @@
-// Main entry point for the React application
 import { createRoot } from 'react-dom/client'
 import '@/index.css'
 import App from '@/App'
@@ -11,23 +10,13 @@ declare global {
 }
 
 if (import.meta.env.PROD) {
-  const devtoolsOpen = () => {
-    const start = performance.now();
-    debugger;
-    if (performance.now() - start > 100) {
-      window.location.href = 'about:blank';
-    }
-  };
-
-  setInterval(devtoolsOpen, 1000);
-
   const disableContextMenu = (e: MouseEvent) => {
     e.preventDefault();
     return false;
   };
 
   const disableKeyboard = (e: KeyboardEvent) => {
-    if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'C' || e.key === 'I' || e.key === 'J')) || (e.ctrlKey && e.key === 'Shift' && e.key === 'K')) {
+    if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'C' || e.key === 'I'))) {
       e.preventDefault();
       return false;
     }
