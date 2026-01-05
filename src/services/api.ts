@@ -118,7 +118,8 @@ class UnifiedApiService {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), MINIMAX_API_CONFIG.timeout);
 
-        const authToken = isMinimaxRequest ? null : getAuthToken();
+        const isAssetRequest = endpoint.includes('/assets');
+        const authToken = (isMinimaxRequest || isAssetRequest) ? null : getAuthToken();
         const authHeader = authToken ? { 'Authorization': `Bearer ${authToken}` } : {};
 
         const response = await fetch(url, {
