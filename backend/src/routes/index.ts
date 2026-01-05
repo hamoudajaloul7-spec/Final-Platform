@@ -25,6 +25,6 @@ router.use(`${API_PREFIX}/categories`, categoryRoutes);
 router.use(`${API_PREFIX}/ads`, adRoutes);
 router.use(`${API_PREFIX}/sliders`, sliderRoutes);
 router.use(`${API_PREFIX}/inventory`, inventoryRoutes);
-router.use(`${API_PREFIX}/assets-proxy`, assetProxyRoutes);
+router.use(`${API_PREFIX}/assets`, assetProxyRoutes);
 
 export default router;
