@@ -22,8 +22,7 @@ import {
 } from 'lucide-react';
 import { storesData } from '@/data/ecommerceData';
 import { allStoreProducts } from '@/data/allStoreProducts';
-import { loadStoreBySlug } from '@/utils/storeLoader';
-import { loadStoreData, convertConfigProductToProduct } from '@/utils/storeConfigLoader';
+import { convertConfigProductToProduct } from '@/utils/storeConfigLoader';
 import { getStoreConfig } from '@/config/storeConfig';
 import type { Product } from '@/data/storeProducts';
 import EnhancedNotifyModal from '@/components/EnhancedNotifyModal';
@@ -286,13 +285,12 @@ const ModernStorePage: React.FC<ModernStorePageProps> = ({
 
   useEffect(() => {
     const loadDynamicStoreData = async () => {
-      // Always try to load by slug, even if store object isn't fully populated yet
-      const currentSlug = storeSlug || store?.slug;
+      const currentSlug = storeSlug;
       if (!currentSlug) return;
       
       setLoadingStore(true);
       try {
-        // 1. Try to fetch from Public API first (The Fix)
+        // 1. Try to fetch from Public API first
         const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
         try {
           const response = await fetch(`${apiUrl}/stores/public/${currentSlug}`);
@@ -301,7 +299,6 @@ const ModernStorePage: React.FC<ModernStorePageProps> = ({
             if (result.success && result.data) {
               const { store: apiStore, products: apiProducts, sliders: apiSliders } = result.data;
               
-              // Update state with API data
               setEnhancedStore(prev => ({
                 ...prev,
                 ...apiStore,
@@ -313,40 +310,41 @@ const ModernStorePage: React.FC<ModernStorePageProps> = ({
                 sliderImages: apiSliders
               });
 
-              // If we have products from API, use them
-              if (apiProducts && apiProducts.length > 0) {
-                 // Map API products to frontend format if necessary
-                 // (Assuming API returns format compatible with frontend Product type)
-                 // You might need a mapper here if structures differ significantly
-              }
-              
               setLoadingStore(false);
-              return; // Exit if API load successful
+              return;
             }
           }
         } catch (apiError) {
-          console.warn('Failed to load from public API, falling back to local storage', apiError);
+          // Silent fallback
         }
 
-        // 2. Fallback to Local Storage / Static Data (Original Logic)
-        // Check for cache corruption and clear if needed
+        // 2. Fallback to Local Storage / Static Data
         await detectAndClearCacheCorruption(currentSlug);
         
-        const storeData = await loadStoreBySlug(currentSlug);
-        if (storeData) {
-          setDynamicStoreData(storeData);
-          
-          if (storeData.logo && store?.logo && storeData.logo !== store.logo) {
-            setEnhancedStore({
-              ...store,
-              logo: storeData.logo
-            });
-          } else if (store) {
-            setEnhancedStore(store);
+        // Try localStorage first
+        const stored = localStorage.getItem(`store_products_${currentSlug}`);
+        if (stored) {
+          try {
+            const parsed = JSON.parse(stored);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              setDynamicStoreData({ products: parsed, sliderImages: [] });
+              setLoadingStore(false);
+              return;
+            }
+          } catch (e) {
+            // Invalid data, clear and continue
+            localStorage.removeItem(`store_products_${currentSlug}`);
           }
         }
+        
+        // Try store config
+        const storeConfig = getStoreConfig(currentSlug);
+        if (storeConfig && storeConfig.products && storeConfig.products.length > 0) {
+          const products = storeConfig.products.map(convertConfigProductToProduct);
+          setDynamicStoreData({ products, sliderImages: [] });
+        }
       } catch (error) {
-        // Handle error silently
+        // Silent error handling
       } finally {
         setLoadingStore(false);
       }
@@ -354,7 +352,7 @@ const ModernStorePage: React.FC<ModernStorePageProps> = ({
     
     loadDynamicStoreData();
     fetchAds();
-  }, [storeSlug, store?.slug]);
+  }, [storeSlug]);
 
   /**
    * Detect and clear cache corruption for a specific store
