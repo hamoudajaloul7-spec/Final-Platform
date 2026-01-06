@@ -1369,6 +1369,8 @@ export default function Home() {
       setCurrentPage('home');
       setCurrentStore(null);
       setCurrentProduct(null);
+    } else if (pathname === '/help-center' || pathname === '/help') {
+      setCurrentPage('help-center');
     } else if (pathname === '/cart') {
       setCurrentPage('cart');
     } else if (pathname === '/checkout') {
@@ -1383,8 +1385,6 @@ export default function Home() {
       setCurrentPage('terms');
     } else if (pathname === '/admin') {
       setCurrentPage('admin');
-    } else if (pathname === '/help-center' || pathname === '/help') {
-      setCurrentPage('help-center');
     } else if (pathname === '/auth/google/callback') {
       setCurrentPage('auth-callback');
     } else if (pathname.startsWith('/merchant/')) {
@@ -3069,6 +3069,11 @@ export default function Home() {
     return <PartnersPageLazy onBack={handleBackToHome} />;
   }
 
+  // عرض صفحة مركز المساعدة
+  if (currentPage === 'help-center') {
+    return <HelpCenterLazy />;
+  }
+
   // عرض صفحة الشروط والأحكام
   if (currentPage === 'terms') {
     return (
@@ -3076,11 +3081,6 @@ export default function Home() {
         onBack={handleBackToHome}
       />
     );
-  }
-
-  // عرض صفحة مركز المساعدة
-  if (currentPage === 'help-center') {
-    return <HelpCenterLazy />;
   }
 
   // عرض صفحة المتجر
