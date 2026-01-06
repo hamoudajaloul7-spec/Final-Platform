@@ -31,6 +31,7 @@ import {
   MerchantSettingsLazy,
   AdminPortalLazy,
   CustomerDashboardLazy,
+  HelpCenterLazy,
 } from "@/components/LazyPages";
 import type { PersonalInfoData } from "@/pages/MerchantPersonalInfo";
 import type { StoreInfoData } from "@/pages/MerchantStoreInfo";
@@ -1339,6 +1340,8 @@ export default function Home() {
       newPath = '/partner-success';
     } else if (currentPage === 'terms') {
       newPath = '/terms';
+    } else if (currentPage === 'help-center') {
+      newPath = '/help-center';
     } else if (currentPage === 'merchant-dashboard') {
       newPath = '/merchant/dashboard';
     } else if (currentPage === 'merchant-login') {
@@ -1380,6 +1383,8 @@ export default function Home() {
       setCurrentPage('terms');
     } else if (pathname === '/admin') {
       setCurrentPage('admin');
+    } else if (pathname === '/help-center' || pathname === '/help') {
+      setCurrentPage('help-center');
     } else if (pathname === '/auth/google/callback') {
       setCurrentPage('auth-callback');
     } else if (pathname.startsWith('/merchant/')) {
@@ -3071,6 +3076,11 @@ export default function Home() {
         onBack={handleBackToHome}
       />
     );
+  }
+
+  // عرض صفحة مركز المساعدة
+  if (currentPage === 'help-center') {
+    return <HelpCenterLazy />;
   }
 
   // عرض صفحة المتجر

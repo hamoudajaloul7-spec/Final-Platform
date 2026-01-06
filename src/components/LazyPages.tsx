@@ -47,6 +47,7 @@ export const lazyPages = {
   MerchantSettings: React.lazy(() => import('@/pages/MerchantSettings')),
   AdminPortal: React.lazy(() => import('@/pages/AdminPortal')),
   CustomerDashboard: React.lazy(() => import('@/pages/CustomerDashboard')),
+  HelpCenter: React.lazy(() => import('@/pages/HelpCenterPage')),
 };
 
 export const PartnersPageLazy = withSuspense(lazyPages.PartnersPage);
@@ -75,3 +76,4 @@ export const MerchantFinanceLazy = withSuspense(lazyPages.MerchantFinance);
 export const MerchantSettingsLazy = withSuspense(lazyPages.MerchantSettings);
 export const AdminPortalLazy = withSuspense(lazyPages.AdminPortal);
 export const CustomerDashboardLazy = withSuspense(lazyPages.CustomerDashboard);
+export const HelpCenterLazy = withSuspense(lazyPages.HelpCenter);
