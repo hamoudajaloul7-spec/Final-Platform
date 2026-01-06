@@ -107,6 +107,15 @@ app.get('/health', (req: Request, res: Response): void => {
   });
 });
 
+app.get('/api/health', (req: Request, res: Response): void => {
+  res.status(200).json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    environment: config.environment,
+    skipDbInit: process.env.SKIP_DB_INIT === 'true'
+  });
+});
+
 let basePath = process.cwd();
 if (basePath.endsWith('backend')) {
   basePath = path.join(basePath, '..');
