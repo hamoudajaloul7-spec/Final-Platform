@@ -52,6 +52,12 @@ const getBackendUrl = () => {
 };
 
 const getImageUrl = (assetPath: string) => {
+  if (assetPath.startsWith('/assets/')) {
+    return {
+      primary: assetPath,
+      fallback: assetPath,
+    };
+  }
   const backendUrl = getBackendUrl();
   return {
     primary: `${backendUrl}${assetPath}`,
