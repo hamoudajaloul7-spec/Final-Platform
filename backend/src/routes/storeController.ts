@@ -7,6 +7,7 @@ import Store from '@models/Store';
 import StoreSlider from '@models/StoreSlider';
 import User from '@models/User';
 import { moveUploadedFiles, cleanupTempUploads } from '@middleware/storeImageUpload';
+import { uploadMultipleImagesToSupabase, uploadImageToSupabase } from '@services/supabaseImageUpload';
 import fs from 'fs';
 import path from 'path';
 
@@ -272,6 +273,101 @@ async function verifyStorePermanentStorage(storeSlug: string): Promise<StoreVeri
   return result;
 }
 
+async function uploadStoreAssetsToSupabase(
+  storeSlug: string,
+  logoFile: Express.Multer.File | undefined,
+  productFiles: Express.Multer.File[],
+  sliderFiles: Express.Multer.File[]
+): Promise<void> {
+  try {
+    const publicAssetsPath = path.join(process.cwd(), 'public/assets');
+    const storeAssetDir = path.join(publicAssetsPath, storeSlug);
+
+    logger.info(`☁️ Starting Supabase upload for store: ${storeSlug}`);
+
+    const uploadResults = {
+      logo: { success: 0, failed: 0 },
+      products: { success: 0, failed: 0 },
+      sliders: { success: 0, failed: 0 }
+    };
+
+    if (logoFile) {
+      logger.info(`📤 Uploading logo to Supabase...`);
+      const logoPath = path.join(storeAssetDir, 'logo', logoFile.filename);
+      if (fs.existsSync(logoPath)) {
+        const result = await uploadImageToSupabase(logoPath, storeSlug, 'logo');
+        if (result.success) {
+          uploadResults.logo.success++;
+          logger.info(`✅ Logo uploaded: ${result.url}`);
+        } else {
+          uploadResults.logo.failed++;
+          logger.warn(`⚠️ Logo upload failed: ${result.error}`);
+        }
+      }
+    }
+
+    if (productFiles.length > 0) {
+      logger.info(`📤 Uploading ${productFiles.length} product images to Supabase...`);
+      const productImagePaths = productFiles.map(file => {
+        const productPath = path.join(storeAssetDir, 'products', file.filename);
+        return { path: productPath, filename: file.filename };
+      }).filter(p => fs.existsSync(p.path));
+
+      if (productImagePaths.length > 0) {
+        const results = await uploadMultipleImagesToSupabase(productImagePaths, storeSlug, 'products');
+        results.forEach(result => {
+          if (result.success) {
+            uploadResults.products.success++;
+            logger.info(`✅ Product image uploaded: ${result.filename}`);
+          } else {
+            uploadResults.products.failed++;
+            logger.warn(`⚠️ Product image upload failed: ${result.filename} - ${result.error}`);
+          }
+        });
+      }
+    }
+
+    if (sliderFiles.length > 0) {
+      logger.info(`📤 Uploading ${sliderFiles.length} slider images to Supabase...`);
+      const sliderImagePaths = sliderFiles.map(file => {
+        const sliderPath = path.join(storeAssetDir, 'sliders', file.filename);
+        return { path: sliderPath, filename: file.filename };
+      }).filter(p => fs.existsSync(p.path));
+
+      if (sliderImagePaths.length > 0) {
+        const results = await uploadMultipleImagesToSupabase(sliderImagePaths, storeSlug, 'sliders');
+        results.forEach(result => {
+          if (result.success) {
+            uploadResults.sliders.success++;
+            logger.info(`✅ Slider image uploaded: ${result.filename}`);
+          } else {
+            uploadResults.sliders.failed++;
+            logger.warn(`⚠️ Slider image upload failed: ${result.filename} - ${result.error}`);
+          }
+        });
+      }
+    }
+
+    const totalSuccess = uploadResults.logo.success + uploadResults.products.success + uploadResults.sliders.success;
+    const totalFailed = uploadResults.logo.failed + uploadResults.products.failed + uploadResults.sliders.failed;
+
+    logger.info(`🎯 Supabase upload summary for ${storeSlug}:`);
+    logger.info(`   Logo: ${uploadResults.logo.success} success, ${uploadResults.logo.failed} failed`);
+    logger.info(`   Products: ${uploadResults.products.success} success, ${uploadResults.products.failed} failed`);
+    logger.info(`   Sliders: ${uploadResults.sliders.success} success, ${uploadResults.sliders.failed} failed`);
+    logger.info(`   Total: ${totalSuccess} success, ${totalFailed} failed`);
+
+    if (totalSuccess > 0) {
+      logger.info(`✅ Store assets synced to Supabase Storage (${totalSuccess} files)`);
+    }
+    if (totalFailed > 0) {
+      logger.warn(`⚠️ Some assets failed to upload to Supabase (${totalFailed} files), but store creation continues`);
+    }
+  } catch (error) {
+    logger.warn(`⚠️ Non-critical: Supabase upload failed for ${storeSlug}:`, error);
+  }
+}
+
 export const createStoreWithFiles = async (
   req: Request,
   res: Response,
@@ -438,20 +534,15 @@ export const createStoreWithImages = async (
       return;
     }
 
-    // Smart image mapping based on original filenames
     const mapImagesToProducts = (products: ProductData[], files: Express.Multer.File[]): ProductData[] => {
-      // Create a map of base names to files
       const fileMap = new Map<string, Express.Multer.File[]>();
 
       files.forEach(file => {
-        // Extract original name without extension and timestamp
-        const originalName = file.originalname.toLowerCase().replace(/\.[^/.]+$/, ''); // Remove extension
-        const cleanName = originalName.replace(/^\d+-[\w]+-/, ''); // Remove timestamp prefix
+        const originalName = file.originalname.toLowerCase().replace(/\.[^/.]+$/, '');
+        const cleanName = originalName.replace(/^\d+-[\w]+-/, '');
 
-        // Handle variations like "alfa", "alfa1", "alfa2", etc.
         let baseName = cleanName;
         if (/\d+$/.test(cleanName)) {
-          // If ends with number, remove it to get base name
           baseName = cleanName.replace(/\d+$/, '');
         }
 
@@ -461,33 +552,29 @@ export const createStoreWithImages = async (
         fileMap.get(baseName)!.push(file);
       });
 
-      // Map products to their images
       return products.map(product => {
         const productName = product.name.toLowerCase()
-          .replace(/[^\w\s]/g, '') // Remove special chars
-          .replace(/\s+/g, '') // Remove spaces
+          .replace(/[^\w\s]/g, '')
+          .replace(/\s+/g, '')
           .trim();
 
-        // Try different variations of the product name
         const possibleKeys = [
           productName,
-          productName.replace(/مزيل|شامل|ملمع|زجاج|غسيل|منظف/g, ''), // Remove common words
-          productName.substring(0, 4), // First 4 chars
-          productName.substring(0, 3), // First 3 chars
+          productName.replace(/مزيل|شامل|ملمع|زجاج|غسيل|منظف/g, ''),
+          productName.substring(0, 4),
+          productName.substring(0, 3),
         ];
 
         let matchedFiles: Express.Multer.File[] = [];
 
-        // Find files that match any of the possible keys
         for (const key of possibleKeys) {
           if (fileMap.has(key)) {
             matchedFiles = fileMap.get(key)!;
-            fileMap.delete(key); // Remove to avoid reuse
+            fileMap.delete(key);
             break;
           }
         }
 
-        // If no direct match, try fuzzy matching
         if (matchedFiles.length === 0) {
           for (const [key, files] of fileMap.entries()) {
             if (productName.includes(key) || key.includes(productName.substring(0, 3))) {
@@ -500,7 +587,6 @@ export const createStoreWithImages = async (
 
         const images = matchedFiles
           .sort((a, b) => {
-            // Sort by original filename to maintain order
             const aName = a.originalname.toLowerCase();
             const bName = b.originalname.toLowerCase();
             return aName.localeCompare(bName);
@@ -516,7 +602,6 @@ export const createStoreWithImages = async (
 
     parsedProducts = mapImagesToProducts(parsedProducts, productFiles);
 
-    // Assign slider images 1-to-1 if available
     const slidersWithImages: SliderImage[] = parsedSliders.map((slider, i) => {
       const file = sliderFiles[i];
       return {
@@ -526,6 +611,14 @@ export const createStoreWithImages = async (
     });
 
     const logoUrl = logoFile ? `/assets/${storeSlug}/logo/${logoFile.filename}` : '/assets/default-store.png';
+
+    logger.info(`☁️ Uploading store assets to Supabase...`);
+    try {
+      await uploadStoreAssetsToSupabase(storeSlug, logoFile, productFiles, sliderFiles);
+      logger.info(`✅ Supabase upload completed for: ${storeSlug}`);
+    } catch (supabaseError) {
+      logger.warn(`⚠️ Non-critical: Supabase upload had issues, continuing with store creation:`, supabaseError);
+    }
 
     logger.info(`📝 Generating store files for: ${storeName}`);
     

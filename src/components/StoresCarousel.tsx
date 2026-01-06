@@ -218,24 +218,27 @@ const StoresCarousel: React.FC<StoresCarouselProps> = ({ onStoreClick }) => {
 
   async function loadAll() {
     const jsonStores = await fetchJsonStores();
-    let merged = jsonStores.map((s) => ({ ...s, slug: canonicalSlug(s.slug) }));
-
-    if (jsonStores.length === 0) {
-      const localStores = getLocalDynamicStores();
-      merged = localStores.map((s) => ({ ...s, slug: canonicalSlug(s.slug) }));
-    } else {
-      const localStores = getLocalDynamicStores();
-      if (localStores.length > 0) {
-        const map = new Map<string, any>();
-        merged.forEach((s) => map.set(canonicalSlug(s.slug), { ...s, slug: canonicalSlug(s.slug) }));
-        localStores.forEach((s) => {
-          const key = canonicalSlug(s.slug);
-          if (!map.has(key)) map.set(key, { ...s, slug: key });
-        });
-        merged = Array.from(map.values());
-      }
+    const localStores = getLocalDynamicStores();
+    
+    const map = new Map<string, any>();
+    
+    if (jsonStores.length > 0) {
+      jsonStores.forEach((s) => {
+        const slug = canonicalSlug(s.slug);
+        if (slug) map.set(slug, { ...s, slug });
+      });
+    }
+    
+    if (localStores.length > 0) {
+      localStores.forEach((s) => {
+        const slug = canonicalSlug(s.slug);
+        if (slug && !map.has(slug)) {
+          map.set(slug, { ...s, slug });
+        }
+      });
     }
 
+    const merged = Array.from(map.values());
     const storesJson = JSON.stringify(merged);
     if (storesJson !== lastStoresRef.current) {
       lastStoresRef.current = storesJson;
@@ -266,7 +269,17 @@ const StoresCarousel: React.FC<StoresCarouselProps> = ({ onStoreClick }) => {
       });
     push(storesData as any[]);
     push(dynamicStores as any[]);
-    return Array.from(map.values());
+    
+    const result = Array.from(map.values());
+    
+    if (result.length === 0) {
+      return (storesData as any[]).map((s) => ({
+        ...s,
+        slug: canonicalSlug(s.slug),
+      }));
+    }
+    
+    return result;
   })();
 
   const pinFirst = ['nawaem', 'sheirine', 'pretty', 'delta-store', 'magna-beauty', 'indeesh'];

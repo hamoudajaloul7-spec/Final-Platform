@@ -30,7 +30,6 @@ import { sheirineStoreConfig } from '@/data/stores/sheirine/config';
 import { magnaStoreConfig } from '@/data/stores/magna-beauty/config';
 import SheirineSlider from '@/data/stores/sheirine/Slider';
 import { getTagColor, calculateBadge, getButtonConfig, applyAutoBadges } from '@/utils/badgeCalculator';
-import { getStoreProducts, getProductsByStore } from '@/utils/storeProductLoader';
 
 interface StorePageProps {
   storeSlug: string;
@@ -131,20 +130,35 @@ const StorePage: React.FC<StorePageProps> = ({ storeSlug, onBack, onProductClick
   const storeConfig = getStoreConfig(storeSlug);
   let storeProducts: any[] = [];
   
+  const storeProductMap: Record<string, any[]> = {
+    nawaem: nawaemProducts || [],
+    sheirine: sheirineProducts || [],
+    pretty: prettyProducts || [],
+    'delta-store': deltaProducts || [],
+    'magna-beauty': magnaBeautyProducts || [],
+    indeesh: indeeshProducts || [],
+  };
+  
   if (store) {
     const preDefinedStores = ['nawaem', 'sheirine', 'pretty', 'delta-store', 'magna-beauty', 'indeesh'];
     
     if (preDefinedStores.includes(store.slug)) {
-      const products = getStoreProducts(store.slug);
+      const products = storeProductMap[store.slug] || [];
       if (products && products.length > 0) {
         storeProducts = applyAutoBadges(products);
       } else {
-        const filteredProducts = getProductsByStore(store.id, liveProducts);
+        const filteredProducts = liveProducts.filter(p => {
+          const pStoreId = p.storeId || p.store_id;
+          return pStoreId === store.id || (typeof pStoreId === 'string' && pStoreId === store.id.toString());
+        });
         storeProducts = applyAutoBadges(filteredProducts.length > 0 ? filteredProducts : sampleProducts.filter(p => p.storeId === store.id));
       }
     } else {
       if (liveProducts.length > 0) {
-        const filteredByStore = getProductsByStore(store.id, liveProducts);
+        const filteredByStore = liveProducts.filter(p => {
+          const pStoreId = p.storeId || p.store_id;
+          return pStoreId === store.id || (typeof pStoreId === 'string' && pStoreId === store.id.toString());
+        });
         storeProducts = applyAutoBadges(filteredByStore.length > 0 ? filteredByStore : []);
       } else {
         const filteredByStore = sampleProducts.filter(p => p.storeId === store.id);
