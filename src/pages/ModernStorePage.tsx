@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import LazyImage from '@/components/LazyImage';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -32,30 +32,6 @@ import SheirineSlider from '@/data/stores/sheirine/Slider';
 import { getDefaultProductImageSync, handleImageError } from '@/utils/imageUtils';
 import { getTagColor, calculateBadge } from '@/utils/badgeCalculator';
 import { getProxyImageUrl, convertProductImages } from '@/utils/assetProxyUtil';
-
-const getDynamicStores = () => {
-  try {
-    const stored = localStorage.getItem('eshro_stores');
-    if (!stored) return [];
-
-    const stores = JSON.parse(stored);
-    const completedStores = stores.filter((store: any) => store.setupComplete === true);
-    return completedStores.map((store: any) => ({
-      id: store.id,
-      name: store.nameAr,
-      slug: store.subdomain,
-      description: store.description,
-      logo: '/assets/default-store.png',
-      categories: store.categories,
-      url: `/${store.subdomain}`,
-      endpoints: {},
-      social: {},
-      isActive: true
-    }));
-  } catch (error) {
-    return [];
-  }
-};
 
 interface ModernStorePageProps {
   storeSlug: string;
@@ -94,7 +70,6 @@ const ModernStorePage: React.FC<ModernStorePageProps> = ({
       if (!stored) return [];
 
       const newStores = JSON.parse(stored);
-      // Only show stores that have completed setup
       const completedStores = newStores.filter((store: any) => store.setupComplete === true);
       return completedStores.map((store: any) => {
         const slug = store.subdomain;
@@ -119,7 +94,7 @@ const ModernStorePage: React.FC<ModernStorePageProps> = ({
     }
   };
 
-  const allStores = (() => {
+  const allStores = useMemo(() => {
     const storeMap = new Map<string, any>();
     const staticSlugs = new Set<string>();
     
@@ -135,9 +110,9 @@ const ModernStorePage: React.FC<ModernStorePageProps> = ({
     });
     
     return Array.from(storeMap.values());
-  })();
+  }, []);
   
-  const store = allStores.find(s => s.slug === storeSlug);
+  const store = useMemo(() => allStores.find(s => s.slug === storeSlug), [allStores, storeSlug]);
 
   const getStoreProducts = (storeSlug: string, storeId?: number) => {
     try {
