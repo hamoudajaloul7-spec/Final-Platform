@@ -7,7 +7,7 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "https://eishro-backend-6m0wjcd2y-bennoubas-projects.vercel.app/api/$1"
+      "destination": "https://eishro-backend.onrender.com/api/$1"
     },
     {
       "source": "/((?!api/).*)",
