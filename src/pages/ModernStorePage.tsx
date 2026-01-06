@@ -121,9 +121,7 @@ const ModernStorePage: React.FC<ModernStorePageProps> = ({
         try {
           const parsed = JSON.parse(stored);
           
-          // Validate parsed data integrity
           if (parsed && Array.isArray(parsed)) {
-            // Additional validation for product structure
             const validProducts = parsed.filter(product => 
               product && 
               typeof product === 'object' && 
@@ -133,7 +131,7 @@ const ModernStorePage: React.FC<ModernStorePageProps> = ({
             );
             
             if (validProducts.length === parsed.length) {
-              return parsed; // Data is valid
+              return parsed;
             } else {
               localStorage.removeItem(`store_products_${storeSlug}`);
               localStorage.removeItem(`eshro_store_files_${storeSlug}`);
@@ -145,36 +143,42 @@ const ModernStorePage: React.FC<ModernStorePageProps> = ({
         }
       }
     } catch (error) {
-      // Clear potentially corrupted data
       localStorage.removeItem(`store_products_${storeSlug}`);
     }
     return [];
   };
 
-  let storeProducts: Product[] = [];
-  const storeConfig = store ? getStoreConfig(store.slug) : null;
+  const storeConfig = useMemo(() => {
+    return store ? getStoreConfig(store.slug) : null;
+  }, [store]);
 
-  if (store) {
+  const storeProducts = useMemo(() => {
+    if (!store) return [];
+    
     if (dynamicStoreData?.products && dynamicStoreData.products.length > 0) {
-      storeProducts = dynamicStoreData.products;
-    } else {
-      const dynamicProducts = getStoreProducts(store.slug, store.id);
-      if (dynamicProducts.length > 0) {
-        storeProducts = dynamicProducts;
-      } else if (storeConfig && storeConfig.products.length > 0) {
-        storeProducts = storeConfig.products.map(convertConfigProductToProduct);
-      } else {
-        storeProducts = allStoreProducts.filter(p => p.storeId === store.id);
-      }
+      return dynamicStoreData.products;
     }
-  }
+    
+    const dynamicProducts = getStoreProducts(store.slug, store.id);
+    if (dynamicProducts.length > 0) {
+      return dynamicProducts;
+    }
+    
+    if (storeConfig && storeConfig.products.length > 0) {
+      return storeConfig.products.map(convertConfigProductToProduct);
+    }
+    
+    return allStoreProducts.filter(p => p.storeId === store.id);
+  }, [store, dynamicStoreData, storeConfig]);
 
-  let displayProducts = storeProducts;
-  if (currentView === 'discounts') {
-    displayProducts = storeProducts.filter(p => p.tags.includes('تخفيضات'));
-  } else if (currentView === 'new') {
-    displayProducts = storeProducts.filter(p => p.tags.includes('جديد'));
-  }
+  const displayProducts = useMemo(() => {
+    if (currentView === 'discounts') {
+      return storeProducts.filter(p => p.tags.includes('تخفيضات'));
+    } else if (currentView === 'new') {
+      return storeProducts.filter(p => p.tags.includes('جديد'));
+    }
+    return storeProducts;
+  }, [storeProducts, currentView]);
 
   const [sliderImages, setSliderImages] = useState<any[]>([]);
 
@@ -252,10 +256,13 @@ const ModernStorePage: React.FC<ModernStorePageProps> = ({
       window.removeEventListener('storeSliderUpdated', handleSliderUpdate as EventListener);
     };
   }, [dynamicStoreData, storeSlug, storeProducts]);
-  const [enhancedStore, setEnhancedStore] = useState(store);
+  
+  const [enhancedStore, setEnhancedStore] = useState<any>(null);
 
   useEffect(() => {
-    setEnhancedStore(store);
+    if (store) {
+      setEnhancedStore(store);
+    }
   }, [store]);
 
   useEffect(() => {
@@ -543,7 +550,7 @@ const ModernStorePage: React.FC<ModernStorePageProps> = ({
           onToggleFavorite={onToggleFavorite}
           favorites={favorites}
         />
-      ) : storeConfig ? (
+      ) : storeConfig && store ? (
         <UnifiedStoreSlider storeSlug={store.slug} initialSliders={sliderImages} />
       ) : sliderImages.length > 0 ? (
         /* السلايدر العادي للمتاجر الديناميكية بدون إعدادات مركزية */
@@ -867,14 +874,14 @@ const ModernStorePage: React.FC<ModernStorePageProps> = ({
 
             {/* معلومات المتجر */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold">{store.name}</h3>
+              <h3 className="text-lg font-semibold">{store?.name}</h3>
               <ul className="space-y-2 text-sm text-gray-400">
-                <li>{store.description}</li>
+                <li>{store?.description}</li>
                 <li className="flex items-center gap-2">
                   <Globe className="h-4 w-4" />
-                  {store.url}
+                  {store?.url}
                 </li>
-                {store.categories.map((category, index) => (
+                {store?.categories?.map((category, index) => (
                   <li key={index}>{category}</li>
                 ))}
               </ul>
