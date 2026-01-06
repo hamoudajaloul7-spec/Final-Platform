@@ -48,7 +48,7 @@ const getBackendUrl = () => {
   if (apiUrl) return apiUrl;
   return typeof window !== 'undefined' && window.location.hostname === 'localhost'
     ? 'http://localhost:5000'
-    : 'https://eishro-backend.onrender.com';
+    : 'https://final-platform-eshro.onrender.com';
 };
 
 const getImageUrl = (assetPath: string) => {
@@ -61,25 +61,25 @@ const getImageUrl = (assetPath: string) => {
 
 // بيانات السلايدر الأفقي العلوي (يتغير تلقائياً كل 5 ثواني)
 const topHorizontalSlides = [
-  { id: 1, image: '/api/assets/ads/DiscountSlider/GS-WM.jpg', alt: 'غسالة General Supreme', title: 'عرض خاص على الغسالات' },
-  { id: 2, image: '/api/assets/ads/DiscountSlider/Half-Price.jpg', alt: 'نصف السعر', title: 'تخفيضات تصل لـ 50%' },
-  { id: 3, image: '/api/assets/ads/DiscountSlider/OCT-Sale.jpg', alt: 'عروض أكتوبر', title: 'عروض أكتوبر المميزة' },
-  { id: 4, image: '/api/assets/ads/DiscountSlider/Onix.jpg', alt: 'Onix', title: 'منتجات Onix الحصرية' },
-  { id: 5, image: '/api/assets/ads/DiscountSlider/web2.avif', alt: 'عروض مميزة', title: 'عروض لا تفوت' },
-  { id: 6, image: '/api/assets/ads/DiscountSlider/web1.avif', alt: 'تخفيضات ضخمة', title: 'تخفيضات ضخمة' },
+  { id: 1, image: '/assets/ads/DiscountSlider/GS-WM.jpg', alt: 'غسالة General Supreme', title: 'عرض خاص على الغسالات' },
+  { id: 2, image: '/assets/ads/DiscountSlider/Half-Price.jpg', alt: 'نصف السعر', title: 'تخفيضات تصل لـ 50%' },
+  { id: 3, image: '/assets/ads/DiscountSlider/OCT-Sale.jpg', alt: 'عروض أكتوبر', title: 'عروض أكتوبر المميزة' },
+  { id: 4, image: '/assets/ads/DiscountSlider/Onix.jpg', alt: 'Onix', title: 'منتجات Onix الحصرية' },
+  { id: 5, image: '/assets/ads/DiscountSlider/web2.avif', alt: 'عروض مميزة', title: 'عروض لا تفوت' },
+  { id: 6, image: '/assets/ads/DiscountSlider/web1.avif', alt: 'تخفيضات ضخمة', title: 'تخفيضات ضخمة' },
 ];
 
 // بيانات السلايدر العمودي الكبير (يسار)
 const leftVerticalSlides = [
-  { id: 1, image: '/api/assets/ads/DiscountSlider/DishwasherFairy.jpg', alt: 'Fairy Dishwasher', badge: 'جديد' },
-  { id: 2, image: '/api/assets/ads/DiscountSlider/RS5.jpg', alt: 'Samsung RS5', badge: 'حصري' },
+  { id: 1, image: '/assets/ads/DiscountSlider/DishwasherFairy.jpg', alt: 'Fairy Dishwasher', badge: 'جديد' },
+  { id: 2, image: '/assets/ads/DiscountSlider/RS5.jpg', alt: 'Samsung RS5', badge: 'حصري' },
 ];
 
 // بيانات السلايدرات الثابتة (يمين - 3 سلايدرات)
 const rightStaticSlides = [
-  { id: 1, image: '/api/assets/ads/DiscountSlider/WD90T654DBN.jpg', alt: 'Samsung WD90', discount: '200'},
-  { id: 2, image: '/api/assets/ads/DiscountSlider/GSTN180CR.jpg', alt: 'General Supreme', discount: '200'},
-  { id: 3, image: '/api/assets/ads/DiscountSlider/TOSHIBA-Ref.jpg', alt: 'Toshiba', discount: '200'},
+  { id: 1, image: '/assets/ads/DiscountSlider/WD90T654DBN.jpg', alt: 'Samsung WD90', discount: '200'},
+  { id: 2, image: '/assets/ads/DiscountSlider/GSTN180CR.jpg', alt: 'General Supreme', discount: '200'},
+  { id: 3, image: '/assets/ads/DiscountSlider/TOSHIBA-Ref.jpg', alt: 'Toshiba', discount: '200'},
 ];
 
 export default function DiscountSlider() {
