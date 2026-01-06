@@ -158,13 +158,24 @@ export const getProducts = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { page = 1, limit = 10, category, search, sortBy = 'createdAt', order = 'DESC' } = req.query;
+    const { page = 1, limit = 10, category, search, sortBy = 'createdAt', order = 'DESC', storeId, storeSlug } = req.query;
     const { page: validPage, limit: validLimit, offset } = calculatePagination(
       parseInt(page as string) || 1,
       parseInt(limit as string) || 10
     );
 
     let whereClause: any = {};
+
+    if (storeId) {
+      whereClause.storeId = parseInt(storeId as string);
+    }
+
+    if (storeSlug) {
+      const store = await Store.findOne({ where: { slug: storeSlug as string } });
+      if (store) {
+        whereClause.storeId = store.id;
+      }
+    }
 
     if (category) {
       whereClause.category = category;

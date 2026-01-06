@@ -30,6 +30,7 @@ import { sheirineStoreConfig } from '@/data/stores/sheirine/config';
 import { magnaStoreConfig } from '@/data/stores/magna-beauty/config';
 import SheirineSlider from '@/data/stores/sheirine/Slider';
 import { getTagColor, calculateBadge, getButtonConfig, applyAutoBadges } from '@/utils/badgeCalculator';
+import { getStoreProducts, getProductsByStore } from '@/utils/storeProductLoader';
 
 interface StorePageProps {
   storeSlug: string;
@@ -63,15 +64,18 @@ const StorePage: React.FC<StorePageProps> = ({ storeSlug, onBack, onProductClick
 
   const fetchProducts = async () => {
     try {
+      if (!storeSlug) return;
       const apiUrl = import.meta.env.VITE_API_URL || '/api';
-      const response = await fetch(`${apiUrl}/products?limit=200`);
+      const response = await fetch(`${apiUrl}/products?limit=500&storeSlug=${encodeURIComponent(storeSlug)}`);
       if (response.ok) {
         const result = await response.json();
-        const products = Array.isArray(result.data) ? result.data : [];
+        let products = Array.isArray(result.data) ? result.data : [];
+        if (Array.isArray(result)) {
+          products = result;
+        }
         setLiveProducts(products);
       }
     } catch (error) {
-      // Failed to fetch products
     }
   };
 
@@ -128,31 +132,24 @@ const StorePage: React.FC<StorePageProps> = ({ storeSlug, onBack, onProductClick
   let storeProducts: any[] = [];
   
   if (store) {
-    switch (store.slug) {
-      case 'nawaem':
-        storeProducts = applyAutoBadges(nawaemProducts);
-        break;
-      case 'sheirine':
-        storeProducts = applyAutoBadges(sheirineProducts);
-        break;
-      case 'pretty':
-        storeProducts = applyAutoBadges(prettyProducts);
-        break;
-      case 'delta-store':
-        storeProducts = applyAutoBadges(deltaProducts);
-        break;
-      case 'magna-beauty':
-        storeProducts = applyAutoBadges(magnaBeautyProducts);
-        break;
-      case 'indeesh':
-        storeProducts = applyAutoBadges(indeeshProducts);
-        break;
-      default:
-        if (liveProducts.length > 0) {
-          storeProducts = applyAutoBadges(liveProducts.filter(p => p.storeId === store.id));
-        } else {
-          storeProducts = applyAutoBadges(sampleProducts.filter(p => p.storeId === store.id));
-        }
+    const preDefinedStores = ['nawaem', 'sheirine', 'pretty', 'delta-store', 'magna-beauty', 'indeesh'];
+    
+    if (preDefinedStores.includes(store.slug)) {
+      const products = getStoreProducts(store.slug);
+      if (products && products.length > 0) {
+        storeProducts = applyAutoBadges(products);
+      } else {
+        const filteredProducts = getProductsByStore(store.id, liveProducts);
+        storeProducts = applyAutoBadges(filteredProducts.length > 0 ? filteredProducts : sampleProducts.filter(p => p.storeId === store.id));
+      }
+    } else {
+      if (liveProducts.length > 0) {
+        const filteredByStore = getProductsByStore(store.id, liveProducts);
+        storeProducts = applyAutoBadges(filteredByStore.length > 0 ? filteredByStore : []);
+      } else {
+        const filteredByStore = sampleProducts.filter(p => p.storeId === store.id);
+        storeProducts = applyAutoBadges(filteredByStore);
+      }
     }
   }
   
@@ -316,9 +313,15 @@ const StorePage: React.FC<StorePageProps> = ({ storeSlug, onBack, onProductClick
       <div className="container mx-auto px-4 py-6">
         {filteredProducts.length === 0 ? (
           <div className="text-center py-12">
-            <div className="text-6xl mb-4">🔍</div>
-            <h3 className="text-xl font-semibold text-gray-600 mb-2">لم نجد منتجات مطابقة</h3>
-            <p className="text-gray-500">جرب البحث بكلمات مختلفة أو اختر فئة أخرى</p>
+            <div className="text-6xl mb-4">{storeProducts.length === 0 ? '📦' : '🔍'}</div>
+            <h3 className="text-xl font-semibold text-gray-600 mb-2">
+              {storeProducts.length === 0 ? 'المتجر فارغ حالياً' : 'لم نجد منتجات مطابقة'}
+            </h3>
+            <p className="text-gray-500">
+              {storeProducts.length === 0 
+                ? 'سيتم إضافة المنتجات قريباً' 
+                : 'جرب البحث بكلمات مختلفة أو اختر فئة أخرى'}
+            </p>
           </div>
         ) : (
           <div className={viewMode === 'grid' 
