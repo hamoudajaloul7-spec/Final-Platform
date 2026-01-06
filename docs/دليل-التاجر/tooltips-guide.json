@@ -1,0 +1,246 @@
+{
+  "storerCreationTooltips": {
+    "step1": {
+      "merchantName": {
+        "ar": "أدخل اسمك الكامل كما يظهر في وثائقك الرسمية",
+        "en": "Enter your full name as shown in your official documents",
+        "position": "bottom",
+        "icon": "info"
+      },
+      "email": {
+        "ar": "استخدم بريد إلكتروني نشط تتفقد فيه الرسائل بانتظام",
+        "en": "Use an active email address that you check regularly",
+        "position": "bottom",
+        "icon": "mail"
+      },
+      "phone": {
+        "ar": "رقم الهاتف يُستخدم للتواصل المباشر والتحقق من الحساب",
+        "en": "Your phone number is used for direct communication and account verification",
+        "position": "bottom",
+        "icon": "phone"
+      },
+      "city": {
+        "ar": "اختر مدينتك لتسهيل عملية التوصيل والدعم المحلي",
+        "en": "Select your city to facilitate delivery and local support",
+        "position": "bottom",
+        "icon": "map-pin"
+      }
+    },
+    "step2": {
+      "storeName": {
+        "ar": "اختر اسماً مميزاً يسهل تذكره ويعكس هوية متجرك",
+        "en": "Choose a unique and memorable name that reflects your store's identity",
+        "position": "bottom",
+        "icon": "store"
+      },
+      "subdomain": {
+        "ar": "⚠️ لا يمكن تغيير هذا لاحقاً! اختره بعناية (مثال: my-store.ishro.ly)",
+        "en": "⚠️ This cannot be changed later! Choose carefully (example: my-store.ishro.ly)",
+        "position": "bottom",
+        "icon": "warning",
+        "type": "warning"
+      },
+      "description": {
+        "ar": "وصف قصير جذاب يظهر للعملاء ويشرح ما يميز متجرك",
+        "en": "A short, attractive description that appears to customers and explains what makes your store unique",
+        "position": "bottom",
+        "icon": "edit"
+      },
+      "categories": {
+        "ar": "حدد الفئات الرئيسية للمنتجات التي تبيعها",
+        "en": "Select the main categories of products you sell",
+        "position": "bottom",
+        "icon": "tag"
+      }
+    },
+    "step3": {
+      "contactPhone": {
+        "ar": "رقم الهاتف الذي سيرى العملاء - تأكد من رده على الطلبات",
+        "en": "The phone number customers will see - make sure to respond to orders",
+        "position": "bottom",
+        "icon": "phone"
+      },
+      "contactEmail": {
+        "ar": "بريد الدعم الذي سيستقبل استفسارات العملاء والطلبات",
+        "en": "Support email that will receive customer inquiries and orders",
+        "position": "bottom",
+        "icon": "mail"
+      },
+      "facebook": {
+        "ar": "رابط صفحتك على Facebook (اختياري لكن مهم للتسويق)",
+        "en": "Link to your Facebook page (optional but important for marketing)",
+        "position": "bottom",
+        "icon": "facebook"
+      },
+      "instagram": {
+        "ar": "رابط حسابك على Instagram (يجذب الزبائن الشباب)",
+        "en": "Link to your Instagram account (attracts younger customers)",
+        "position": "bottom",
+        "icon": "instagram"
+      },
+      "whatsapp": {
+        "ar": "رقم WhatsApp للتواصل المباشر والسريع مع العملاء",
+        "en": "WhatsApp number for direct and quick communication with customers",
+        "position": "bottom",
+        "icon": "messageCircle"
+      }
+    },
+    "step4": {
+      "idImage": {
+        "ar": "صورة واضحة للهوية (جواز + بطاقة) - يجب أن تظهر جميع البيانات بوضوح",
+        "en": "Clear image of ID (passport + card) - all data must be clearly visible",
+        "position": "bottom",
+        "icon": "fileImage"
+      },
+      "businessLicense": {
+        "ar": "شهادة التسجيل التجاري (إن وجدت) - تزيد من مصداقية متجرك",
+        "en": "Business registration certificate (if available) - increases store credibility",
+        "position": "bottom",
+        "icon": "award"
+      },
+      "personalPhoto": {
+        "ar": "صورة شخصية احترافية واضحة - الخلفية البسيطة أفضل",
+        "en": "Clear professional personal photo - simple background is better",
+        "position": "bottom",
+        "icon": "image"
+      }
+    },
+    "step5": {
+      "logo": {
+        "ar": "🎨 شعار متجرك - يظهر على كل صفحة. استخدم صورة واضحة وعالية الجودة",
+        "en": "🎨 Your store logo - appears on every page. Use a clear, high-quality image",
+        "position": "top",
+        "icon": "image",
+        "hint": "الحد الأفضل: 500x500 بكسل | صيغة PNG أو JPG"
+      },
+      "logoSize": {
+        "ar": "✅ الحد الأدنى: 200x200 | الأفضل: 500x500 أو أكثر",
+        "en": "✅ Minimum: 200x200 | Best: 500x500 or more",
+        "position": "bottom",
+        "icon": "info"
+      }
+    },
+    "step6": {
+      "productName": {
+        "ar": "اسم واضح وقصير للمنتج (مثال: فستان أحمر حرير)",
+        "en": "Clear and short product name (example: Red silk dress)",
+        "position": "bottom",
+        "icon": "edit"
+      },
+      "productDescription": {
+        "ar": "وصف جذاب يشرح المميزات والفوائد والمواد المستخدمة",
+        "en": "Attractive description explaining features, benefits, and materials used",
+        "position": "bottom",
+        "icon": "edit"
+      },
+      "price": {
+        "ar": "السعر الحالي - تأكد من أنه قابل للتنافس وعادل",
+        "en": "Current price - make sure it's competitive and fair",
+        "position": "bottom",
+        "icon": "dollarSign"
+      },
+      "originalPrice": {
+        "ar": "السعر قبل الخصم (اختياري) - يجعل العملاء يشعرون بقيمة الخصم",
+        "en": "Price before discount (optional) - makes customers feel the discount value",
+        "position": "bottom",
+        "icon": "dollarSign"
+      },
+      "category": {
+        "ar": "اختر الفئة الصحيحة - تساعد العملاء في البحث عن المنتج",
+        "en": "Choose the correct category - helps customers find the product",
+        "position": "bottom",
+        "icon": "tag"
+      },
+      "colors": {
+        "ar": "أضف كل الألوان المتاحة للمنتج",
+        "en": "Add all available colors for the product",
+        "position": "bottom",
+        "icon": "palette"
+      },
+      "sizes": {
+        "ar": "أضف كل الأحجام المتاحة (S, M, L, XL إلخ)",
+        "en": "Add all available sizes (S, M, L, XL, etc.)",
+        "position": "bottom",
+        "icon": "maximize"
+      },
+      "images": {
+        "ar": "📸 أضف 3-5 صور على الأقل | أول صورة = الصورة الرئيسية",
+        "en": "📸 Add at least 3-5 images | First image = main image",
+        "position": "top",
+        "icon": "image",
+        "hint": "الحد الأفضل: 800x800 بكسل | خلفية بسيطة أو نظيفة"
+      }
+    },
+    "step7": {
+      "sliderImage": {
+        "ar": "🎬 صورة إعلانية جذابة تروج لمنتج أو عرض خاص",
+        "en": "🎬 Attractive promotional image promoting a product or special offer",
+        "position": "top",
+        "icon": "image",
+        "hint": "النسبة: 16:9 | الحد الأفضل: 1200x675 بكسل"
+      },
+      "sliderTitle": {
+        "ar": "عنوان قصير وجذاب (مثال: خصم 50% على الفساتين)",
+        "en": "Short, attractive title (example: 50% off dresses)",
+        "position": "bottom",
+        "icon": "edit"
+      },
+      "sliderSubtitle": {
+        "ar": "نص فرعي يشرح العرض أو المنتج بإيجاز",
+        "en": "Subtitle explaining the offer or product briefly",
+        "position": "bottom",
+        "icon": "edit"
+      },
+      "sliderDiscount": {
+        "ar": "نسبة الخصم إن وجدت (مثال: 30%, 50%, إلخ)",
+        "en": "Discount percentage if available (example: 30%, 50%, etc.)",
+        "position": "bottom",
+        "icon": "trendingDown"
+      }
+    },
+    "step8": {
+      "review": {
+        "ar": "✅ تحقق من جميع البيانات قبل الحفظ - لا يمكن تغيير بعضها بعد الإنشاء",
+        "en": "✅ Review all data before saving - some cannot be changed after creation",
+        "position": "top",
+        "icon": "checkCircle",
+        "type": "success"
+      },
+      "submit": {
+        "ar": "🚀 انقر هنا لإنشاء متجرك - قد يستغرق دقيقة أو اثنتين",
+        "en": "🚀 Click here to create your store - may take a minute or two",
+        "position": "bottom",
+        "icon": "send",
+        "type": "primary"
+      }
+    }
+  },
+  "generalTooltips": {
+    "uploading": {
+      "ar": "جاري التحميل... لا تغلق الصفحة أو تذهب للخلف",
+      "en": "Uploading... do not close the page or go back",
+      "position": "center",
+      "icon": "loader"
+    },
+    "success": {
+      "ar": "✅ تم بنجاح! متجرك جاهز وسيكون مرئياً للعملاء",
+      "en": "✅ Success! Your store is ready and will be visible to customers",
+      "position": "top",
+      "icon": "checkCircle",
+      "type": "success"
+    },
+    "error": {
+      "ar": "❌ حدث خطأ ما. تحقق من البيانات وحاول مرة أخرى",
+      "en": "❌ Something went wrong. Check the data and try again",
+      "position": "top",
+      "icon": "alertCircle",
+      "type": "error"
+    },
+    "dragAndDrop": {
+      "ar": "📁 اسحب الصور هنا أو انقر لاختيار من جهازك",
+      "en": "📁 Drag images here or click to select from your device",
+      "position": "center",
+      "icon": "upload"
+    }
+  }
+}
