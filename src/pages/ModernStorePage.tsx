@@ -1055,7 +1055,7 @@ const ProductCard: React.FC<{
               {/* الصورة الحالية */}
               <LazyImage
                 key={`${product.id}-${currentImageIndex}`}
-                src={getProxyImageUrl(product.images[currentImageIndex] || '', store?.slug, 'products')}
+                src={getProxyImageUrl(product.images[currentImageIndex] || '', storeSlug, 'products')}
                 alt={`${product.name} - صورة ${currentImageIndex + 1}`}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 onError={() => {}}              
