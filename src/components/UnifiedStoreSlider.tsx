@@ -170,6 +170,8 @@ const UnifiedStoreSlider: React.FC<UnifiedStoreSliderProps> = ({
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  const activeConfig = config || DEFAULT_CONFIG;
+
   const sliderHeight = {
     mobile: height?.mobile ?? activeConfig?.sliderHeight?.mobile ?? DEFAULT_SLIDER_HEIGHT.mobile,
     desktop: height?.desktop ?? activeConfig?.sliderHeight?.desktop ?? DEFAULT_SLIDER_HEIGHT.desktop,
@@ -198,8 +200,6 @@ const UnifiedStoreSlider: React.FC<UnifiedStoreSliderProps> = ({
   if (sliders.length === 0) {
     return null;
   }
-
-  const activeConfig = config || DEFAULT_CONFIG;
 
   const nextSlide = () => {
     setActiveSlide((prev) => (prev + 1) % sliders.length);
