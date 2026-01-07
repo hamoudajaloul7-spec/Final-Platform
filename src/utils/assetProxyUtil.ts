@@ -5,21 +5,17 @@ export const getProxyImageUrl = (
 ): string => {
   if (!imagePath) return '';
 
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+  if (imagePath.startsWith('http://') || imagePath.startsWith('https://') || imagePath.startsWith('data:')) {
+    return imagePath;
+  }
+
+  if (imagePath.startsWith('/assets/')) {
+    return imagePath;
+  }
 
   if (!storeSlug) return imagePath;
 
-  if (!imagePath.startsWith('/assets/')) {
-    return imagePath;
-  }
-
-  const parts = imagePath.split('/');
-  if (parts.length < 4) {
-    return imagePath;
-  }
-
-  const fileName = parts.slice(4).join('/');
-  return `${apiUrl}/assets-proxy/${storeSlug}/${imageType}/${fileName}`;
+  return imagePath;
 };
 
 export const convertProductImages = (
