@@ -386,12 +386,14 @@ const CreateStorePage: React.FC<CreateStorePageProps> = ({
 
   const checkBackendHealthLocal = async () => {
     try {
-      // Try both direct and relative paths
-      const backendUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
-      const urls = [
-        `${backendUrl}/health`,
-        '/health'
-      ];
+      const isLocalhost = typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname);
+      const backendUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || (isLocalhost ? 'http://localhost:5000' : '');
+
+      const urls = [] as string[];
+      if (backendUrl) {
+        urls.push(`${backendUrl}/health`);
+      }
+      urls.push('/health');
       
       for (const url of urls) {
         try {
@@ -582,7 +584,9 @@ const CreateStorePage: React.FC<CreateStorePageProps> = ({
 
 
 
+      const allowLocalFallback = typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname);
       let useLocalFallback = false;
+      let apiErrorMessage = '';
 
       const storeData = {
         id: storeId.toString(),
@@ -711,20 +715,25 @@ const CreateStorePage: React.FC<CreateStorePageProps> = ({
 
         // Check for HTTP errors
         if (!createResponse.ok) {
-          const errorMsg = apiResponse.error || apiResponse.message || `Server error: ${createResponse.status}`;
-
+          apiErrorMessage = apiResponse.error || apiResponse.message || `Server error: ${createResponse.status}`;
           useLocalFallback = true;
         } else if (!apiResponse.success) {
-          const errorMsg = apiResponse.error || apiResponse.message || 'فشل في إنشاء المتجر على الخادم';
-
+          apiErrorMessage = apiResponse.error || apiResponse.message || 'فشل في إنشاء المتجر على الخادم';
           useLocalFallback = true;
         }
       } catch (error: any) {
-
+        apiErrorMessage = error?.message || 'network error';
         useLocalFallback = true;
       }
 
-      // If API failed, use local generation
+      if (useLocalFallback && !allowLocalFallback) {
+        const message = apiErrorMessage || 'فشل في إنشاء المتجر على الخادم';
+        setErrors({ general: message });
+        setIsLoading(false);
+        alert(message);
+        return;
+      }
+
       if (useLocalFallback) {
 
 

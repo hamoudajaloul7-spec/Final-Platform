@@ -185,7 +185,13 @@ export const moveUploadedFiles = async (
 
         const newPath = path.join(targetDir, finalFilename);
 
-        if (!isPathSafe(newPath, path.join(process.cwd(), 'backend'))) {
+        let basePath = process.cwd();
+        if (basePath.endsWith('backend')) {
+          basePath = path.join(basePath, '..');
+        }
+        const safeRoot = path.join(basePath, 'backend');
+
+        if (!isPathSafe(newPath, safeRoot)) {
           throw new Error('Unsafe path detected - potential security threat');
         }
 
