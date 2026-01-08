@@ -124,14 +124,7 @@ const UnifiedStoreSlider: React.FC<UnifiedStoreSliderProps> = ({
               }
               
               if (imagePath.startsWith('/assets/')) {
-                const parts = imagePath.split('/');
-                if (parts.length >= 4) {
-                  const storeSlug = parts[2];
-                  const imageType = parts[3];
-                  const fileName = parts.slice(4).join('/');
-                  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-                  imagePath = `${apiUrl}/assets-proxy/${storeSlug}/${imageType}/${fileName}`;
-                }
+                imagePath = imagePath;
               }
             }
 
@@ -238,6 +231,9 @@ const UnifiedStoreSlider: React.FC<UnifiedStoreSliderProps> = ({
                 src={slider.image}
                 alt={slider.title}
                 className="w-full h-full object-cover object-center"
+                loading={index === 0 ? 'eager' : 'lazy'}
+                decoding="async"
+                fetchPriority={index === 0 ? 'high' : 'auto'}
               />
               <div className="absolute inset-0 bg-black/20 flex flex-col items-center justify-center z-10">
                 <h2 className="text-white text-3xl md:text-5xl font-bold text-center mb-4 drop-shadow-lg">

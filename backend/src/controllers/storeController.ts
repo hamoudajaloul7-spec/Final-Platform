@@ -861,16 +861,7 @@ export const getStorePublicData = async (
     }
 
     const store = await Store.findOne({
-      where: { slug },
-      include: [
-        { 
-          model: StoreSlider, 
-          as: 'sliders',
-          where: { isActive: true },
-          required: false,
-          attributes: ['id', 'title', 'subtitle', 'imagePath', 'buttonText', 'sortOrder']
-        }
-      ]
+      where: { slug }
     });
 
     if (!store) {

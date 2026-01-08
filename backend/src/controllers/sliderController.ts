@@ -7,7 +7,11 @@ export const getStoreSliders = async (req: Request, res: Response): Promise<void
   try {
     const { storeId } = req.params;
 
-    let store = await Store.findByPk(storeId);
+    const numericStoreId = Number(storeId);
+
+    let store = Number.isFinite(numericStoreId)
+      ? await Store.findByPk(numericStoreId)
+      : null;
     if (!store) {
       store = await Store.findOne({
         where: { slug: storeId }
@@ -45,7 +49,11 @@ export const createStoreSlider = async (req: Request, res: Response): Promise<vo
       return;
     }
 
-    let store = await Store.findByPk(storeId);
+    const numericStoreId = Number(storeId);
+
+    let store = Number.isFinite(numericStoreId)
+      ? await Store.findByPk(numericStoreId)
+      : null;
     if (!store) {
       store = await Store.findOne({
         where: { slug: storeId }
@@ -84,7 +92,11 @@ export const updateStoreSlider = async (req: Request, res: Response): Promise<vo
     const { storeId, sliderId } = req.params;
     const { title, subtitle, buttonText, imagePath, sortOrder, metadata } = req.body;
 
-    let store = await Store.findByPk(storeId);
+    const numericStoreId = Number(storeId);
+
+    let store = Number.isFinite(numericStoreId)
+      ? await Store.findByPk(numericStoreId)
+      : null;
     if (!store) {
       store = await Store.findOne({
         where: { slug: storeId }
@@ -130,7 +142,11 @@ export const deleteStoreSlider = async (req: Request, res: Response): Promise<vo
   try {
     const { storeId, sliderId } = req.params;
 
-    let store = await Store.findByPk(storeId);
+    const numericStoreId = Number(storeId);
+
+    let store = Number.isFinite(numericStoreId)
+      ? await Store.findByPk(numericStoreId)
+      : null;
     if (!store) {
       store = await Store.findOne({
         where: { slug: storeId }
@@ -175,7 +191,11 @@ export const bulkDeleteStoreSliders = async (req: Request, res: Response): Promi
       return;
     }
 
-    let store = await Store.findByPk(storeId);
+    const numericStoreId = Number(storeId);
+
+    let store = Number.isFinite(numericStoreId)
+      ? await Store.findByPk(numericStoreId)
+      : null;
     if (!store) {
       store = await Store.findOne({
         where: { slug: storeId }
@@ -213,7 +233,11 @@ export const updateSlidersOrder = async (req: Request, res: Response): Promise<v
       return;
     }
 
-    let store = await Store.findByPk(storeId);
+    const numericStoreId = Number(storeId);
+
+    let store = Number.isFinite(numericStoreId)
+      ? await Store.findByPk(numericStoreId)
+      : null;
     if (!store) {
       store = await Store.findOne({
         where: { slug: storeId }
@@ -253,7 +277,11 @@ export const uploadSliderImage = async (req: Request, res: Response): Promise<vo
       return;
     }
 
-    let store = await Store.findByPk(storeId);
+    const numericStoreId = Number(storeId);
+
+    let store = Number.isFinite(numericStoreId)
+      ? await Store.findByPk(numericStoreId)
+      : null;
     if (!store) {
       store = await Store.findOne({
         where: { slug: storeId }
