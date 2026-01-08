@@ -128,7 +128,8 @@ const StoreAds: React.FC<StoreAdsProps> = ({ storeId, className = '' }) => {
         return;
       }
 
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+      const isLocalhost = typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname);
+      const apiUrl = import.meta.env.VITE_API_URL || (isLocalhost ? 'http://localhost:5000/api' : '/api');
       const response = await fetch(`${apiUrl}/ads/store/${storeId}`);
       
       if (response.ok) {

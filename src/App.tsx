@@ -49,7 +49,14 @@ import { enhancedSampleProducts } from "@/data/productCategories";
 import { allStoreProducts } from "@/data/allStoreProducts";
 import { loadStoreBySlug, getStoreProducts } from "@/utils/storeLoader";
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_BASE = (() => {
+  const apiUrl = import.meta.env.VITE_API_URL;
+  if (apiUrl) return apiUrl;
+  if (typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname)) {
+    return 'http://localhost:5000/api';
+  }
+  return '/api';
+})();
 
 const canonicalStoreSlug = (value: unknown): string => {
   const normalized = (value ?? '').toString().trim().toLowerCase().replace(/\s+/g, '-');
@@ -1565,6 +1572,44 @@ export default function Home() {
       }
     }
 
+    const isLocalhost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+
+    const loadStoresFromServer = async () => {
+      try {
+        const res = await fetch(`${API_BASE}/stores/list`, { cache: 'no-store' });
+        const json = await res.json().catch(() => null);
+        const stores = json?.data?.stores || json?.stores || [];
+        if (!Array.isArray(stores)) {
+          return;
+        }
+        const normalized = stores.map((s: any) => ({
+          id: s.id,
+          storeId: s.id,
+          nameAr: s.name,
+          nameEn: s.name,
+          subdomain: s.slug,
+          storeSlug: s.slug,
+          description: s.description || '',
+          categories: s.category ? [s.category] : [],
+          logo: s.logo || '/assets/default-store.png',
+          setupComplete: true,
+          status: s.isActive ? 'active' : 'inactive',
+          source: 'server'
+        }));
+        setAllStores(normalized);
+      } catch {
+      }
+    };
+
+    if (!isLocalhost) {
+      void loadStoresFromServer();
+      const onStoreCreated = () => {
+        void loadStoresFromServer();
+      };
+      window.addEventListener('storeCreated', onStoreCreated);
+      return () => window.removeEventListener('storeCreated', onStoreCreated);
+    }
+
     const seedMerchantStores = () => {
       const seeds = merchantProfiles
         .map((profile) => {
@@ -2911,7 +2956,10 @@ export default function Home() {
             setTimeout(() => {
               try {
                 postStoreToApi(storeData, normalizedStore).catch(() => {
-                  createStoreFiles(normalizedStore);
+                  const isLocalhost = typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname);
+                  if (isLocalhost) {
+                    createStoreFiles(normalizedStore);
+                  }
                 });
               } catch (error) {
                 // Silent error handling for store creation

@@ -10,10 +10,10 @@ import type { Product } from '../../storeProducts';
 
 const getBackendUrl = () => {
   const apiUrl = import.meta.env.VITE_API_URL;
-  if (apiUrl) return apiUrl;
-  return typeof window !== 'undefined' && window.location.hostname === 'localhost'
+  if (apiUrl) return apiUrl.replace('/api', '');
+  return typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname)
     ? 'http://localhost:5000'
-    : 'https://eishro-backend.onrender.com';
+    : '';
 };
 
 const getImageUrl = (assetPath: string) => {
