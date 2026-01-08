@@ -471,69 +471,61 @@ const CreateStorePage: React.FC<CreateStorePageProps> = ({
       }
 
 
-      // التحقق من التكرارات بقاعدة البيانات المحلية
-      const existingStores = JSON.parse(localStorage.getItem('eshro_stores') || '[]');
-
-
-      // التحقق من البريد الإلكتروني المكرر
-      if (existingStores.some((store: any) => store.email === formData.email)) {
-        setDuplicateField('email');
-        setShowDuplicateModal(true);
-        setIsLoading(false);
-        return;
-      }
-
-      // التحقق من رقم الهاتف المكرر
-      if (existingStores.some((store: any) => store.phone === formData.phone)) {
-        setDuplicateField('phone');
-        setShowDuplicateModal(true);
-        setIsLoading(false);
-        return;
-      }
-
-      // التحقق من الـ subdomain المكرر - معطل لأغراض الاختبار
-      // if (existingStores.some((store: any) => store.subdomain === formData.subdomain)) {
-      //   console.log('Duplicate subdomain found, aborting');
-      //   setErrors({ subdomain: 'عنوان المتجر موجود مسبقاً، يرجى اختيار عنوان آخر' });
-      //   setIsLoading(false);
-      //   return;
-      // }
-
-      // قفل منع التكرار بالسلاج بعد التوحيد
       const RESERVED = ['nawaem','sheirine','pretty','delta-store','magna-beauty'];
       const newSlugCanonical = canonicalSlug(formData.subdomain);
 
-      const existingCanonicalSlugs = new Set<string>();
-      try {
-        (existingStores || []).forEach((s: any) => {
-          const slug = canonicalSlug(s?.subdomain || s?.id);
-          if (slug) existingCanonicalSlugs.add(slug);
-        });
-        // أدرج أي سلاجات من مفاتيح الملفات المحلية
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-          if (!key) continue;
-          if (key.startsWith('eshro_store_files_')) {
-            const raw = localStorage.getItem(key);
-            try {
-              const parsed = raw ? JSON.parse(raw) : null;
-              const slug = canonicalSlug(parsed?.storeData?.storeSlug || parsed?.storeData?.subdomain);
-              if (slug) existingCanonicalSlugs.add(slug);
-            } catch {
-              // Silently ignore parsing errors
-            }
-          }
-        }
-      } catch {
-        // Silently ignore outer errors
-      }
-
-      if (RESERVED.includes(newSlugCanonical) || existingCanonicalSlugs.has(newSlugCanonical)) {
+      if (RESERVED.includes(newSlugCanonical)) {
         setErrors({ subdomain: 'عنوان المتجر محجوز بالفعل، يرجى اختيار عنوان آخر' });
         setIsLoading(false);
         return;
       }
 
+      if (allowLocalFallback) {
+        const existingStores = JSON.parse(localStorage.getItem('eshro_stores') || '[]');
+
+        if (existingStores.some((store: any) => store.email === formData.email)) {
+          setDuplicateField('email');
+          setShowDuplicateModal(true);
+          setIsLoading(false);
+          return;
+        }
+
+        if (existingStores.some((store: any) => store.phone === formData.phone)) {
+          setDuplicateField('phone');
+          setShowDuplicateModal(true);
+          setIsLoading(false);
+          return;
+        }
+
+        const existingCanonicalSlugs = new Set<string>();
+        try {
+          (existingStores || []).forEach((s: any) => {
+            const slug = canonicalSlug(s?.subdomain || s?.id);
+            if (slug) existingCanonicalSlugs.add(slug);
+          });
+
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (!key) continue;
+            if (key.startsWith('eshro_store_files_')) {
+              const raw = localStorage.getItem(key);
+              try {
+                const parsed = raw ? JSON.parse(raw) : null;
+                const slug = canonicalSlug(parsed?.storeData?.storeSlug || parsed?.storeData?.subdomain);
+                if (slug) existingCanonicalSlugs.add(slug);
+              } catch {
+              }
+            }
+          }
+        } catch {
+        }
+
+        if (existingCanonicalSlugs.has(newSlugCanonical)) {
+          setErrors({ subdomain: 'عنوان المتجر محجوز بالفعل، يرجى اختيار عنوان آخر' });
+          setIsLoading(false);
+          return;
+        }
+      }
 
       const storeId = Date.now();
 
@@ -795,66 +787,63 @@ const CreateStorePage: React.FC<CreateStorePageProps> = ({
         storeSlug: formData.subdomain
       };
       
-      localStorage.setItem(`eshro_store_files_${formData.subdomain}`, JSON.stringify({
-        storeData: finalStoreData,
-        createdAt: new Date().toISOString()
-      }));
+      if (allowLocalFallback) {
+        localStorage.setItem(`eshro_store_files_${formData.subdomain}`, JSON.stringify({
+          storeData: finalStoreData,
+          createdAt: new Date().toISOString()
+        }));
 
+        const allRegisteredStores = JSON.parse(localStorage.getItem('eshro_stores') || '[]');
+        const newStoreEntry = {
+          id: finalStoreData.storeId,
+          nameAr: finalStoreData.nameAr || finalStoreData.storeName,
+          nameEn: finalStoreData.nameEn || finalStoreData.storeNameEn,
+          subdomain: finalStoreData.storeSlug || formData.subdomain,
+          description: finalStoreData.description,
+          categories: finalStoreData.categories,
+          logo: finalStoreData.logo,
+          setupComplete: true,
+          email: formData.email,
+          password: formData.password,
+          phone: formData.phone,
+          ownerName: formData.ownerName
+        };
+        const newKey = canonicalSlug(newStoreEntry.subdomain || newStoreEntry.id);
+        const filtered = (Array.isArray(allRegisteredStores) ? allRegisteredStores : []).filter((s: any) => canonicalSlug(s?.subdomain || s?.id) !== newKey);
+        filtered.push(newStoreEntry);
+        localStorage.setItem('eshro_stores', JSON.stringify(filtered));
 
-      const allRegisteredStores = JSON.parse(localStorage.getItem('eshro_stores') || '[]');
-      const newStoreEntry = {
-        id: finalStoreData.storeId,
-        nameAr: finalStoreData.nameAr || finalStoreData.storeName,
-        nameEn: finalStoreData.nameEn || finalStoreData.storeNameEn,
-        subdomain: finalStoreData.storeSlug || formData.subdomain,
-        description: finalStoreData.description,
-        categories: finalStoreData.categories,
-        logo: finalStoreData.logo,
-        setupComplete: true,
-        email: formData.email,
-        password: formData.password,
-        phone: formData.phone,
-        ownerName: formData.ownerName
-      };
-      // منع تكرار الإدخال بسلاج موحّد
-      const newKey = canonicalSlug(newStoreEntry.subdomain || newStoreEntry.id);
-      const filtered = (Array.isArray(allRegisteredStores) ? allRegisteredStores : []).filter((s: any) => canonicalSlug(s?.subdomain || s?.id) !== newKey);
-      filtered.push(newStoreEntry);
-      localStorage.setItem('eshro_stores', JSON.stringify(filtered));
+        const productsForStorage = serverProducts.map((p: any) => ({
+          ...p,
+          storeId: finalStoreData.storeId,
+          category: p.category || 'عام',
+          images: p.images || []
+        }));
+        localStorage.setItem(`store_products_${formData.subdomain}`, JSON.stringify(productsForStorage));
 
+        const slidersForStorage = serverSliders.map((s: any) => ({
+          id: s.id || `banner_${Date.now()}_${Math.random()}`,
+          image: s.image || '',
+          title: s.title || '',
+          subtitle: s.subtitle || '',
+          buttonText: s.buttonText || 'تسوق الآن'
+        }));
+        localStorage.setItem(`store_sliders_${formData.subdomain}`, JSON.stringify(slidersForStorage));
 
-      const productsForStorage = serverProducts.map((p: any) => ({
-        ...p,
-        storeId: finalStoreData.storeId,
-        category: p.category || 'عام',
-        images: p.images || []
-      }));
-      localStorage.setItem(`store_products_${formData.subdomain}`, JSON.stringify(productsForStorage));
-
-
-      const slidersForStorage = serverSliders.map((s: any) => ({
-        id: s.id || `banner_${Date.now()}_${Math.random()}`,
-        image: s.image || '',
-        title: s.title || '',
-        subtitle: s.subtitle || '',
-        buttonText: s.buttonText || 'تسوق الآن'
-      }));
-      localStorage.setItem(`store_sliders_${formData.subdomain}`, JSON.stringify(slidersForStorage));
-
-
-      const merchantCredentials = {
-        email: formData.email,
-        password: formData.password,
-        phone: formData.phone,
-        ownerName: formData.ownerName,
-        subdomain: formData.subdomain,
-        storeId: finalStoreData.storeId,
-        storeName: finalStoreData.nameAr || finalStoreData.storeName,
-        setupComplete: true,
-        createdAt: new Date().toISOString()
-      };
-      localStorage.setItem(`merchant_${formData.email}`, JSON.stringify(merchantCredentials));
-      localStorage.setItem(`merchant_credentials_${formData.subdomain}`, JSON.stringify(merchantCredentials));
+        const merchantCredentials = {
+          email: formData.email,
+          password: formData.password,
+          phone: formData.phone,
+          ownerName: formData.ownerName,
+          subdomain: formData.subdomain,
+          storeId: finalStoreData.storeId,
+          storeName: finalStoreData.nameAr || finalStoreData.storeName,
+          setupComplete: true,
+          createdAt: new Date().toISOString()
+        };
+        localStorage.setItem(`merchant_${formData.email}`, JSON.stringify(merchantCredentials));
+        localStorage.setItem(`merchant_credentials_${formData.subdomain}`, JSON.stringify(merchantCredentials));
+      }
 
       
 
