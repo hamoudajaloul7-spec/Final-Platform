@@ -184,6 +184,7 @@ const CreateStorePage: React.FC<CreateStorePageProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [showAccountSuccessModal, setShowAccountSuccessModal] = useState(false);
   const [showStoreSuccessModal, setShowStoreSuccessModal] = useState(false);
+  const [createdStoreData, setCreatedStoreData] = useState<any>(null);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const [showDuplicateModal, setShowDuplicateModal] = useState(false);
   const [duplicateField, setDuplicateField] = useState<'email' | 'phone' | ''>('');
@@ -849,17 +850,19 @@ const CreateStorePage: React.FC<CreateStorePageProps> = ({
       
 
 
-      onStoreCreated(storeData);
+      setCreatedStoreData({
+        ...finalStoreData,
+        products: serverProducts,
+        sliderImages: serverSliders,
+        storeSlug: formData.subdomain,
+        subdomain: formData.subdomain,
+        serverCreated: true
+      });
 
       window.dispatchEvent(new Event('storeCreated'));
 
-
-
       setIsLoading(false);
-      setTimeout(() => {
-
-        setShowStoreSuccessModal(true);
-      }, 100);
+      setShowStoreSuccessModal(true);
     } catch (error: any) {
 
       setErrors({ general: `حدث خطأ في إنشاء المتجر: ${error?.message || 'يرجى المحاولة مرة أخرى.'}` });
@@ -2236,15 +2239,31 @@ const CreateStorePage: React.FC<CreateStorePageProps> = ({
                 <CheckCircle className="h-10 w-10 text-green-600" />
               </div>
               <h2 className="text-2xl font-bold text-gray-900 mb-2 text-center">
-                تمت عملية الانشاء كاملة بنجاح !
+                تمت عملية الانشاء بنجاح !!
               </h2>
               <p className="text-gray-600 text-lg leading-relaxed mb-6 text-center">
-                نتمنى لك وقت ممتعا معنا
+                نتمنى لك وقتا ممتعا معنا
               </p>
               <button
                 onClick={() => {
+                  const payload = createdStoreData;
                   setShowStoreSuccessModal(false);
-                  setShowWelcomeModal(true);
+                  setCreatedStoreData(null);
+                  if (payload) {
+                    onStoreCreated(payload);
+                  } else {
+                    onStoreCreated({
+                      storeSlug: formData.subdomain,
+                      subdomain: formData.subdomain,
+                      nameAr: formData.nameAr,
+                      nameEn: formData.nameEn,
+                      description: formData.description,
+                      email: formData.email,
+                      phone: formData.phone,
+                      password: formData.password,
+                      categories: formData.categories
+                    });
+                  }
                 }}
                 className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
               >

@@ -2906,15 +2906,18 @@ export default function Home() {
             warehouseChoice: storeData.warehouseChoice || 'personal'
           });
 
-          setTimeout(() => {
-            try {
-              postStoreToApi(storeData, normalizedStore).catch(() => {
-                createStoreFiles(normalizedStore);
-              });
-            } catch (error) {
-              // Silent error handling for store creation
-            }
-          }, 0);
+          const createdOnServer = Boolean((storeData as any)?.serverCreated || (storeData as any)?.createdOnServer);
+          if (!createdOnServer) {
+            setTimeout(() => {
+              try {
+                postStoreToApi(storeData, normalizedStore).catch(() => {
+                  createStoreFiles(normalizedStore);
+                });
+              } catch (error) {
+                // Silent error handling for store creation
+              }
+            }, 0);
+          }
         }}
       />
     );
