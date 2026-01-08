@@ -98,6 +98,19 @@ const limiter = rateLimit({
 
 app.use(`${API_PREFIX}/`, limiter);
 
+app.get('/', (req: Request, res: Response): void => {
+  res.status(200).json({
+    status: 'ok',
+    service: 'eishro-backend',
+    endpoints: {
+      health: '/health',
+      apiHealth: '/api/health'
+    },
+    timestamp: new Date().toISOString(),
+    environment: config.environment
+  });
+});
+
 app.get('/health', (req: Request, res: Response): void => {
   res.status(200).json({
     status: 'ok',
