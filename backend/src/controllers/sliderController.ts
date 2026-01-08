@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import StoreSlider from '@models/StoreSlider';
 import Store from '@models/Store';
 import logger from '@utils/logger';
+import { normalizeSliderImagePath } from '@utils/sliderPath';
 
 export const getStoreSliders = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -32,7 +33,16 @@ export const getStoreSliders = async (req: Request, res: Response): Promise<void
       order: [['sortOrder', 'ASC']],
     });
 
-    res.json({ success: true, data: sliders.map(s => s.toJSON()) });
+    res.json({
+      success: true,
+      data: sliders.map(s => {
+        const json = s.toJSON() as any;
+        if (store?.slug && json.imagePath) {
+          json.imagePath = normalizeSliderImagePath(store.slug, json.imagePath);
+        }
+        return json;
+      })
+    });
   } catch (error) {
     logger.error('Error fetching store sliders:', error);
     res.status(500).json({ success: false, error: 'Failed to fetch sliders' });

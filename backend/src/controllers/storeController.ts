@@ -5,6 +5,7 @@ import sequelize from '@config/database';
 import { UserRole } from '@shared-types/index';
 import storeGeneratorService from '@services/storeGeneratorService';
 import logger from '@utils/logger';
+import { normalizeSliderImagePath } from '@utils/sliderPath';
 import { sendSuccess, sendError } from '@utils/response';
 import Store from '@models/Store';
 import User from '@models/User';
@@ -898,7 +899,7 @@ export const getStorePublicData = async (
         id: s.id,
         title: s.title,
         subtitle: s.subtitle,
-        image: s.imagePath,
+        image: normalizeSliderImagePath(store.slug, s.imagePath),
         buttonText: s.buttonText
       }))
     });
