@@ -47,15 +47,24 @@ router.post('/cleanup', cleanupStoreAndUsers);
 router.get('/list', async (req, res, next) => {
   try {
     const stores = await Store.findAll({
-      attributes: ['id', 'name', 'slug', 'description', 'logo', 'status', 'createdAt', 'updatedAt']
+      attributes: ['id', 'name', 'slug', 'category', 'description', 'logo', 'isActive', 'createdAt', 'updatedAt'],
+      order: [['createdAt', 'DESC']]
     });
-    
-    logger.info(`✅ Retrieved ${stores.length} stores`);
-    
+
+    const normalizedStores = stores.map((store) => {
+      const plain = typeof (store as any).get === 'function' ? (store as any).get({ plain: true }) : (store as any);
+      return {
+        ...plain,
+        status: plain.isActive ? 'active' : 'inactive'
+      };
+    });
+
+    logger.info(`✅ Retrieved ${normalizedStores.length} stores`);
+
     sendSuccess(res, {
       message: 'Stores retrieved successfully',
-      stores,
-      total: stores.length
+      stores: normalizedStores,
+      total: normalizedStores.length
     }, 200, 'Stores retrieved');
   } catch (error) {
     logger.error('Error retrieving stores:', error);
