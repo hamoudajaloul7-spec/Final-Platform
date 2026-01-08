@@ -63,8 +63,14 @@ const ModernStorePage: React.FC<ModernStorePageProps> = ({
   const [storeAds, setStoreAds] = useState<any[]>([]);
   const [adCarouselSlide, setAdCarouselSlide] = useState(0);
   const [isAdHovering, setIsAdHovering] = useState(false);
+  const [enhancedStore, setEnhancedStore] = useState<any>(null);
+
+  const isLocalhost = typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname);
 
   const getDynamicStores = () => {
+    if (!isLocalhost) {
+      return [];
+    }
     try {
       const stored = localStorage.getItem('eshro_stores');
       if (!stored) return [];
@@ -112,9 +118,12 @@ const ModernStorePage: React.FC<ModernStorePageProps> = ({
     return Array.from(storeMap.values());
   }, []);
   
-  const store = useMemo(() => allStores.find(s => s.slug === storeSlug), [allStores, storeSlug]);
+  const store = useMemo(() => enhancedStore || allStores.find(s => s.slug === storeSlug), [allStores, storeSlug, enhancedStore]);
 
   const getStoreProducts = (storeSlug: string, storeId?: number) => {
+    if (!isLocalhost) {
+      return [];
+    }
     try {
       const stored = localStorage.getItem(`store_products_${storeSlug}`);
       if (stored) {
@@ -189,6 +198,10 @@ const ModernStorePage: React.FC<ModernStorePageProps> = ({
       }
       
       try {
+        if (!isLocalhost) {
+          return [];
+        }
+
         const newKey = `eshro_sliders_${storeSlug}`;
         const oldKey = `store_sliders_${storeSlug}`;
         
@@ -257,8 +270,6 @@ const ModernStorePage: React.FC<ModernStorePageProps> = ({
     };
   }, [dynamicStoreData, storeSlug, storeProducts]);
   
-  const [enhancedStore, setEnhancedStore] = useState<any>(null);
-
   useEffect(() => {
     if (store) {
       setEnhancedStore(store);
@@ -273,7 +284,7 @@ const ModernStorePage: React.FC<ModernStorePageProps> = ({
       setLoadingStore(true);
       try {
         // 1. Try to fetch from Public API first
-        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+        const apiUrl = import.meta.env.VITE_API_URL || (isLocalhost ? 'http://localhost:5000/api' : '/api');
         try {
           const response = await fetch(`${apiUrl}/stores/public/${currentSlug}`);
           if (response.ok) {
@@ -282,7 +293,7 @@ const ModernStorePage: React.FC<ModernStorePageProps> = ({
               const { store: apiStore, products: apiProducts, sliders: apiSliders } = result.data;
               
               setEnhancedStore(prev => ({
-                ...prev,
+                ...(prev || {}),
                 ...apiStore,
                 logo: apiStore.logo || prev?.logo || '/assets/default-store.png'
               }));
@@ -300,30 +311,28 @@ const ModernStorePage: React.FC<ModernStorePageProps> = ({
           // Silent fallback
         }
 
-        // 2. Fallback to Local Storage / Static Data
-        await detectAndClearCacheCorruption(currentSlug);
-        
-        // Try localStorage first
-        const stored = localStorage.getItem(`store_products_${currentSlug}`);
-        if (stored) {
-          try {
-            const parsed = JSON.parse(stored);
-            if (Array.isArray(parsed) && parsed.length > 0) {
-              setDynamicStoreData({ products: parsed, sliderImages: [] });
-              setLoadingStore(false);
-              return;
+        if (isLocalhost) {
+          await detectAndClearCacheCorruption(currentSlug);
+
+          const stored = localStorage.getItem(`store_products_${currentSlug}`);
+          if (stored) {
+            try {
+              const parsed = JSON.parse(stored);
+              if (Array.isArray(parsed) && parsed.length > 0) {
+                setDynamicStoreData({ products: parsed, sliderImages: [] });
+                setLoadingStore(false);
+                return;
+              }
+            } catch (e) {
+              localStorage.removeItem(`store_products_${currentSlug}`);
             }
-          } catch (e) {
-            // Invalid data, clear and continue
-            localStorage.removeItem(`store_products_${currentSlug}`);
           }
-        }
-        
-        // Try store config
-        const storeConfig = getStoreConfig(currentSlug);
-        if (storeConfig && storeConfig.products && storeConfig.products.length > 0) {
-          const products = storeConfig.products.map(convertConfigProductToProduct);
-          setDynamicStoreData({ products, sliderImages: [] });
+
+          const storeConfig = getStoreConfig(currentSlug);
+          if (storeConfig && storeConfig.products && storeConfig.products.length > 0) {
+            const products = storeConfig.products.map(convertConfigProductToProduct);
+            setDynamicStoreData({ products, sliderImages: [] });
+          }
         }
       } catch (error) {
         // Silent error handling
@@ -395,7 +404,7 @@ const ModernStorePage: React.FC<ModernStorePageProps> = ({
   const fetchAds = async () => {
     try {
       if (storeSlug) {
-        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+        const apiUrl = import.meta.env.VITE_API_URL || (isLocalhost ? 'http://localhost:5000/api' : '/api');
         const fetchUrl = `${apiUrl}/ads/store/${storeSlug}`;
         const response = await fetch(fetchUrl);
         if (response.ok) {
@@ -431,7 +440,11 @@ const ModernStorePage: React.FC<ModernStorePageProps> = ({
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-600 mb-4">متجر غير موجود</h2>
+          {loadingStore ? (
+            <h2 className="text-2xl font-bold text-gray-600 mb-4">جاري تحميل المتجر...</h2>
+          ) : (
+            <h2 className="text-2xl font-bold text-gray-600 mb-4">متجر غير موجود</h2>
+          )}
           <Button onClick={onBack}>العودة للرئيسية</Button>
         </div>
       </div>
