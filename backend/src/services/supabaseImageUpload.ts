@@ -46,7 +46,7 @@ export const uploadImageToSupabase = async (
     }
 
     const filename = path.basename(filePath);
-    const supabasePath = `${imageType}/stores/${storeSlug}/${filename}`;
+    const supabasePath = `stores/${storeSlug}/${imageType}/${filename}`;
     const fileBuffer = fs.readFileSync(filePath);
 
     logger.info(`📤 Uploading to Supabase: ${supabasePath}`);
@@ -69,7 +69,7 @@ export const uploadImageToSupabase = async (
     return {
       success: true,
       filename,
-      path: `/assets/${imageType}/${storeSlug}/${filename}`,
+      path: supabasePath,
       url
     };
   } catch (error) {
@@ -106,7 +106,7 @@ export const deleteImageFromSupabase = async (
   filename: string
 ): Promise<boolean> => {
   try {
-    const filePath = `${imageType}/stores/${storeSlug}/${filename}`;
+    const filePath = `stores/${storeSlug}/${imageType}/${filename}`;
     logger.info(`🗑️ Deleting from Supabase: ${filePath}`);
 
     const { error } = await supabase.storage
