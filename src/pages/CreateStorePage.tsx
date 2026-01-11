@@ -419,8 +419,7 @@ const CreateStorePage: React.FC<CreateStorePageProps> = ({
   };
 
   const handleSubmit = async () => {
-
-
+    const allowLocalFallback = typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname);
 
     if (!validateStep(currentStep)) {
 
@@ -576,7 +575,6 @@ const CreateStorePage: React.FC<CreateStorePageProps> = ({
 
 
 
-      const allowLocalFallback = typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname);
       let useLocalFallback = false;
       let apiErrorMessage = '';
 

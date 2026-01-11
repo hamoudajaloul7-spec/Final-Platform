@@ -470,10 +470,35 @@ export const createStoreWithImages = async (
       return;
     }
 
+    if (!Array.isArray(parsedProducts) || parsedProducts.length === 0) {
+      sendError(res, 'At least one product is required', 400);
+      return;
+    }
+
+    if (!Array.isArray(parsedSliders) || parsedSliders.length === 0) {
+      sendError(res, 'At least one slider image is required', 400);
+      return;
+    }
+
+    if (!logoFile) {
+      sendError(res, 'Store logo is required', 400);
+      return;
+    }
+
+    if (!Array.isArray(productsImageCounts) || productsImageCounts.length !== parsedProducts.length || productsImageCounts.some((count) => !count || count < 1)) {
+      sendError(res, 'Each product must include at least one image', 400);
+      return;
+    }
+
+    if (sliderFiles.length < parsedSliders.length) {
+      sendError(res, 'Each slider must include an image', 400);
+      return;
+    }
+
     logger.info(`\n🔄 Uploading product images to Supabase...\n`);
 
     const uploadedProductUrls: Record<string, string> = {};
-    
+
     for (const [productIdx, files] of Object.entries(productFilesMap)) {
       for (const file of files) {
         const sourcePath = file.path;
@@ -483,7 +508,8 @@ export const createStoreWithImages = async (
             uploadedProductUrls[file.filename] = result.url;
             logger.info(`  ✅ Product image uploaded to Supabase: ${file.filename}`);
           } else {
-            logger.warn(`  ⚠️ Failed to upload ${file.filename}: ${result.error}`);
+            sendError(res, `Failed to upload product image: ${file.filename}`, 500);
+            return;
           }
         }
       }
@@ -542,17 +568,26 @@ export const createStoreWithImages = async (
             uploadedProductUrls[file.filename] = result.url;
             logger.info(`  ✅ Product image uploaded to Supabase: ${file.filename}`);
           } else {
-            logger.warn(`  ⚠️ Failed to upload ${file.filename}: ${result.error}`);
+            sendError(res, `Failed to upload product image: ${file.filename}`, 500);
+            return;
           }
         }
       }
     }
 
+    const missingProductUploads = Object.values(productFilesMap).some((files) => files.some((file) => !uploadedProductUrls[file.filename]));
+    if (missingProductUploads) {
+      sendError(res, 'Failed to upload all product images', 500);
+      return;
+    }
+
     const allUploadedImages: string[] = [];
     Object.values(productFilesMap).forEach(files => {
       files.forEach(f => {
-        const imgPath = uploadedProductUrls[f.filename] || `/assets/${storeSlug}/products/${f.filename}`;
-        allUploadedImages.push(imgPath);
+        const imgPath = uploadedProductUrls[f.filename];
+        if (imgPath) {
+          allUploadedImages.push(imgPath);
+        }
       });
     });
 
@@ -562,17 +597,10 @@ export const createStoreWithImages = async (
     parsedProducts = parsedProducts.map((product, idx) => {
       const filesForThisProduct = productFilesMap[idx] || [];
       
-      let images: string[] = [];
-      if (filesForThisProduct.length > 0) {
-        images = filesForThisProduct.map(f => uploadedProductUrls[f.filename] || `/assets/${storeSlug}/products/${f.filename}`);
-        logger.info(`  📦 Product ${idx} (${product.name}): ✅ ${images.length} image(s) assigned (specific)`);
-      } else if (allUploadedImages.length > 0) {
-        images = [allUploadedImages[imageIndex % allUploadedImages.length]];
+      const images = filesForThisProduct.map((f) => uploadedProductUrls[f.filename]).filter(Boolean) as string[];
+      if (images.length === 0) {
+        images.push(allUploadedImages[imageIndex % allUploadedImages.length]);
         imageIndex++;
-        logger.info(`  📦 Product ${idx} (${product.name}): ✅ 1 image assigned (from upload pool)`);
-      } else {
-        images = [getDefaultProductImage(storeSlug)];
-        logger.info(`  📦 Product ${idx} (${product.name}): ⚠️  Using default image`);
       }
 
       const colors = (product.colors && product.colors.length > 0)
@@ -611,9 +639,16 @@ export const createStoreWithImages = async (
           uploadedSliderUrls[file.filename] = result.url;
           logger.info(`  ✅ Slider image uploaded to Supabase: ${file.filename}`);
         } else {
-          logger.warn(`  ⚠️ Failed to upload slider ${file.filename}: ${result.error}`);
+          sendError(res, `Failed to upload slider image: ${file.filename}`, 500);
+          return;
         }
       }
+    }
+
+    const missingSliderUploads = sliderFiles.some((file) => !uploadedSliderUrls[file.filename]);
+    if (missingSliderUploads) {
+      sendError(res, 'Failed to upload all slider images', 500);
+      return;
     }
 
     logger.info(`\n🔄 Uploading store logo to Supabase...\n`);
@@ -627,9 +662,15 @@ export const createStoreWithImages = async (
           uploadedLogoUrl = logoResult.url;
           logger.info(`  ✅ Logo uploaded to Supabase: ${logoFile.filename}`);
         } else {
-          logger.warn(`  ⚠️ Failed to upload logo: ${logoResult.error}`);
+          sendError(res, 'Failed to upload store logo', 500);
+          return;
         }
       }
+    }
+
+    if (!uploadedLogoUrl) {
+      sendError(res, 'Failed to upload store logo', 500);
+      return;
     }
 
     const defaultSliderImages = [
@@ -649,21 +690,17 @@ export const createStoreWithImages = async (
       }
     ];
     
-    const slidersWithImages: SliderImage[] = (parsedSliders.length > 0 ? parsedSliders : defaultSliderImages).map((slider, i) => {
+    const slidersWithImages: SliderImage[] = parsedSliders.map((slider, i) => {
       const file = sliderFiles[i];
-      const image = file 
-        ? (uploadedSliderUrls[file.filename] || `/assets/${storeSlug}/sliders/${file.filename}`)
-        : (slider.image && slider.image.trim() ? slider.image : defaultSliderImages[i]?.image || '/assets/default-slider.png');
-      
-      logger.info(`  🖼️ Slider ${slider.id}: ${file ? 'uploaded image to Supabase' : 'using default/provided image'}`);
-      
+      const image = uploadedSliderUrls[file.filename];
+
       return {
         ...slider,
         image
       };
     });
 
-    const logoUrl = uploadedLogoUrl || (logoFile ? `/assets/${storeSlug}/logo/${logoFile.filename}` : `/assets/default-store.png`);
+    const logoUrl = uploadedLogoUrl;
     logger.info(`  🏷️ Logo: ${logoUrl}`);
 
     logger.info(`📝 Generating store files for: ${storeName}`);
