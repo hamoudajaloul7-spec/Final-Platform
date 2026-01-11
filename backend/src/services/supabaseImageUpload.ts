@@ -4,7 +4,12 @@ import fs from 'fs';
 import path from 'path';
 
 const supabaseUrl = process.env.SUPABASE_URL || 'https://wbakbuqvdbmweujkbzxn.supabase.co';
-const supabaseKey = process.env.SUPABASE_ANON_KEY || '';
+const supabaseKey =
+  process.env.SUPABASE_SERVICE_ROLE_KEY ||
+  process.env.SUPABASE_SECRET_KEY ||
+  process.env.SUPABASE_SECRET_KEYS ||
+  process.env.SUPABASE_ANON_KEY ||
+  '';
 const supabaseBucket = process.env.SUPABASE_STORAGE_BUCKET || 'ishro-assets';
 
 const supabase = createClient(supabaseUrl, supabaseKey);
@@ -41,6 +46,10 @@ export const uploadImageToSupabase = async (
   imageType: 'products' | 'sliders' | 'logo'
 ): Promise<UploadImageResult> => {
   try {
+    if (!supabaseKey) {
+      throw new Error('SUPABASE key is not configured');
+    }
+
     if (!fs.existsSync(filePath)) {
       throw new Error(`File not found: ${filePath}`);
     }
