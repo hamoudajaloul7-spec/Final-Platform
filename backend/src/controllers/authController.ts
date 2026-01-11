@@ -1,13 +1,11 @@
 import { Response, NextFunction } from 'express';
 import { AuthRequest, UserRole } from '@shared-types/index';
 import User from '@models/User';
-import Store from '@models/Store';
 import { hashPassword, comparePassword, validatePasswordStrength } from '@utils/password';
 import { generateToken, generateRefreshToken, verifyRefreshToken } from '@utils/jwt';
 import { sendSuccess, sendCreated, sendError, sendUnauthorized } from '@utils/response';
 import { generateUUID, slugify, validateEmail } from '@utils/helpers';
 import logger from '@utils/logger';
-import storeAutoPopulateService from '@services/storeAutoPopulateService';
 
 export const register = async (
   req: AuthRequest,
@@ -63,27 +61,6 @@ export const register = async (
       merchantVerified: false,
     });
 
-    // Create store and populate with categories/products for merchants
-    if (role === UserRole.MERCHANT && storeName && storeCategory && storeSlug) {
-      try {
-        const store = await Store.create({
-          merchantId: userId,
-          name: storeName.trim(),
-          slug: storeSlug,
-          category: storeCategory,
-          description: storeDescription,
-          isActive: true,
-        });
-
-        // Auto-populate store with categories and products
-        await storeAutoPopulateService.populateStore(store.id);
-
-        logger.info(`Store created and populated for merchant: ${email}`);
-      } catch (storeError) {
-        logger.error('Error creating/populating store:', storeError);
-        // Don't fail registration if store creation fails
-      }
-    }
 
     const token = generateToken({
       id: newUser.id,
