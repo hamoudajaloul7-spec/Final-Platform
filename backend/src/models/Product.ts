@@ -17,6 +17,9 @@ interface ProductAttributes {
   image: string;
   thumbnail?: string;
   images?: string[];
+  colors?: Array<{ name: string; value?: string }>;
+  sizes?: string[];
+  availableSizes?: string[];
   storeId?: number;
   inStock: boolean;
   quantity: number;
@@ -57,6 +60,9 @@ class Product extends Model<ProductAttributes, ProductCreationAttributes> implem
   declare image: string;
   declare thumbnail?: string;
   declare images?: string[];
+  declare colors?: Array<{ name: string; value?: string }>;
+  declare sizes?: string[];
+  declare availableSizes?: string[];
   declare storeId?: number;
   declare inStock: boolean;
   declare quantity: number;
@@ -152,6 +158,21 @@ Product.init(
       allowNull: true,
     },
     images: {
+      type: DataTypes.JSON,
+      allowNull: true,
+      defaultValue: [],
+    },
+    colors: {
+      type: DataTypes.JSON,
+      allowNull: true,
+      defaultValue: [],
+    },
+    sizes: {
+      type: DataTypes.JSON,
+      allowNull: true,
+      defaultValue: [],
+    },
+    availableSizes: {
       type: DataTypes.JSON,
       allowNull: true,
       defaultValue: [],

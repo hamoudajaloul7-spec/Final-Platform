@@ -142,7 +142,7 @@ export const createProduct = async (
     logger.info(`Product created: ${product.id} by user ${req.user.id}`);
 
     const createdProduct = await Product.findByPk(product.id, {
-      include: [{ model: ProductImage, as: 'images' }],
+      include: [{ model: ProductImage, as: 'productImages' }],
     });
 
     sendCreated(res, createdProduct ?? product);
@@ -196,7 +196,7 @@ export const getProducts = async (
       offset,
       limit: validLimit,
       order: [[sortBy as string, order as string]],
-      include: [{ model: ProductImage, as: 'images' }],
+      include: [{ model: ProductImage, as: 'productImages' }],
     });
 
     // تحديث الـ badges للمنتجات من قاعدة البيانات (إنديش)
@@ -240,7 +240,7 @@ export const getProductById = async (
     }
 
     const product = await Product.findByPk(productId, {
-      include: [{ model: ProductImage, as: 'images' }],
+      include: [{ model: ProductImage, as: 'productImages' }],
     });
 
     if (!product) {
@@ -291,7 +291,7 @@ export const updateProduct = async (
     } = req.body;
 
     const product = await Product.findByPk(productId, {
-      include: [{ model: ProductImage, as: 'images' }],
+      include: [{ model: ProductImage, as: 'productImages' }],
     });
     if (!product) {
       sendNotFound(res, 'Product not found');
@@ -346,7 +346,7 @@ export const updateProduct = async (
       }
     }
 
-    await product.reload({ include: [{ model: ProductImage, as: 'images' }] });
+    await product.reload({ include: [{ model: ProductImage, as: 'productImages' }] });
 
     logger.info(`Product updated: ${product.id}`);
 

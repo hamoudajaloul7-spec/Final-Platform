@@ -1563,14 +1563,6 @@ export default function Home() {
       }
     }
 
-    const savedUnavailable = localStorage.getItem('eshro_unavailable');
-    if (savedUnavailable) {
-      try {
-        setUnavailableItems(JSON.parse(savedUnavailable));
-      } catch (error) {
-        // Error handling for orders parsing
-      }
-    }
 
     const isLocalhost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
 
@@ -1898,13 +1890,6 @@ export default function Home() {
       });
 
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'eshro_unavailable' && e.newValue) {
-        try {
-          setUnavailableItems(JSON.parse(e.newValue));
-        } catch (error) {
-          // Silent error handling for store sync
-        }
-      }
       if (!e.key) {
         return;
       }
@@ -1967,11 +1952,6 @@ export default function Home() {
     }
   }, [favorites]);
 
-  useEffect(() => {
-    if (unavailableItems.length > 0) {
-      localStorage.setItem('eshro_unavailable', JSON.stringify(unavailableItems));
-    }
-  }, [unavailableItems]);
 
   // حفظ بيانات التاجر الحالي
   useEffect(() => {
@@ -3162,22 +3142,50 @@ export default function Home() {
           
           // النافذة الآن تُعرض محلياً في صفحات المتاجر والمنتجات
         }}
-        onSubmitNotification={(product, notificationData) => {
-          // حفظ بيانات التنبيه في قائمة العناصر غير المتوفرة
-          const newUnavailableItem = {
-            ...product,
-            notificationData,
-            requestedAt: new Date().toISOString()
-          };
-          
-          setUnavailableItems(prev => [...prev, newUnavailableItem]);
-          
-          // حفظ في localStorage
-          const savedUnavailable = JSON.parse(localStorage.getItem('eshro_unavailable') || '[]');
-          savedUnavailable.push(newUnavailableItem);
-          localStorage.setItem('eshro_unavailable', JSON.stringify(savedUnavailable));
-          
-          
+        onSubmitNotification={async (product, notificationData) => {
+          try {
+            const notificationTypes =
+              notificationData?.notificationMethods ?? notificationData?.notificationTypes ?? [];
+
+            const payload = {
+              storeSlug: currentStore,
+              storeId: product?.storeId,
+              productId: product?.id,
+              productName: product?.name,
+              customerName: notificationData?.customerName,
+              phone: notificationData?.phone,
+              email: notificationData?.email,
+              quantity: notificationData?.quantity,
+              notificationTypes
+            };
+
+            const response = await fetch(`${API_BASE}/stores/unavailable/notify`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+            });
+
+            const json = await response.json().catch(() => null);
+
+            if (!response.ok) {
+              const message = json?.message || json?.error || response.statusText || 'Request failed';
+              throw new Error(message);
+            }
+
+            const created = json?.data?.notification || json?.notification || null;
+
+            setUnavailableItems((prev) => [
+              ...prev,
+              created ?? {
+                ...product,
+                notificationData,
+                requestedAt: new Date().toISOString()
+              }
+            ]);
+          } catch (error) {
+            const message = error instanceof Error ? error.message : 'حدث خطأ أثناء إرسال الطلب';
+            alert(message);
+          }
         }}
         favorites={favorites.map(f => f.id)}
       />
