@@ -51,10 +51,17 @@ export class StoreGeneratorService {
   private readonly supportedImageExtensions = ['png', 'jpg', 'jpeg', 'svg', 'webp', 'gif'];
 
   constructor() {
-    let dynamicBase = process.cwd();
+    const cwd = process.cwd();
+    const normalizedCwd = cwd.replace(/\\/g, '/');
 
-    if (dynamicBase.endsWith('backend')) {
-      dynamicBase = path.join(dynamicBase, '..');
+    let dynamicBase = cwd;
+
+    if (normalizedCwd.endsWith('/backend/dist')) {
+      dynamicBase = path.join(cwd, '..', '..');
+    } else if (normalizedCwd.endsWith('/backend/src')) {
+      dynamicBase = path.join(cwd, '..', '..');
+    } else if (normalizedCwd.endsWith('/backend')) {
+      dynamicBase = path.join(cwd, '..');
     }
 
     this.baseProjectDir = process.env.STORE_BASE_DIR || dynamicBase;
