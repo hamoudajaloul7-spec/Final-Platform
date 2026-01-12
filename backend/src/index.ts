@@ -11,6 +11,8 @@ import seedDatabase from '@database/seed';
 
 const PORT = config.port;
 
+logger.info(`🔖 Release: ${process.env.RENDER_GIT_COMMIT || process.env.SOURCE_VERSION || process.env.GIT_COMMIT || 'unknown'}`);
+
 const initializeDatabase = async (): Promise<void> => {
   try {
     logger.info('🔄 Initializing database models...');
@@ -87,7 +89,17 @@ const runOneTimePurge = async (): Promise<void> => {
     const emailsRaw = String(process.env.ONE_TIME_PURGE_EMAILS || '').trim();
     const token = String(process.env.ADMIN_PURGE_TOKEN || '').trim();
 
-    if (!confirm || !token || (!slugsRaw && !emailsRaw)) {
+    if (!confirm) {
+      return;
+    }
+
+    if (!token) {
+      logger.warn('🧨 ONE_TIME_PURGE_CONFIRM is true but ADMIN_PURGE_TOKEN is missing');
+      return;
+    }
+
+    if (!slugsRaw && !emailsRaw) {
+      logger.warn('🧨 ONE_TIME_PURGE_CONFIRM is true but ONE_TIME_PURGE_SLUGS/ONE_TIME_PURGE_EMAILS are empty');
       return;
     }
 
