@@ -24,6 +24,7 @@ import {
   Sparkles,
   Star,
   Store,
+  HelpCircle,
   X
 } from 'lucide-react';
 
@@ -872,6 +873,14 @@ const CreateStorePage: React.FC<CreateStorePageProps> = ({
     // تحويل إلى أحرف صغيرة وإزالة المسافات والأحرف غير المسموحة
     const cleanValue = value.toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 30);
     setFormData(prev => ({ ...prev, subdomain: cleanValue }));
+  };
+
+  const navigateToHelpCenter = () => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+    window.history.pushState({}, '', '/help-center');
+    window.dispatchEvent(new PopStateEvent('popstate'));
   };
 
   const renderStep = () => {
@@ -2078,13 +2087,26 @@ const CreateStorePage: React.FC<CreateStorePageProps> = ({
             <span className="text-xl font-bold text-primary">إشرو</span>
           </div>
           
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={onNavigateToLogin}
-          >
-            تسجيل الدخول
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={navigateToHelpCenter}
+              className="flex items-center gap-2"
+            >
+              <HelpCircle className="h-4 w-4" />
+              مركز المساعدة
+            </Button>
+
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={onNavigateToLogin}
+            >
+              تسجيل الدخول
+            </Button>
+          </div>
         </div>
       </header>
 
