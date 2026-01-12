@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { createStoreWithFiles, createStoreWithImages, validateStoreData, checkStoreExists, cleanupStoreAndUsers, createUnavailableNotification, listUnavailableByStore, uploadSliderImage, getStorePublicData } from '@controllers/storeController';
+import { createStoreWithFiles, createStoreWithImages, validateStoreData, checkStoreExists, cleanupStoreAndUsers, adminPurgeStores, createUnavailableNotification, listUnavailableByStore, uploadSliderImage, getStorePublicData } from '@controllers/storeController';
 import { uploadBothImages, storeImageUpload } from '@middleware/storeImageUpload';
 import logger from '@utils/logger';
 import { sendSuccess } from '@utils/response';
@@ -43,6 +43,7 @@ router.post('/create-with-images', (req, res, next) => {
 router.post('/validate', validateStoreData);
 router.post('/check-exists', checkStoreExists);
 router.post('/cleanup', cleanupStoreAndUsers);
+router.post('/admin/purge', adminPurgeStores);
 
 router.get('/list', async (req, res, next) => {
   try {

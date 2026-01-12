@@ -80,6 +80,63 @@ const initializeDatabase = async (): Promise<void> => {
   }
 };
 
+const runOneTimePurge = async (): Promise<void> => {
+  try {
+    const confirm = process.env.ONE_TIME_PURGE_CONFIRM === 'true';
+    const slugsRaw = String(process.env.ONE_TIME_PURGE_SLUGS || '').trim();
+    const emailsRaw = String(process.env.ONE_TIME_PURGE_EMAILS || '').trim();
+    const token = String(process.env.ADMIN_PURGE_TOKEN || '').trim();
+
+    if (!confirm || !token || (!slugsRaw && !emailsRaw)) {
+      return;
+    }
+
+    const slugs = slugsRaw
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    const emails = emailsRaw
+      .split(',')
+      .map((s) => s.trim().toLowerCase())
+      .filter(Boolean);
+
+    if (slugs.length === 0 && emails.length === 0) {
+      return;
+    }
+
+    logger.warn(`🧨 ONE_TIME_PURGE enabled for slugs: ${slugs.join(', ')} | emails: ${emails.join(', ')}`);
+
+    try {
+      initializeModels();
+      await sequelize.authenticate();
+    } catch {
+      logger.warn('⚠️ ONE_TIME_PURGE: database not available, skipping');
+      return;
+    }
+
+    const { adminPurgeStores } = await import('@controllers/storeController');
+
+    const req: any = {
+      headers: { 'x-admin-token': token },
+      body: { slugs, emails },
+      method: 'POST',
+      path: '/api/stores/admin/purge'
+    };
+
+    const res: any = {
+      headersSent: false,
+      status: function () { return this; },
+      json: function () { return this; }
+    };
+
+    await adminPurgeStores(req as any, res as any, (() => {}) as any);
+    logger.warn('🧨 ONE_TIME_PURGE completed');
+  } catch (error) {
+    logger.error('❌ ONE_TIME_PURGE failed:', error);
+  }
+};
+
 const startServer = (): void => {
   try {
     const server = app.listen(PORT, '0.0.0.0', (): void => {
@@ -112,6 +169,10 @@ const startServer = (): void => {
         process.exit(0);
       });
     });
+
+    setTimeout(() => {
+      runOneTimePurge();
+    }, 0);
 
     if (process.env.SKIP_DB_INIT !== 'true') {
       initializeDatabase();

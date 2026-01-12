@@ -115,6 +115,10 @@ export const deleteImageFromSupabase = async (
   filename: string
 ): Promise<boolean> => {
   try {
+    if (!supabaseKey) {
+      throw new Error('SUPABASE key is not configured');
+    }
+
     const filePath = `stores/${storeSlug}/${imageType}/${filename}`;
     logger.info(`🗑️ Deleting from Supabase: ${filePath}`);
 
@@ -132,5 +136,64 @@ export const deleteImageFromSupabase = async (
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     logger.error(`❌ Failed to delete image from Supabase: ${errorMessage}`);
     return false;
+  }
+};
+
+export interface SupabasePurgeResult {
+  success: boolean;
+  removed: number;
+  attempted: number;
+  errors: string[];
+}
+
+export const purgeStoreFromSupabase = async (storeSlug: string): Promise<SupabasePurgeResult> => {
+  const errors: string[] = [];
+  let removed = 0;
+  let attempted = 0;
+
+  try {
+    if (!supabaseKey) {
+      throw new Error('SUPABASE key is not configured');
+    }
+
+    const prefixes = [`stores/${storeSlug}/logo`, `stores/${storeSlug}/sliders`, `stores/${storeSlug}/products`];
+
+    for (const prefix of prefixes) {
+      const parts = prefix.split('/');
+      const folderPath = parts.slice(0, -1).join('/');
+      const folderName = parts[parts.length - 1];
+
+      const { data, error } = await supabase.storage
+        .from(supabaseBucket)
+        .list(`${folderPath}/${folderName}`, { limit: 1000 });
+
+      if (error) {
+        errors.push(`List failed for ${prefix}: ${error.message}`);
+        continue;
+      }
+
+      const files = (data || []).filter((e: any) => e?.name && !e?.metadata?.is_folder);
+      if (files.length === 0) {
+        continue;
+      }
+
+      const toRemove = files.map((f: any) => `${folderPath}/${folderName}/${f.name}`);
+      attempted += toRemove.length;
+
+      const { error: removeError } = await supabase.storage
+        .from(supabaseBucket)
+        .remove(toRemove);
+
+      if (removeError) {
+        errors.push(`Remove failed for ${prefix}: ${removeError.message}`);
+        continue;
+      }
+
+      removed += toRemove.length;
+    }
+
+    return { success: errors.length === 0, removed, attempted, errors };
+  } catch (e: any) {
+    return { success: false, removed, attempted, errors: [e?.message || 'Unknown error'] };
   }
 };

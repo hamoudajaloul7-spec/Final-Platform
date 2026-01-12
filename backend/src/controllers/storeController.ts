@@ -12,8 +12,15 @@ import User from '@models/User';
 import StoreSlider from '@models/StoreSlider';
 import StoreAd from '@models/StoreAd';
 import UnavailableNotification from '@models/UnavailableNotification';
+import Product from '@models/Product';
+import ProductImage from '@models/ProductImage';
+import StoreFeature from '@models/StoreFeature';
+import StoreSubscription from '@models/StoreSubscription';
+import StoreUser from '@models/StoreUser';
+import ManualOrder from '@models/ManualOrder';
+import AbandonedCart from '@models/AbandonedCart';
 import { moveUploadedFiles, cleanupTempUploads } from '@middleware/storeImageUpload';
-import { uploadImageToSupabase, uploadMultipleImagesToSupabase } from '@services/supabaseImageUpload';
+import { uploadImageToSupabase, uploadMultipleImagesToSupabase, purgeStoreFromSupabase } from '@services/supabaseImageUpload';
 import fs from 'fs';
 import { promises as fsPromises } from 'fs';
 import path from 'path';
@@ -1047,6 +1054,109 @@ export const cleanupStoreAndUsers = async (
     });
   } catch (error) {
     logger.error('Error during cleanup:', error);
+    next(error);
+  }
+};
+
+export const adminPurgeStores = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const token = String(req.headers['x-admin-token'] || '');
+    const expected = String(process.env.ADMIN_PURGE_TOKEN || '');
+
+    if (!expected || token !== expected) {
+      sendError(res, 'Unauthorized', 401);
+      return;
+    }
+
+    const slugsRaw = (req.body?.slugs || req.body?.slug || []) as any;
+    const slugs = (Array.isArray(slugsRaw) ? slugsRaw : [slugsRaw])
+      .map((s) => String(s || '').trim())
+      .filter(Boolean);
+
+    const emailsRaw = (req.body?.emails || req.body?.email || []) as any;
+    const emails = (Array.isArray(emailsRaw) ? emailsRaw : [emailsRaw])
+      .map((s) => String(s || '').trim().toLowerCase())
+      .filter(Boolean);
+
+    if (slugs.length === 0 && emails.length === 0) {
+      sendError(res, 'slugs or emails is required', 400);
+      return;
+    }
+
+    const result = {
+      slugs,
+      emails,
+      storesDeleted: 0,
+      usersDeleted: 0,
+      productsDeleted: 0,
+      productImagesDeleted: 0,
+      slidersDeleted: 0,
+      adsDeleted: 0,
+      featuresDeleted: 0,
+      subscriptionsDeleted: 0,
+      membersDeleted: 0,
+      manualOrdersDeleted: 0,
+      abandonedCartsDeleted: 0,
+      unavailableNotificationsDeleted: 0,
+      supabase: [] as any[]
+    };
+
+    await sequelize.transaction(async (transaction) => {
+      const stores = slugs.length
+        ? await Store.findAll({ where: { slug: { [Op.in]: slugs } }, transaction })
+        : [];
+      const storeIds = stores.map((s) => s.id);
+      const merchantIdsFromStores = stores.map((s) => (s as any).merchantId).filter(Boolean);
+
+      const usersFromEmails = emails.length
+        ? await User.findAll({ where: { email: { [Op.in]: emails } }, attributes: ['id'], transaction })
+        : [];
+      const merchantIdsFromEmails = usersFromEmails.map((u) => u.id);
+
+      const merchantIds = Array.from(new Set([...merchantIdsFromStores, ...merchantIdsFromEmails]));
+
+      if (storeIds.length === 0 && merchantIds.length === 0) {
+        return;
+      }
+
+      const productIds = storeIds.length
+        ? (await Product.findAll({ where: { storeId: { [Op.in]: storeIds } }, attributes: ['id'], transaction })).map((p) => p.id)
+        : [];
+
+      if (productIds.length) {
+        result.productImagesDeleted += await ProductImage.destroy({ where: { productId: { [Op.in]: productIds } }, transaction });
+      }
+
+      if (storeIds.length) {
+        result.productsDeleted += await Product.destroy({ where: { storeId: { [Op.in]: storeIds } }, transaction });
+        result.slidersDeleted += await StoreSlider.destroy({ where: { storeId: { [Op.in]: storeIds } }, transaction });
+        result.adsDeleted += await StoreAd.destroy({ where: { storeId: { [Op.in]: storeIds } }, transaction });
+        result.featuresDeleted += await StoreFeature.destroy({ where: { storeId: { [Op.in]: storeIds } }, transaction });
+        result.subscriptionsDeleted += await StoreSubscription.destroy({ where: { storeId: { [Op.in]: storeIds } }, transaction });
+        result.membersDeleted += await StoreUser.destroy({ where: { storeId: { [Op.in]: storeIds } }, transaction });
+        result.manualOrdersDeleted += await ManualOrder.destroy({ where: { storeId: { [Op.in]: storeIds } }, transaction });
+        result.abandonedCartsDeleted += await AbandonedCart.destroy({ where: { storeId: { [Op.in]: storeIds } }, transaction });
+        result.unavailableNotificationsDeleted += await UnavailableNotification.destroy({ where: { storeSlug: { [Op.in]: slugs } }, transaction });
+        result.storesDeleted += await Store.destroy({ where: { id: { [Op.in]: storeIds } }, transaction });
+      }
+
+      if (merchantIds.length) {
+        result.usersDeleted += await User.destroy({ where: { id: { [Op.in]: merchantIds } }, transaction });
+      }
+    });
+
+    for (const slug of slugs) {
+      const purge = await purgeStoreFromSupabase(slug);
+      result.supabase.push({ slug, ...purge });
+    }
+
+    sendSuccess(res, result, 200, 'Purge completed');
+  } catch (error) {
+    logger.error('Error during admin purge:', error);
     next(error);
   }
 };
