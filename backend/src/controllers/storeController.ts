@@ -966,6 +966,27 @@ export const getStorePublicData = async (
       return candidates[0];
     };
 
+    const applyStoreJsonPayload = (payload: any) => {
+      if (!payload || typeof payload !== 'object') {
+        return;
+      }
+
+      if (products.length === 0 && Array.isArray(payload?.products)) {
+        products = payload.products;
+      }
+
+      if (sliders.length === 0 && Array.isArray(payload?.sliderImages)) {
+        sliders = payload.sliderImages.map((s: any, idx: number) => ({
+          id: s?.id || `banner${idx + 1}`,
+          title: s?.title || '',
+          subtitle: s?.subtitle || '',
+          buttonText: s?.buttonText || '',
+          imageUrl: s?.image || '',
+          image: s?.image || ''
+        }));
+      }
+    };
+
     let products: any[] = [];
     let sliders: any[] = [];
 
@@ -974,27 +995,35 @@ export const getStorePublicData = async (
       if (fs.existsSync(storeJsonPath)) {
         const raw = await fsPromises.readFile(storeJsonPath, 'utf-8');
         const parsed = JSON.parse(raw);
-
-        if (Array.isArray(parsed?.products)) {
-          products = parsed.products;
-        }
-
-        if (Array.isArray(parsed?.sliderImages)) {
-          sliders = parsed.sliderImages.map((s: any, idx: number) => ({
-            id: s?.id || `banner${idx + 1}`,
-            title: s?.title || '',
-            subtitle: s?.subtitle || '',
-            buttonText: s?.buttonText || '',
-            imageUrl: s?.image || '',
-            image: s?.image || ''
-          }));
-        }
+        applyStoreJsonPayload(parsed);
       }
     } catch (jsonError) {
       logger.warn('Failed to read store.json for public store data', {
         slug: store.slug,
         error: jsonError instanceof Error ? jsonError.message : String(jsonError)
       });
+    }
+
+    if (products.length === 0 || sliders.length === 0) {
+      try {
+        const forwardedProto = String(req.headers['x-forwarded-proto'] || '').split(',')[0].trim();
+        const protocol = forwardedProto || req.protocol || 'https';
+        const host = req.get('host');
+        const url = host ? `${protocol}://${host}/assets/${store.slug}/store.json` : '';
+
+        if (url) {
+          const response = await fetch(url, { headers: { accept: 'application/json' } });
+          if (response.ok) {
+            const parsed = await response.json().catch(() => null);
+            applyStoreJsonPayload(parsed);
+          }
+        }
+      } catch (httpError) {
+        logger.warn('Failed to fetch store.json over HTTP for public store data', {
+          slug: store.slug,
+          error: httpError instanceof Error ? httpError.message : String(httpError)
+        });
+      }
     }
 
     if (sliders.length === 0) {
