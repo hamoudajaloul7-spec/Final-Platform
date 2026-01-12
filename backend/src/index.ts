@@ -6,6 +6,7 @@ import logger from '@utils/logger';
 import { populateSliders } from '@migrations/populateSliders';
 import { fixSliderPaths } from '@migrations/fixSliderPaths';
 import { addStoreAdColumns } from '@migrations/addStoreAdColumns';
+import { addProductOptionColumns } from '@migrations/addProductOptionColumns';
 import runMigrations from '@database/migrate';
 import seedDatabase from '@database/seed';
 
@@ -75,6 +76,13 @@ const initializeDatabase = async (): Promise<void> => {
         await addStoreAdColumns();
       } catch (error) {
         logger.warn('⚠️ Store ads columns migration failed, continuing:', error);
+      }
+
+      logger.info('📦 Adding product option columns (colors/sizes/availableSizes)...');
+      try {
+        await addProductOptionColumns();
+      } catch (error) {
+        logger.warn('⚠️ Product option columns migration failed, continuing:', error);
       }
     }
   } catch (error) {

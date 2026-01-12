@@ -792,6 +792,54 @@ export const createStoreWithImages = async (
           { transaction }
         );
 
+        logger.info(`💾 Persisting ${parsedProducts.length} products to database...`);
+        for (let i = 0; i < parsedProducts.length; i++) {
+          const p: any = parsedProducts[i] || {};
+
+          const images = Array.isArray(p.images) ? (p.images as any[]).filter(Boolean) : [];
+          const primaryImage = images[0] || '';
+          const quantity = Number.isFinite(Number(p.quantity)) ? Number(p.quantity) : 0;
+          const resolvedInStock = quantity > 0;
+
+          const created = await Product.create(
+            {
+              storeId: persistedStoreRecord!.id,
+              name: (p.name || `Product ${i + 1}`).toString(),
+              description: p.description ?? null,
+              price: p.price ?? 0,
+              originalPrice: p.originalPrice ?? null,
+              category: (p.category || primaryCategoryValue || 'general').toString(),
+              image: primaryImage,
+              images,
+              colors: Array.isArray(p.colors) ? p.colors : [],
+              sizes: Array.isArray(p.sizes) ? p.sizes : [],
+              availableSizes: Array.isArray(p.availableSizes) ? p.availableSizes : [],
+              tags: Array.isArray(p.tags) ? p.tags : [],
+              quantity,
+              inStock: resolvedInStock,
+              rating: p.rating ?? null,
+              reviewCount: p.reviews ?? p.reviewCount ?? 0
+            },
+            { transaction }
+          );
+
+          if (images.length > 0) {
+            for (let idx = 0; idx < images.length; idx++) {
+              const imageUrl = images[idx];
+              await ProductImage.create(
+                {
+                  productId: created.id,
+                  imageUrl,
+                  sortOrder: idx,
+                  isPrimary: idx === 0
+                },
+                { transaction }
+              );
+            }
+          }
+        }
+        logger.info(`✅ ${parsedProducts.length} products persisted to database`);
+
         logger.info(`💾 Persisting ${slidersWithImages.length} sliders to database...`);
         for (let i = 0; i < slidersWithImages.length; i++) {
           const slider = slidersWithImages[i];
@@ -966,6 +1014,54 @@ export const getStorePublicData = async (
       return candidates[0];
     };
 
+    const dbSliders = await StoreSlider.findAll({
+      where: { storeId: store.id },
+      order: [['sortOrder', 'ASC']]
+    }).catch(() => []);
+
+    const dbProducts = await Product.findAll({
+      where: { storeId: store.id },
+      include: [{ model: ProductImage, as: 'productImages', required: false }],
+      order: [['createdAt', 'DESC']]
+    }).catch(() => []);
+
+    let products: any[] = dbProducts.map((p: any) => {
+      const plain = typeof p?.get === 'function' ? p.get({ plain: true }) : p;
+      const { productImages, ...rest } = plain || {};
+
+      const joinedImages = Array.isArray(productImages)
+        ? [...productImages]
+            .sort((a: any, b: any) => (a?.sortOrder ?? 0) - (b?.sortOrder ?? 0))
+            .map((img: any) => img?.imageUrl)
+            .filter(Boolean)
+        : [];
+
+      const modelImages = Array.isArray(rest?.images) ? rest.images.filter(Boolean) : [];
+      const images = modelImages.length > 0 ? modelImages : joinedImages;
+      const quantity = Number.isFinite(Number(rest?.quantity)) ? Number(rest.quantity) : 0;
+
+      return {
+        ...rest,
+        images,
+        colors: Array.isArray(rest?.colors) ? rest.colors : [],
+        sizes: Array.isArray(rest?.sizes) ? rest.sizes : [],
+        availableSizes: Array.isArray(rest?.availableSizes) ? rest.availableSizes : [],
+        tags: Array.isArray(rest?.tags) ? rest.tags : [],
+        quantity,
+        inStock: quantity > 0,
+        isAvailable: quantity > 0
+      };
+    });
+
+    let sliders: any[] = dbSliders.map((s: any) => ({
+      id: s.id,
+      title: s.title,
+      subtitle: s.subtitle,
+      buttonText: s.buttonText,
+      imageUrl: normalizeSliderImagePath(store.slug, s.imagePath),
+      image: normalizeSliderImagePath(store.slug, s.imagePath)
+    }));
+
     const applyStoreJsonPayload = (payload: any) => {
       if (!payload || typeof payload !== 'object') {
         return;
@@ -987,59 +1083,42 @@ export const getStorePublicData = async (
       }
     };
 
-    let products: any[] = [];
-    let sliders: any[] = [];
-
-    try {
-      const storeJsonPath = resolveStoreJsonPath(store.slug);
-      if (fs.existsSync(storeJsonPath)) {
-        const raw = await fsPromises.readFile(storeJsonPath, 'utf-8');
-        const parsed = JSON.parse(raw);
-        applyStoreJsonPayload(parsed);
-      }
-    } catch (jsonError) {
-      logger.warn('Failed to read store.json for public store data', {
-        slug: store.slug,
-        error: jsonError instanceof Error ? jsonError.message : String(jsonError)
-      });
-    }
-
     if (products.length === 0 || sliders.length === 0) {
       try {
-        const forwardedProto = String(req.headers['x-forwarded-proto'] || '').split(',')[0].trim();
-        const protocol = forwardedProto || req.protocol || 'https';
-        const host = req.get('host');
-        const url = host ? `${protocol}://${host}/assets/${store.slug}/store.json` : '';
-
-        if (url) {
-          const response = await fetch(url, { headers: { accept: 'application/json' } });
-          if (response.ok) {
-            const parsed = await response.json().catch(() => null);
-            applyStoreJsonPayload(parsed);
-          }
+        const storeJsonPath = resolveStoreJsonPath(store.slug);
+        if (fs.existsSync(storeJsonPath)) {
+          const raw = await fsPromises.readFile(storeJsonPath, 'utf-8');
+          const parsed = JSON.parse(raw);
+          applyStoreJsonPayload(parsed);
         }
-      } catch (httpError) {
-        logger.warn('Failed to fetch store.json over HTTP for public store data', {
+      } catch (jsonError) {
+        logger.warn('Failed to read store.json for public store data', {
           slug: store.slug,
-          error: httpError instanceof Error ? httpError.message : String(httpError)
+          error: jsonError instanceof Error ? jsonError.message : String(jsonError)
         });
       }
-    }
 
-    if (sliders.length === 0) {
-      const dbSliders = await StoreSlider.findAll({
-        where: { storeId: store.id },
-        order: [['sortOrder', 'ASC']]
-      }).catch(() => []);
+      if (products.length === 0 || sliders.length === 0) {
+        try {
+          const forwardedProto = String(req.headers['x-forwarded-proto'] || '').split(',')[0].trim();
+          const protocol = forwardedProto || req.protocol || 'https';
+          const host = req.get('host');
+          const url = host ? `${protocol}://${host}/assets/${store.slug}/store.json` : '';
 
-      sliders = dbSliders.map((s: any) => ({
-        id: s.id,
-        title: s.title,
-        subtitle: s.subtitle,
-        buttonText: s.buttonText,
-        imageUrl: normalizeSliderImagePath(store.slug, s.imagePath),
-        image: normalizeSliderImagePath(store.slug, s.imagePath)
-      }));
+          if (url) {
+            const response = await fetch(url, { headers: { accept: 'application/json' } });
+            if (response.ok) {
+              const parsed = await response.json().catch(() => null);
+              applyStoreJsonPayload(parsed);
+            }
+          }
+        } catch (httpError) {
+          logger.warn('Failed to fetch store.json over HTTP for public store data', {
+            slug: store.slug,
+            error: httpError instanceof Error ? httpError.message : String(httpError)
+          });
+        }
+      }
     }
 
     sendSuccess(res, {
@@ -1262,7 +1341,7 @@ export const createUnavailableNotification = async (
       notificationTypes
     } = req.body || {};
 
-    if (!productId || !productName || !customerName || !phone || !email) {
+    if (!productId || !productName || !customerName || !phone) {
       sendError(res, 'Missing required fields for unavailable notification', 400);
       return;
     }
@@ -1293,7 +1372,7 @@ export const createUnavailableNotification = async (
       productName,
       customerName,
       phone,
-      email,
+      email: (email || '').toString(),
       quantity: quantity ?? 1,
       notificationTypes: normalizedNotificationTypes
     });
