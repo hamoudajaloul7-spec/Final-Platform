@@ -839,11 +839,19 @@ ${data.sliderImages
     // Normalize logo path
     const logoPath = data.logo || '/assets/default-store.png';
 
+    const normalizeAssetPath = (value: string): string => {
+      const cleaned = String(value || '').trim();
+      if (!cleaned) return '';
+      if (/^https?:\/\//i.test(cleaned) || cleaned.startsWith('data:')) return cleaned;
+      if (cleaned.startsWith('/')) return cleaned;
+      return `/${cleaned}`;
+    };
+
     const normalizedProducts = data.products.map(product => {
       const defaultImage = this.getDefaultProductImage(data.storeSlug);
       let images = (product.images || [])
         .filter(img => img && img.trim())
-        .map(img => img.startsWith('/') ? img : `/${img}`);
+        .map(normalizeAssetPath);
 
       if (images.length === 0) {
         images = [defaultImage];
@@ -876,7 +884,7 @@ ${data.sliderImages
     const normalizedSliders = data.sliderImages.map(slider => ({
       ...slider,
       image: (slider.image && slider.image.trim())
-        ? (slider.image.startsWith('/') ? slider.image : `/${slider.image}`)
+        ? (normalizeAssetPath(slider.image) || '/assets/default-slider.png')
         : '/assets/default-slider.png'
     }));
 
