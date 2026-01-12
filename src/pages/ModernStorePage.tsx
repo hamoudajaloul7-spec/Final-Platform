@@ -567,24 +567,29 @@ const ModernStorePage: React.FC<ModernStorePageProps> = ({
         <UnifiedStoreSlider storeSlug={store.slug} />
       ) : sliderImages.length > 0 ? (
         /* السلايدر العادي للمتاجر الديناميكية بدون إعدادات مركزية */
-          <div className="relative h-96 bg-gradient-to-r from-primary/10 to-primary/5 overflow-hidden">
-            <div 
-                 className="absolute inset-0 flex transition-transform duration-500 ease-in-out slider-container"
-                 style={{
-                   '--slide-offset': activeSlide
-                 } as React.CSSProperties}
-                 role="region"
-                 aria-label="محتوى السلايدر">
+          <div
+            className="relative w-full overflow-hidden bg-gradient-to-r from-primary/10 to-primary/5"
+            style={{ height: 'clamp(420px, 65vh, 820px)' }}
+          >
+            <div
+              className="absolute inset-0 flex transition-transform duration-500 ease-in-out"
+              style={{ transform: `translateX(-${activeSlide * 100}%)` }}
+              role="region"
+              aria-label="محتوى السلايدر"
+            >
               {sliderImages.map((item, index) => {
                 const isSliderBanner = item.imageUrl && (item.title || item.subtitle || item.discount);
                 
                 if (isSliderBanner) {
                   return (
-                    <div key={item.id} className="w-full flex-shrink-0 relative">
+                    <div key={item.id} className="w-full flex-shrink-0 relative h-full">
                       <img
                         src={item.imageUrl}
                         alt={item.title || 'عرض'}
-                        className="w-full h-96 object-cover"
+                        className="w-full h-full object-contain"
+                        loading={index === 0 ? 'eager' : 'lazy'}
+                        decoding="async"
+                        fetchPriority={index === 0 ? 'high' : 'auto'}
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent">
                         <div className="absolute bottom-0 left-0 right-0 p-8 text-white">

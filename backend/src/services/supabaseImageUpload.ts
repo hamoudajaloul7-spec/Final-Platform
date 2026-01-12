@@ -56,7 +56,7 @@ export const uploadImageToSupabase = async (
 
     const filename = path.basename(filePath);
     const supabasePath = `stores/${storeSlug}/${imageType}/${filename}`;
-    const fileBuffer = fs.readFileSync(filePath);
+    const fileBuffer = await fs.promises.readFile(filePath);
 
     logger.info(`📤 Uploading to Supabase: ${supabasePath}`);
 
@@ -64,6 +64,7 @@ export const uploadImageToSupabase = async (
       .from(supabaseBucket)
       .upload(supabasePath, fileBuffer, {
         contentType: getMimeType(filename),
+        cacheControl: '31536000',
         upsert: true
       });
 
