@@ -144,6 +144,36 @@ async function fetchJsonStores(): Promise<any[]> {
   try {
     const apiUrl = typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL ? import.meta.env.VITE_API_URL : '/api';
     const backendUrl = apiUrl.replace('/api', '');
+
+    try {
+      const res = await fetch(`${apiUrl}/stores/list`, { cache: 'no-store' });
+      if (res.ok) {
+        const json = await res.json().catch(() => null);
+        const stores = json?.data?.stores || json?.stores || [];
+        if (Array.isArray(stores) && stores.length > 0) {
+          return stores
+            .map((s: any) => {
+              const slug = canonicalSlug(s.slug || s.storeSlug || s.subdomain || s.name);
+              if (!slug) return null;
+              return {
+                id: s.id || slug,
+                name: s.name || s.nameAr || slug,
+                slug,
+                description: s.description || '',
+                logo: s.logo || '/assets/default-store.png',
+                categories: s.category ? [s.category] : (s.categories || []),
+                url: `/${slug}`,
+                endpoints: {},
+                social: {},
+                isActive: Boolean(s.isActive ?? true),
+                source: 'server'
+              };
+            })
+            .filter(Boolean);
+        }
+      }
+    } catch {
+    }
     
     let idxRes = await fetch(`${backendUrl}/assets/stores/index.json`, { cache: 'no-store' }).catch(() => null);
     if (!idxRes?.ok) {
