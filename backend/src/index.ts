@@ -84,9 +84,10 @@ const runOneTimePurge = async (): Promise<void> => {
   try {
     const confirm = process.env.ONE_TIME_PURGE_CONFIRM === 'true';
     const slugsRaw = String(process.env.ONE_TIME_PURGE_SLUGS || '').trim();
+    const emailsRaw = String(process.env.ONE_TIME_PURGE_EMAILS || '').trim();
     const token = String(process.env.ADMIN_PURGE_TOKEN || '').trim();
 
-    if (!confirm || !slugsRaw || !token) {
+    if (!confirm || !token || (!slugsRaw && !emailsRaw)) {
       return;
     }
 
@@ -95,11 +96,16 @@ const runOneTimePurge = async (): Promise<void> => {
       .map((s) => s.trim())
       .filter(Boolean);
 
-    if (slugs.length === 0) {
+    const emails = emailsRaw
+      .split(',')
+      .map((s) => s.trim().toLowerCase())
+      .filter(Boolean);
+
+    if (slugs.length === 0 && emails.length === 0) {
       return;
     }
 
-    logger.warn(`🧨 ONE_TIME_PURGE enabled for slugs: ${slugs.join(', ')}`);
+    logger.warn(`🧨 ONE_TIME_PURGE enabled for slugs: ${slugs.join(', ')} | emails: ${emails.join(', ')}`);
 
     try {
       initializeModels();
@@ -113,7 +119,7 @@ const runOneTimePurge = async (): Promise<void> => {
 
     const req: any = {
       headers: { 'x-admin-token': token },
-      body: { slugs },
+      body: { slugs, emails },
       method: 'POST',
       path: '/api/stores/admin/purge'
     };

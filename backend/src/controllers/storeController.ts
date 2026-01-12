@@ -1077,13 +1077,19 @@ export const adminPurgeStores = async (
       .map((s) => String(s || '').trim())
       .filter(Boolean);
 
-    if (slugs.length === 0) {
-      sendError(res, 'slugs is required', 400);
+    const emailsRaw = (req.body?.emails || req.body?.email || []) as any;
+    const emails = (Array.isArray(emailsRaw) ? emailsRaw : [emailsRaw])
+      .map((s) => String(s || '').trim().toLowerCase())
+      .filter(Boolean);
+
+    if (slugs.length === 0 && emails.length === 0) {
+      sendError(res, 'slugs or emails is required', 400);
       return;
     }
 
     const result = {
       slugs,
+      emails,
       storesDeleted: 0,
       usersDeleted: 0,
       productsDeleted: 0,
@@ -1100,9 +1106,18 @@ export const adminPurgeStores = async (
     };
 
     await sequelize.transaction(async (transaction) => {
-      const stores = await Store.findAll({ where: { slug: { [Op.in]: slugs } }, transaction });
+      const stores = slugs.length
+        ? await Store.findAll({ where: { slug: { [Op.in]: slugs } }, transaction })
+        : [];
       const storeIds = stores.map((s) => s.id);
-      const merchantIds = Array.from(new Set(stores.map((s) => (s as any).merchantId).filter(Boolean)));
+      const merchantIdsFromStores = stores.map((s) => (s as any).merchantId).filter(Boolean);
+
+      const usersFromEmails = emails.length
+        ? await User.findAll({ where: { email: { [Op.in]: emails } }, attributes: ['id'], transaction })
+        : [];
+      const merchantIdsFromEmails = usersFromEmails.map((u) => u.id);
+
+      const merchantIds = Array.from(new Set([...merchantIdsFromStores, ...merchantIdsFromEmails]));
 
       if (storeIds.length === 0 && merchantIds.length === 0) {
         return;
