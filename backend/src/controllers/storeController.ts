@@ -939,19 +939,79 @@ export const getStorePublicData = async (
       return;
     }
 
-    // Fetch sliders separately
-    const sliders = await StoreSlider.findAll({
-      where: { storeId: store.id },
-      order: [['sortOrder', 'ASC']]
-    }).catch(() => []);
+    const resolveStoreJsonPath = (storeSlug: string): string => {
+      const cwd = process.cwd();
+      const normalizedCwd = cwd.replace(/\\/g, '/');
 
-    // Get Products (assuming we can filter by storeId)
-    // Note: Since Product model might not be directly associated in all versions, 
-    // we fetch using storeId manually if association isn't standard
-    const products = await sequelize.models.Product.findAll({
-      where: { storeId: store.id },
-      include: ['images'] // Assuming alias is defined
-    }).catch(() => []); // Fallback if association fails
+      let basePath = cwd;
+      if (normalizedCwd.endsWith('/backend/dist')) {
+        basePath = path.join(cwd, '..', '..');
+      } else if (normalizedCwd.endsWith('/backend')) {
+        basePath = path.join(cwd, '..');
+      }
+
+      const candidates = [
+        path.join(basePath, 'backend', 'public', 'assets', storeSlug, 'store.json'),
+        path.join(basePath, 'public', 'assets', storeSlug, 'store.json'),
+        path.join(cwd, 'public', 'assets', storeSlug, 'store.json'),
+        path.join(cwd, 'assets', storeSlug, 'store.json')
+      ];
+
+      for (const candidate of candidates) {
+        if (fs.existsSync(candidate)) {
+          return candidate;
+        }
+      }
+
+      return candidates[0];
+    };
+
+    let products: any[] = [];
+    let sliders: any[] = [];
+
+    try {
+      const storeJsonPath = resolveStoreJsonPath(store.slug);
+      if (fs.existsSync(storeJsonPath)) {
+        const raw = await fsPromises.readFile(storeJsonPath, 'utf-8');
+        const parsed = JSON.parse(raw);
+
+        if (Array.isArray(parsed?.products)) {
+          products = parsed.products;
+        }
+
+        if (Array.isArray(parsed?.sliderImages)) {
+          sliders = parsed.sliderImages.map((s: any, idx: number) => ({
+            id: s?.id || `banner${idx + 1}`,
+            title: s?.title || '',
+            subtitle: s?.subtitle || '',
+            buttonText: s?.buttonText || '',
+            imageUrl: s?.image || '',
+            image: s?.image || ''
+          }));
+        }
+      }
+    } catch (jsonError) {
+      logger.warn('Failed to read store.json for public store data', {
+        slug: store.slug,
+        error: jsonError instanceof Error ? jsonError.message : String(jsonError)
+      });
+    }
+
+    if (sliders.length === 0) {
+      const dbSliders = await StoreSlider.findAll({
+        where: { storeId: store.id },
+        order: [['sortOrder', 'ASC']]
+      }).catch(() => []);
+
+      sliders = dbSliders.map((s: any) => ({
+        id: s.id,
+        title: s.title,
+        subtitle: s.subtitle,
+        buttonText: s.buttonText,
+        imageUrl: normalizeSliderImagePath(store.slug, s.imagePath),
+        image: normalizeSliderImagePath(store.slug, s.imagePath)
+      }));
+    }
 
     sendSuccess(res, {
       store: {
@@ -964,13 +1024,7 @@ export const getStorePublicData = async (
         isActive: store.isActive
       },
       products,
-      sliders: sliders.map((s: any) => ({
-        id: s.id,
-        title: s.title,
-        subtitle: s.subtitle,
-        image: normalizeSliderImagePath(store.slug, s.imagePath),
-        buttonText: s.buttonText
-      }))
+      sliders
     });
 
   } catch (error) {
