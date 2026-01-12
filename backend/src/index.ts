@@ -80,6 +80,57 @@ const initializeDatabase = async (): Promise<void> => {
   }
 };
 
+const runOneTimePurge = async (): Promise<void> => {
+  try {
+    const confirm = process.env.ONE_TIME_PURGE_CONFIRM === 'true';
+    const slugsRaw = String(process.env.ONE_TIME_PURGE_SLUGS || '').trim();
+    const token = String(process.env.ADMIN_PURGE_TOKEN || '').trim();
+
+    if (!confirm || !slugsRaw || !token) {
+      return;
+    }
+
+    const slugs = slugsRaw
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    if (slugs.length === 0) {
+      return;
+    }
+
+    logger.warn(`🧨 ONE_TIME_PURGE enabled for slugs: ${slugs.join(', ')}`);
+
+    try {
+      initializeModels();
+      await sequelize.authenticate();
+    } catch {
+      logger.warn('⚠️ ONE_TIME_PURGE: database not available, skipping');
+      return;
+    }
+
+    const { adminPurgeStores } = await import('@controllers/storeController');
+
+    const req: any = {
+      headers: { 'x-admin-token': token },
+      body: { slugs },
+      method: 'POST',
+      path: '/api/stores/admin/purge'
+    };
+
+    const res: any = {
+      headersSent: false,
+      status: function () { return this; },
+      json: function () { return this; }
+    };
+
+    await adminPurgeStores(req as any, res as any, (() => {}) as any);
+    logger.warn('🧨 ONE_TIME_PURGE completed');
+  } catch (error) {
+    logger.error('❌ ONE_TIME_PURGE failed:', error);
+  }
+};
+
 const startServer = (): void => {
   try {
     const server = app.listen(PORT, '0.0.0.0', (): void => {
@@ -112,6 +163,10 @@ const startServer = (): void => {
         process.exit(0);
       });
     });
+
+    setTimeout(() => {
+      runOneTimePurge();
+    }, 0);
 
     if (process.env.SKIP_DB_INIT !== 'true') {
       initializeDatabase();
