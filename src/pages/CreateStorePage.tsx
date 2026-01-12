@@ -1322,8 +1322,9 @@ const CreateStorePage: React.FC<CreateStorePageProps> = ({
                   <Label>الكمية المتاحة بالمخزن *</Label>
                   <Input
                     type="number"
+                    min={0}
                     placeholder="50"
-                    value={currentProduct.quantity || ''}
+                    value={currentProduct.quantity ?? ''}
                     onChange={(e) => setCurrentProduct({...currentProduct, quantity: parseInt(e.target.value) || 0})}
                   />
                   <p className="text-xs text-gray-500">الكمية التي ستكون متاحة بالمخزن. عندما تنتهي الكمية، سيظهر للعملاء "أخبرني عند التوفر"</p>
@@ -1518,7 +1519,9 @@ const CreateStorePage: React.FC<CreateStorePageProps> = ({
                       return;
                     }
 
-                    if (currentProduct.name && currentProduct.nameEn && currentProduct.price && currentProduct.quantity && currentProduct.description && currentProduct.size && currentProduct.imageFiles && currentProduct.imageFiles.length > 0 && (currentProduct.size !== 'custom' || (currentProduct.size.startsWith('custom:') && currentProduct.size.length > 7))) {
+                    const quantityIsValid = currentProduct.quantity !== undefined && currentProduct.quantity !== null && currentProduct.quantity >= 0;
+
+                    if (currentProduct.name && currentProduct.nameEn && currentProduct.price && quantityIsValid && currentProduct.description && currentProduct.size && currentProduct.imageFiles && currentProduct.imageFiles.length > 0 && (currentProduct.size !== 'custom' || (currentProduct.size.startsWith('custom:') && currentProduct.size.length > 7))) {
                       if (editingProductId !== null) {
                         // Update existing product
                         setFormData(prev => ({
