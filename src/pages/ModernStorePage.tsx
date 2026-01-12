@@ -568,6 +568,7 @@ const ModernStorePage: React.FC<ModernStorePageProps> = ({
       ) : sliderImages.length > 0 ? (
         /* السلايدر العادي للمتاجر الديناميكية بدون إعدادات مركزية */
           <div
+            dir="ltr"
             className="relative w-full overflow-hidden bg-gradient-to-r from-primary/10 to-primary/5"
             style={{ height: 'clamp(420px, 65vh, 820px)' }}
           >
@@ -591,7 +592,7 @@ const ModernStorePage: React.FC<ModernStorePageProps> = ({
                         decoding="async"
                         fetchPriority={index === 0 ? 'high' : 'auto'}
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent">
+                      <div dir="rtl" className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent">
                         <div className="absolute bottom-0 left-0 right-0 p-8 text-white">
                           {item.discount && (
                             <div className="mb-4">
