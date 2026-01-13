@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { ArrowLeft, ArrowRight, User, Mail, Phone, Lock } from 'lucide-react';
+import { ArrowLeft, ArrowRight, User, Mail, Phone, Lock, HelpCircle } from 'lucide-react';
 
 interface MerchantPersonalInfoProps {
   onBack: () => void;
@@ -91,7 +91,20 @@ const MerchantPersonalInfo: React.FC<MerchantPersonalInfoProps> = ({
             <span className="text-xl font-bold text-primary">إشرو</span>
           </div>
           
-          <div className="w-20"></div>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              if (typeof window !== 'undefined') {
+                window.location.href = '/help-center';
+              }
+            }}
+            className="flex items-center gap-2"
+          >
+            <HelpCircle className="h-4 w-4" />
+            مركز المساعدة
+          </Button>
         </div>
       </header>
 

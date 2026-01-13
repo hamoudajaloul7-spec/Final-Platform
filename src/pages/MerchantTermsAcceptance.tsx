@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ArrowLeft, ArrowRight, CheckCircle, AlertCircle, FileText, Shield } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle, AlertCircle, FileText, Shield, HelpCircle } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface MerchantTermsAcceptanceProps {
@@ -36,7 +36,20 @@ const MerchantTermsAcceptance: React.FC<MerchantTermsAcceptanceProps> = ({
             <span className="text-xl font-bold text-primary">إشرو</span>
           </div>
           
-          <div className="w-20"></div>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              if (typeof window !== 'undefined') {
+                window.location.href = '/help-center';
+              }
+            }}
+            className="flex items-center gap-2"
+          >
+            <HelpCircle className="h-4 w-4" />
+            مركز المساعدة
+          </Button>
         </div>
       </header>
 

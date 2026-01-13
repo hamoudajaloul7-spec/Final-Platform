@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { ArrowLeft, ArrowRight, Store, Upload, Image as ImageIcon } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Store, Upload, Image as ImageIcon, HelpCircle } from 'lucide-react';
 
 interface MerchantStoreInfoProps {
   onBack: () => void;
@@ -133,7 +133,20 @@ const MerchantStoreInfo: React.FC<MerchantStoreInfoProps> = ({
             <span className="text-xl font-bold text-primary">إشرو</span>
           </div>
           
-          <div className="w-20"></div>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              if (typeof window !== 'undefined') {
+                window.location.href = '/help-center';
+              }
+            }}
+            className="flex items-center gap-2"
+          >
+            <HelpCircle className="h-4 w-4" />
+            مركز المساعدة
+          </Button>
         </div>
       </header>
 
