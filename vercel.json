@@ -21,7 +21,7 @@
       "destination": "https://final-platform-eshro.onrender.com/api/$1"
     },
     {
-      "source": "/((?!api/).*)",
+      "source": "/((?!api/|assets/|help/|AdsForms/|favicon\\.ico|robots\\.txt|sitemap\\.xml).*)",
       "destination": "/index.html"
     }
   ],
