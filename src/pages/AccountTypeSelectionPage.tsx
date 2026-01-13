@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Store, User, ShoppingBag, TrendingUp, Users, Shield, Star, Award } from 'lucide-react';
+import { ArrowLeft, Store, User, ShoppingBag, TrendingUp, Users, Shield, Star, Award, HelpCircle } from 'lucide-react';
 
 interface AccountTypeSelectionPageProps {
   onBack: () => void;
@@ -56,7 +56,20 @@ const AccountTypeSelectionPage: React.FC<AccountTypeSelectionPageProps> = ({
             <span className="text-xl font-bold text-primary">إشرو</span>
           </div>
 
-          <div className="w-20"></div>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              if (typeof window !== 'undefined') {
+                window.location.href = '/help-center';
+              }
+            }}
+            className="flex items-center gap-2"
+          >
+            <HelpCircle className="h-4 w-4" />
+            مركز المساعدة
+          </Button>
         </div>
       </header>
 
