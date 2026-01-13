@@ -8,37 +8,61 @@ export const generateMerchantPDF = async (elementId: string = 'pdf-content') => 
       throw new Error('PDF content element not found');
     }
 
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+
+    const images = Array.from(element.querySelectorAll('img')) as HTMLImageElement[];
+    await Promise.all(
+      images.map(
+        (img) =>
+          new Promise<void>((resolve) => {
+            if (img.complete && img.naturalWidth > 0) {
+              resolve();
+              return;
+            }
+            const onDone = () => {
+              img.removeEventListener('load', onDone);
+              img.removeEventListener('error', onDone);
+              resolve();
+            };
+            img.addEventListener('load', onDone);
+            img.addEventListener('error', onDone);
+          })
+      )
+    );
+
     const canvas = await html2canvas(element, {
       scale: 2,
       allowTaint: true,
       useCORS: true,
       logging: false,
       backgroundColor: '#ffffff',
+      windowWidth: element.scrollWidth,
+      windowHeight: element.scrollHeight
     });
 
-    const imgWidth = 210;
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
     const pdf = new jsPDF({
-      orientation: imgHeight > imgWidth ? 'portrait' : 'landscape',
+      orientation: 'p',
       unit: 'mm',
-      format: 'a4',
+      format: 'a4'
     });
 
-    const pageHeight = pdf.internal.pageSize.getHeight();
     const pageWidth = pdf.internal.pageSize.getWidth();
-    let heightLeft = imgHeight;
-    let position = 0;
+    const pageHeight = pdf.internal.pageSize.getHeight();
 
     const imgData = canvas.toDataURL('image/png');
+    const imgHeight = (canvas.height * pageWidth) / canvas.width;
 
-    pdf.addImage(imgData, 'PNG', 0, position, pageWidth, imgHeight);
-    heightLeft -= pageHeight;
+    let remaining = imgHeight;
+    let y = 0;
 
-    while (heightLeft >= 0) {
-      position = heightLeft - imgHeight;
+    pdf.addImage(imgData, 'PNG', 0, y, pageWidth, imgHeight);
+    remaining -= pageHeight;
+
+    while (remaining > 0) {
+      y -= pageHeight;
       pdf.addPage();
-      pdf.addImage(imgData, 'PNG', 0, position, pageWidth, imgHeight);
-      heightLeft -= pageHeight;
+      pdf.addImage(imgData, 'PNG', 0, y, pageWidth, imgHeight);
+      remaining -= pageHeight;
     }
 
     return pdf;

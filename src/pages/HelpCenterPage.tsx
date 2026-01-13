@@ -25,56 +25,56 @@ const HelpCenterPage = () => {
       number: 1,
       title: 'معلومات التاجر الأساسية',
       description: 'أدخل بياناتك الشخصية والاسم الكامل والبريد الإلكتروني ورقم الهاتف',
-      image: '/api/placeholder/400/300',
-      tips: ['استخدم بريد تاجري نشط', 'تحقق من البيانات قبل المتابعة'],
+      image: '/help/steps/step-1.png',
+      tips: ['استخدم بريد تاجري نشط', 'تحقق من البيانات قبل المتابعة', 'إدخال رقم موبايل التاجر'],
     },
     {
       number: 2,
       title: 'بيانات المتجر الأساسية',
       description: 'اختر اسم متجرك وحدد النطاق الفريد والوصف والفئات الرئيسية',
-      image: '/api/placeholder/400/300',
+      image: '/help/steps/step-2.png',
       tips: ['اختر اسم سهل التذكر', 'لا يمكن تغيير النطاق لاحقاً'],
     },
     {
       number: 3,
       title: 'بيانات التواصل والشبكات الاجتماعية',
       description: 'أضف رقم الهاتف للعملاء وحسابات التواصل الاجتماعي',
-      image: '/api/placeholder/400/300',
+      image: '/help/steps/step-3.png',
       tips: ['اجعل بيانات التواصل سهلة الوصول', 'شارك الروابط مع عملائك'],
     },
     {
       number: 4,
       title: 'الوثائق والمستندات',
-      description: 'رفع صورة الهوية والشهادات التجارية والصورة الشخصية',
-      image: '/api/placeholder/400/300',
+      description: 'رفع صورة من السجل التجاري ورخصة المزاولة',
+      image: '/help/steps/step-4.png',
       tips: ['الوثائق يجب أن تكون واضحة وبجودة عالية', 'تأكد من ظهور كل البيانات'],
     },
     {
       number: 5,
       title: 'شعار المتجر',
       description: 'رفع شعار متجرك بصيغة PNG أو JPG مع ضمان وضوحه',
-      image: '/api/placeholder/400/300',
+      image: '/help/steps/step-5.png',
       tips: ['الحد الأدنى: 200x200 بكسل', 'الحد الأفضل: 500x500 بكسل أو أكثر'],
     },
     {
       number: 6,
       title: 'إضافة المنتجات',
       description: 'أضف المنتجات مع الأسعار والأوصاف والألوان المتاحة',
-      image: '/api/placeholder/400/300',
+      image: '/help/steps/step-6.png',
       tips: ['اجعل الوصف واضح ومفصل', 'أضف صور عالية الجودة'],
     },
     {
       number: 7,
       title: 'سياسات المتجر',
       description: 'حدد سياسات الشحن والإرجاع والضمان',
-      image: '/api/placeholder/400/300',
+      image: '/help/steps/step-7.png',
       tips: ['كن واضحاً في السياسات', 'اشرح شروط الشحن والدفع'],
     },
     {
       number: 8,
       title: 'المراجعة النهائية والتفعيل',
       description: 'تحقق من جميع البيانات وفعّل متجرك',
-      image: '/api/placeholder/400/300',
+      image: '/help/steps/step-8.png',
       tips: ['راجع كل التفاصيل بعناية', 'تواصل مع الدعم إذا واجهت مشكلة'],
     },
   ];
@@ -219,7 +219,7 @@ const HelpCenterPage = () => {
               </div>
               <div>
                 <p className="text-gray-600">
-                  <strong>الهاتف:</strong> +218-92-xxx-xxxx
+                  <strong>الهاتف:</strong> +218 94 4062927
                 </p>
               </div>
             </div>
