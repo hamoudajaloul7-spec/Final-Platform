@@ -147,6 +147,7 @@ const HelpCenterPage = () => {
             {steps.map((step, index) => (
               <div
                 key={step.number}
+                data-pdf-page="true"
                 className="border-2 border-gray-200 rounded-lg p-6 hover:border-green-400 transition-colors"
               >
                 <div className="flex items-start gap-4 mb-4">
