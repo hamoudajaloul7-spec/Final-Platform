@@ -35,7 +35,31 @@ const renderElementToCanvas = async (el: HTMLElement) => {
     logging: false,
     backgroundColor: '#ffffff',
     windowWidth: el.scrollWidth,
-    windowHeight: el.scrollHeight
+    windowHeight: el.scrollHeight,
+    onclone: (doc) => {
+      try {
+        const style = doc.createElement('style');
+        style.textContent = `
+          * {
+            background-image: none !important;
+            filter: none !important;
+            backdrop-filter: none !important;
+            box-shadow: none !important;
+          }
+        `;
+        doc.head.appendChild(style);
+
+        const root = doc.documentElement as HTMLElement;
+        root.style.background = '#ffffff';
+
+        const pdfRoot = doc.getElementById('pdf-content') as HTMLElement | null;
+        if (pdfRoot) {
+          pdfRoot.style.background = '#ffffff';
+          pdfRoot.style.color = '#111111';
+        }
+      } catch {
+      }
+    }
   });
 };
 
