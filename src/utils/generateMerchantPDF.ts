@@ -38,73 +38,87 @@ const renderElementToCanvas = async (el: HTMLElement) => {
     windowHeight: el.scrollHeight,
     onclone: (doc) => {
       try {
+        // 1. Overwrite all problematic CSS variables with HEX values
         const style = doc.createElement('style');
         style.textContent = `
           :root {
-            --background: 255 255 255 !important;
-            --foreground: 10 10 10 !important;
-            --card: 255 255 255 !important;
-            --card-foreground: 10 10 10 !important;
-            --popover: 255 255 255 !important;
-            --popover-foreground: 10 10 10 !important;
-            --primary: 22 163 74 !important;
-            --primary-foreground: 255 255 255 !important;
-            --secondary: 244 244 245 !important;
-            --secondary-foreground: 24 24 27 !important;
-            --muted: 244 244 245 !important;
-            --muted-foreground: 113 113 122 !important;
-            --accent: 244 244 245 !important;
-            --accent-foreground: 24 24 27 !important;
-            --destructive: 239 68 68 !important;
-            --border: 228 228 231 !important;
-            --input: 228 228 231 !important;
-            --ring: 24 24 27 !important;
+            --background: #ffffff !important;
+            --foreground: #0a0a0a !important;
+            --card: #ffffff !important;
+            --card-foreground: #0a0a0a !important;
+            --popover: #ffffff !important;
+            --popover-foreground: #0a0a0a !important;
+            --primary: #16a34a !important;
+            --primary-foreground: #ffffff !important;
+            --secondary: #f4f4f5 !important;
+            --secondary-foreground: #18181b !important;
+            --muted: #f4f4f5 !important;
+            --muted-foreground: #71717a !important;
+            --accent: #f4f4f5 !important;
+            --accent-foreground: #18181b !important;
+            --destructive: #ef4444 !important;
+            --border: #e4e4e7 !important;
+            --input: #e4e4e7 !important;
+            --ring: #18181b !important;
+            --sidebar: #ffffff !important;
+            --sidebar-foreground: #0a0a0a !important;
+            --sidebar-primary: #18181b !important;
+            --sidebar-primary-foreground: #ffffff !important;
+            --sidebar-accent: #f4f4f5 !important;
+            --sidebar-accent-foreground: #18181b !important;
+            --sidebar-border: #e4e4e7 !important;
+            --sidebar-ring: #18181b !important;
           }
           * {
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            transition: none !important;
+            animation: none !important;
           }
         `;
         doc.head.appendChild(style);
 
-        // Function to replace oklch with fallback colors
-        const replaceOklch = (str: string) => {
-          if (!str) return str;
-          // Replace specific brand oklch with hex
-          return str
-            .replace(/oklch\(0\.45\s+0\.21\s+156\.57\)/g, '#16a34a') // primary
-            .replace(/oklch\(1\s+0\s+0\)/g, '#ffffff') // background/white
-            .replace(/oklch\(0\.145\s+0\s+0\)/g, '#0a0a0a') // foreground
-            .replace(/oklch\([^)]+\)/g, '#888888'); // fallback for others
+        // 2. Comprehensive search and replace for oklch in all style tags
+        const replaceOklchInString = (str: string) => {
+          return str.replace(/oklch\s*\([^)]+\)/gi, (match) => {
+            if (match.includes('0.45') && match.includes('156.57')) return '#16a34a';
+            if (match.includes('1 0 0') || match.includes('100% 0 0')) return '#ffffff';
+            if (match.includes('0.145 0 0')) return '#0a0a0a';
+            return '#888888';
+          });
         };
 
-        // Replace oklch in all style tags
         const styleTags = doc.getElementsByTagName('style');
         for (let i = 0; i < styleTags.length; i++) {
-          styleTags[i].innerHTML = replaceOklch(styleTags[i].innerHTML);
+          try {
+            styleTags[i].innerHTML = replaceOklchInString(styleTags[i].innerHTML);
+          } catch (e) {}
         }
 
-        // Replace oklch in all inline styles
+        // 3. Remove all link tags to prevent html2canvas from trying to parse external oklch
+        // We've already added our fallback styles above.
+        const linkTags = Array.from(doc.getElementsByTagName('link'));
+        linkTags.forEach(link => {
+          if (link.rel === 'stylesheet') {
+            link.remove();
+          }
+        });
+
+        // 4. Fix inline styles
         const allElements = doc.getElementsByTagName('*');
         for (let i = 0; i < allElements.length; i++) {
-          const element = allElements[i] as HTMLElement;
-          if (element.style && element.style.cssText) {
-            element.style.cssText = replaceOklch(element.style.cssText);
+          const el = allElements[i] as HTMLElement;
+          if (el.style && el.style.cssText && el.style.cssText.includes('oklch')) {
+            el.style.cssText = replaceOklchInString(el.style.cssText);
           }
         }
 
-        const root = doc.documentElement as HTMLElement;
-        root.style.background = '#ffffff';
-        doc.body.style.background = '#ffffff';
-
-        const pdfRoot = doc.getElementById('pdf-content') as HTMLElement | null;
-        if (pdfRoot) {
-          pdfRoot.style.background = '#ffffff';
-          pdfRoot.style.color = '#111111';
-          pdfRoot.classList.remove('dark'); // Ensure it's in light mode for PDF
-        }
+        // 5. Final cleanup
+        const root = doc.documentElement;
+        root.style.backgroundColor = '#ffffff';
+        doc.body.style.backgroundColor = '#ffffff';
       } catch (e) {
-        console.error('PDF clone error:', e);
+        console.error('PDF generation clone fix failed:', e);
       }
     }
   });
