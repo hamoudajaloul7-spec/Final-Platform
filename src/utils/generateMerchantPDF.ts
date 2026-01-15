@@ -40,14 +40,51 @@ const renderElementToCanvas = async (el: HTMLElement) => {
       try {
         const style = doc.createElement('style');
         style.textContent = `
+          :root {
+            --background: 255 255 255;
+            --foreground: 10 10 10;
+            --card: 255 255 255;
+            --card-foreground: 10 10 10;
+            --popover: 255 255 255;
+            --popover-foreground: 10 10 10;
+            --primary: 22 163 74;
+            --primary-foreground: 255 255 255;
+            --secondary: 244 244 245;
+            --secondary-foreground: 24 24 27;
+            --muted: 244 244 245;
+            --muted-foreground: 113 113 122;
+            --accent: 244 244 245;
+            --accent-foreground: 24 24 27;
+            --destructive: 239 68 68;
+            --border: 228 228 231;
+            --input: 228 228 231;
+            --ring: 24 24 27;
+          }
           * {
             background-image: none !important;
             filter: none !important;
             backdrop-filter: none !important;
             box-shadow: none !important;
+            border-color: #e5e7eb !important;
+            outline-color: #e5e7eb !important;
           }
         `;
         doc.head.appendChild(style);
+
+        // Replace any remaining oklch occurrences in style tags
+        const styleTags = doc.getElementsByTagName('style');
+        for (let i = 0; i < styleTags.length; i++) {
+          styleTags[i].innerHTML = styleTags[i].innerHTML.replace(/oklch\([^)]+\)/g, '#888');
+        }
+
+        // Also check inline styles
+        const allElements = doc.getElementsByTagName('*');
+        for (let i = 0; i < allElements.length; i++) {
+          const element = allElements[i] as HTMLElement;
+          if (element.style && element.style.cssText) {
+            element.style.cssText = element.style.cssText.replace(/oklch\([^)]+\)/g, '#888');
+          }
+        }
 
         const root = doc.documentElement as HTMLElement;
         root.style.background = '#ffffff';
