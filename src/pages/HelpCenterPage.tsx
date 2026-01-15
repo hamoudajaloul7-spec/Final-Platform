@@ -138,30 +138,30 @@ const HelpCenterPage = () => {
           {/* 1. Cover Page */}
           <div 
             data-pdf-page="true" 
-            className="flex flex-col items-center justify-center min-h-[1000px] text-center bg-gradient-to-b from-green-50 to-white p-20"
+            className="flex flex-col items-center justify-center min-h-[1000px] text-center bg-white p-20"
           >
-            <div className="mb-12 flex flex-col items-center justify-center">
-              <img src="/eshro-new-logo.png" alt="إشرو" className="h-40 w-auto object-contain mb-6" />
-              <div className="h-2 w-32 bg-green-600 rounded-full"></div>
+            <div className="mb-16 flex flex-col items-center justify-center">
+              <img src="/eshro-new-logo.png" alt="إشرو" className="h-48 w-auto object-contain mb-8" />
+              <div className="h-1.5 w-40 bg-green-600 rounded-full"></div>
             </div>
             
-            <h1 className="text-7xl font-black text-gray-900 mb-8 leading-tight text-center">
-              دليل إنشاء متجر جديد <br/>
+            <h1 className="text-8xl font-bold text-gray-900 mb-10 leading-tight text-center font-jenine">
+              دليل إنشاء متجر <br/>
               <span className="text-green-600">للتاجر</span>
             </h1>
             
-            <p className="text-3xl text-gray-600 mb-20 max-w-2xl mx-auto leading-relaxed text-center">
-              دليل خطوة بخطوة يرافقك في رحلة إطلاق متجرك الإلكتروني بنجاح على منصة إشرو
+            <p className="text-3xl text-gray-600 mb-24 max-w-3xl mx-auto leading-relaxed text-center font-medium">
+              المرجع الشامل والخطوات العملية لإطلاق متجرك الإلكتروني <br/> عبر منصة إشرو
             </p>
             
-            <div className="grid grid-cols-2 gap-12 text-center border-t border-gray-200 pt-12 w-full max-w-2xl">
+            <div className="grid grid-cols-2 gap-16 text-center border-t border-gray-100 pt-16 w-full max-w-3xl">
               <div className="flex flex-col items-center">
-                <p className="text-gray-500 mb-2 text-lg">تاريخ الإصدار</p>
-                <p className="text-2xl font-bold text-gray-800">يناير 2025</p>
+                <p className="text-gray-400 mb-3 text-xl font-medium">تاريخ الإصدار</p>
+                <p className="text-3xl font-bold text-gray-800">يناير 2025</p>
               </div>
               <div className="flex flex-col items-center">
-                <p className="text-gray-500 mb-2 text-lg">المنصة</p>
-                <p className="text-2xl font-bold text-gray-800">إشرو - Ishro</p>
+                <p className="text-gray-400 mb-3 text-xl font-medium">المنصة</p>
+                <p className="text-3xl font-bold text-gray-800">إشرو - Ishro</p>
               </div>
             </div>
           </div>
@@ -179,7 +179,7 @@ const HelpCenterPage = () => {
                   <div className="inline-flex items-center justify-center bg-green-600 text-white rounded-2xl w-20 h-20 font-bold text-3xl shadow-xl mb-6">
                     {step.number}
                   </div>
-                  <h2 className="text-4xl font-black text-gray-900 mb-4 text-center">{step.title}</h2>
+                  <h2 className="text-4xl font-bold text-gray-900 mb-4 text-center font-jenine">{step.title}</h2>
                   <div className="h-1.5 w-24 bg-green-500 rounded-full mb-6"></div>
                   <p className="text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed text-center font-medium">
                     {step.description}
@@ -224,7 +224,7 @@ const HelpCenterPage = () => {
             data-pdf-page="true" 
             className="min-h-[1000px] flex flex-col items-center justify-center text-center py-20 px-16 bg-green-900 text-white"
           >
-            <h2 className="text-6xl font-black mb-10 text-white text-center leading-tight">هل أنت جاهز للبداية؟</h2>
+            <h2 className="text-6xl font-bold mb-10 text-white text-center leading-tight font-jenine">هل أنت جاهز للبداية؟</h2>
             <p className="text-3xl text-green-100 mb-16 max-w-2xl mx-auto leading-relaxed text-center">
               متجرك الآن على بعد نقرة واحدة. ابدأ اليوم وانضم إلى مئات التجار الناجحين في ليبيا.
             </p>

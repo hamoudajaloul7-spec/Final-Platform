@@ -40,6 +40,18 @@ const renderElementToCanvas = async (el: HTMLElement) => {
         // 1. Overwrite all problematic CSS variables with HEX values
         const style = doc.createElement('style');
         style.textContent = `
+          @font-face {
+            font-family: 'Cairo';
+            src: url('/fonts/Cairo.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+          }
+          @font-face {
+            font-family: 'Jenine-Bold';
+            src: url('/fonts/Jenine-Bold.ttf') format('truetype');
+            font-weight: bold;
+            font-style: normal;
+          }
           :root {
             --background: #ffffff !important;
             --foreground: #0a0a0a !important;
@@ -74,6 +86,9 @@ const renderElementToCanvas = async (el: HTMLElement) => {
             transition: none !important;
             animation: none !important;
             font-family: 'Cairo', sans-serif !important;
+          }
+          h1, h2, h3, .font-jenine {
+            font-family: 'Jenine-Bold', sans-serif !important;
           }
           #pdf-content {
             width: 1200px !important;
