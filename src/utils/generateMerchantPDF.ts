@@ -41,60 +41,70 @@ const renderElementToCanvas = async (el: HTMLElement) => {
         const style = doc.createElement('style');
         style.textContent = `
           :root {
-            --background: 255 255 255;
-            --foreground: 10 10 10;
-            --card: 255 255 255;
-            --card-foreground: 10 10 10;
-            --popover: 255 255 255;
-            --popover-foreground: 10 10 10;
-            --primary: 22 163 74;
-            --primary-foreground: 255 255 255;
-            --secondary: 244 244 245;
-            --secondary-foreground: 24 24 27;
-            --muted: 244 244 245;
-            --muted-foreground: 113 113 122;
-            --accent: 244 244 245;
-            --accent-foreground: 24 24 27;
-            --destructive: 239 68 68;
-            --border: 228 228 231;
-            --input: 228 228 231;
-            --ring: 24 24 27;
+            --background: 255 255 255 !important;
+            --foreground: 10 10 10 !important;
+            --card: 255 255 255 !important;
+            --card-foreground: 10 10 10 !important;
+            --popover: 255 255 255 !important;
+            --popover-foreground: 10 10 10 !important;
+            --primary: 22 163 74 !important;
+            --primary-foreground: 255 255 255 !important;
+            --secondary: 244 244 245 !important;
+            --secondary-foreground: 24 24 27 !important;
+            --muted: 244 244 245 !important;
+            --muted-foreground: 113 113 122 !important;
+            --accent: 244 244 245 !important;
+            --accent-foreground: 24 24 27 !important;
+            --destructive: 239 68 68 !important;
+            --border: 228 228 231 !important;
+            --input: 228 228 231 !important;
+            --ring: 24 24 27 !important;
           }
           * {
-            background-image: none !important;
-            filter: none !important;
-            backdrop-filter: none !important;
-            box-shadow: none !important;
-            border-color: #e5e7eb !important;
-            outline-color: #e5e7eb !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
           }
         `;
         doc.head.appendChild(style);
 
-        // Replace any remaining oklch occurrences in style tags
+        // Function to replace oklch with fallback colors
+        const replaceOklch = (str: string) => {
+          if (!str) return str;
+          // Replace specific brand oklch with hex
+          return str
+            .replace(/oklch\(0\.45\s+0\.21\s+156\.57\)/g, '#16a34a') // primary
+            .replace(/oklch\(1\s+0\s+0\)/g, '#ffffff') // background/white
+            .replace(/oklch\(0\.145\s+0\s+0\)/g, '#0a0a0a') // foreground
+            .replace(/oklch\([^)]+\)/g, '#888888'); // fallback for others
+        };
+
+        // Replace oklch in all style tags
         const styleTags = doc.getElementsByTagName('style');
         for (let i = 0; i < styleTags.length; i++) {
-          styleTags[i].innerHTML = styleTags[i].innerHTML.replace(/oklch\([^)]+\)/g, '#888');
+          styleTags[i].innerHTML = replaceOklch(styleTags[i].innerHTML);
         }
 
-        // Also check inline styles
+        // Replace oklch in all inline styles
         const allElements = doc.getElementsByTagName('*');
         for (let i = 0; i < allElements.length; i++) {
           const element = allElements[i] as HTMLElement;
           if (element.style && element.style.cssText) {
-            element.style.cssText = element.style.cssText.replace(/oklch\([^)]+\)/g, '#888');
+            element.style.cssText = replaceOklch(element.style.cssText);
           }
         }
 
         const root = doc.documentElement as HTMLElement;
         root.style.background = '#ffffff';
+        doc.body.style.background = '#ffffff';
 
         const pdfRoot = doc.getElementById('pdf-content') as HTMLElement | null;
         if (pdfRoot) {
           pdfRoot.style.background = '#ffffff';
           pdfRoot.style.color = '#111111';
+          pdfRoot.classList.remove('dark'); // Ensure it's in light mode for PDF
         }
-      } catch {
+      } catch (e) {
+        console.error('PDF clone error:', e);
       }
     }
   });
