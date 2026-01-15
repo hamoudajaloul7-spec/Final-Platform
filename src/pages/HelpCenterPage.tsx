@@ -134,98 +134,118 @@ const HelpCenterPage = () => {
         </div>
 
         {/* PDF Preview Section */}
-        <div id="pdf-content" className="bg-white rounded-lg shadow-lg p-8 mb-12 print:shadow-none">
-          {/* PDF Header */}
-          <div className="text-center mb-8 border-b-2 border-green-600 pb-6">
-            <h2 className="text-4xl font-bold text-gray-900 mb-2">دليل التاجر الشامل</h2>
-            <p className="text-gray-600 text-lg">منصة إشرو للتجارة الإلكترونية</p>
-            <p className="text-gray-500 mt-4">النسخة 1.0 - 2025</p>
+        <div id="pdf-content" className="bg-white p-0 mb-12 overflow-hidden">
+          {/* 1. Cover Page */}
+          <div 
+            data-pdf-page="true" 
+            className="flex flex-col items-center justify-center min-h-[1000px] text-center bg-gradient-to-b from-green-50 to-white p-20"
+          >
+            <div className="mb-12">
+              <img src="/logo.png" alt="إشرو" className="h-32 mx-auto mb-6" />
+              <div className="h-2 w-32 bg-green-600 mx-auto rounded-full"></div>
+            </div>
+            
+            <h1 className="text-6xl font-black text-gray-900 mb-8 leading-tight">
+              دليل إنشاء متجر جديد <br/>
+              <span className="text-green-600">للتاجر</span>
+            </h1>
+            
+            <p className="text-2xl text-gray-600 mb-20 max-w-2xl mx-auto leading-relaxed">
+              دليل خطوة بخطوة يرافقك في رحلة إطلاق متجرك الإلكتروني بنجاح على منصة إشرو
+            </p>
+            
+            <div className="grid grid-cols-2 gap-12 text-right border-t border-gray-200 pt-12 w-full max-w-2xl">
+              <div>
+                <p className="text-gray-500 mb-1">تاريخ الإصدار</p>
+                <p className="text-xl font-bold text-gray-800">يناير 2025</p>
+              </div>
+              <div>
+                <p className="text-gray-500 mb-1">المنصة</p>
+                <p className="text-xl font-bold text-gray-800">إشرو - Ishro</p>
+              </div>
+            </div>
           </div>
 
-          {/* Steps */}
-          <div className="space-y-12">
+          {/* 2. Steps Pages */}
+          <div className="space-y-0">
             {steps.map((step, index) => (
               <div
                 key={step.number}
                 data-pdf-page="true"
-                className="border-2 border-gray-200 rounded-xl p-8 hover:border-green-400 transition-colors bg-white"
+                className="min-h-[1000px] flex flex-col items-center justify-start py-20 px-16 bg-white"
               >
-                <div className="flex items-center gap-6 mb-8 border-b border-gray-100 pb-6">
-                  <div className="bg-gradient-to-br from-green-600 to-green-400 text-white rounded-2xl w-16 h-16 flex items-center justify-center flex-shrink-0 font-bold text-2xl shadow-lg">
+                {/* Step Header */}
+                <div className="w-full text-center mb-12">
+                  <div className="inline-flex items-center justify-center bg-green-600 text-white rounded-2xl w-20 h-20 font-bold text-3xl shadow-xl mb-6">
                     {step.number}
                   </div>
-                  <div className="flex-1">
-                    <h3 className="text-3xl font-bold text-gray-900 mb-2">{step.title}</h3>
-                    <p className="text-gray-600 text-lg leading-relaxed">{step.description}</p>
-                  </div>
+                  <h2 className="text-4xl font-black text-gray-900 mb-4">{step.title}</h2>
+                  <div className="h-1.5 w-24 bg-green-500 mx-auto rounded-full mb-6"></div>
+                  <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+                    {step.description}
+                  </p>
                 </div>
 
-                {/* Image Container with specific aspect ratio for PDF */}
-                <div className="mb-8 bg-gray-50 rounded-2xl overflow-hidden border border-gray-100 shadow-inner">
+                {/* Main Image - Centered and Large */}
+                <div className="w-full flex-1 flex items-center justify-center mb-12 bg-gray-50 rounded-3xl p-8 border border-gray-100 shadow-inner overflow-hidden">
                   <img
                     src={step.image}
                     alt={`الخطوة ${step.number}`}
-                    className="w-full h-auto max-h-[600px] object-contain mx-auto"
+                    className="max-w-full max-h-[500px] object-contain shadow-2xl rounded-lg"
                   />
                 </div>
 
-                {/* Tips Section */}
-                <div className="bg-green-50 border-r-4 border-green-500 p-6 rounded-xl">
-                  <h4 className="font-bold text-green-900 mb-3 text-lg flex items-center gap-2">
-                    <span className="text-xl">💡</span>
-                    نصائح النجاح:
+                {/* Tips - Professional Box */}
+                <div className="w-full bg-green-50 rounded-2xl p-8 border-r-8 border-green-600 shadow-sm">
+                  <h4 className="text-2xl font-bold text-green-900 mb-6 flex items-center gap-3">
+                    <span>💡</span> نصائح النجاح للخطوة {step.number}
                   </h4>
-                  <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <ul className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {step.tips.map((tip, tipIndex) => (
-                      <li key={tipIndex} className="text-green-800 flex items-start gap-2">
-                        <span className="text-green-600 font-bold mt-1">●</span>
+                      <li key={tipIndex} className="text-xl text-green-800 flex items-start gap-3">
+                        <span className="text-green-600 font-black text-2xl">•</span>
                         {tip}
                       </li>
                     ))}
                   </ul>
                 </div>
+                
+                {/* Footer for each page */}
+                <div className="w-full mt-12 pt-8 border-t border-gray-100 flex justify-between items-center text-gray-400">
+                  <span>دليل إنشاء متجر - منصة إشرو</span>
+                  <span>صفحة {index + 2}</span>
+                </div>
               </div>
             ))}
           </div>
 
-          {/* Footer Section */}
-          <div className="mt-12 pt-8 border-t-2 border-gray-200">
-            <div className="bg-green-50 rounded-lg p-6">
-              <h3 className="text-xl font-bold text-green-900 mb-4">✅ ملخص العملية</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-green-600">8</div>
-                  <p className="text-gray-700">خطوات سهلة</p>
+          {/* 3. Final Page / Contact */}
+          <div 
+            data-pdf-page="true" 
+            className="min-h-[1000px] flex flex-col items-center justify-center text-center py-20 px-16 bg-green-900 text-white"
+          >
+            <h2 className="text-5xl font-bold mb-8 text-white">هل أنت جاهز للبداية؟</h2>
+            <p className="text-2xl text-green-100 mb-16 max-w-2xl leading-relaxed">
+              متجرك الآن على بعد نقرة واحدة. ابدأ اليوم وانضم إلى مئات التجار الناجحين في ليبيا.
+            </p>
+            
+            <div className="bg-white/10 backdrop-blur-md rounded-3xl p-12 w-full max-w-3xl border border-white/20">
+              <h3 className="text-3xl font-bold mb-8">قنوات الدعم الفني</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-12 text-right">
+                <div>
+                  <p className="text-green-300 text-lg mb-2">تواصل معنا عبر الهاتف</p>
+                  <p className="text-3xl font-bold" dir="ltr">+218 94 4062927</p>
                 </div>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-green-600">30-90</div>
-                  <p className="text-gray-700">دقيقة لإنشاء متجرك</p>
-                </div>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-green-600">24/7</div>
-                  <p className="text-gray-700">دعم مستمر</p>
+                <div>
+                  <p className="text-green-300 text-lg mb-2">البريد الإلكتروني</p>
+                  <p className="text-2xl font-bold">support@ishro.ly</p>
                 </div>
               </div>
             </div>
-          </div>
-
-          {/* Contact Section */}
-          <div className="mt-8 bg-gray-50 rounded-lg p-6">
-            <h3 className="text-lg font-bold text-gray-900 mb-4">📞 هل تحتاج إلى مساعدة؟</h3>
-            <p className="text-gray-700 mb-4">
-              فريق الدعم الخاص بنا جاهز للمساعدة على مدار الساعة
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <p className="text-gray-600 mb-1">
-                  <strong>البريد الإلكتروني:</strong> support@ishro.ly
-                </p>
-              </div>
-              <div>
-                <p className="text-gray-600">
-                  <strong>الهاتف:</strong> +218 94 4062927
-                </p>
-              </div>
+            
+            <div className="mt-20">
+              <img src="/logo.png" alt="إشرو" className="h-16 brightness-0 invert mx-auto" />
+              <p className="mt-4 text-green-400">جميع الحقوق محفوظة © 2025</p>
             </div>
           </div>
         </div>

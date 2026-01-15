@@ -78,13 +78,20 @@ const renderElementToCanvas = async (el: HTMLElement) => {
           #pdf-content {
             width: 1200px !important;
             margin: 0 !important;
-            padding: 40px !important;
+            padding: 0 !important;
             background: #ffffff !important;
           }
           [data-pdf-page="true"] {
-            width: 1120px !important; /* 1200 - padding */
-            margin-bottom: 0 !important;
+            width: 1200px !important;
+            height: 1600px !important; /* Fixed A4 ratio height */
+            margin: 0 !important;
+            padding: 60px !important;
             page-break-after: always !important;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: center !important;
+            box-sizing: border-box !important;
           }
         `;
         doc.head.appendChild(style);
