@@ -29,13 +29,12 @@ const waitForImages = async (root: HTMLElement) => {
 
 const renderElementToCanvas = async (el: HTMLElement) => {
   return html2canvas(el, {
-    scale: 2,
+    scale: 1.5, // Reduced scale to keep file size reasonable
     allowTaint: true,
     useCORS: true,
     logging: false,
     backgroundColor: '#ffffff',
-    windowWidth: el.scrollWidth,
-    windowHeight: el.scrollHeight,
+    windowWidth: 1200, // Force a consistent width for capture
     onclone: (doc) => {
       try {
         // 1. Overwrite all problematic CSS variables with HEX values
@@ -74,6 +73,18 @@ const renderElementToCanvas = async (el: HTMLElement) => {
             print-color-adjust: exact !important;
             transition: none !important;
             animation: none !important;
+            font-family: 'Cairo', sans-serif !important;
+          }
+          #pdf-content {
+            width: 1200px !important;
+            margin: 0 !important;
+            padding: 40px !important;
+            background: #ffffff !important;
+          }
+          [data-pdf-page="true"] {
+            width: 1120px !important; /* 1200 - padding */
+            margin-bottom: 0 !important;
+            page-break-after: always !important;
           }
         `;
         doc.head.appendChild(style);
@@ -96,10 +107,9 @@ const renderElementToCanvas = async (el: HTMLElement) => {
         }
 
         // 3. Remove all link tags to prevent html2canvas from trying to parse external oklch
-        // We've already added our fallback styles above.
         const linkTags = Array.from(doc.getElementsByTagName('link'));
         linkTags.forEach(link => {
-          if (link.rel === 'stylesheet') {
+          if (link.rel === 'stylesheet' && !link.href.includes('Cairo')) {
             link.remove();
           }
         });
@@ -128,17 +138,23 @@ const addTallImageToPdf = (pdf: jsPDF, imgData: string, imgHeight: number) => {
   const pageWidth = pdf.internal.pageSize.getWidth();
   const pageHeight = pdf.internal.pageSize.getHeight();
 
-  let remaining = imgHeight;
-  let y = 0;
+  // If the image is shorter than a page, center it vertically or just put at top
+  if (imgHeight <= pageHeight) {
+    const y = (pageHeight - imgHeight) / 4; // Top-ish centering
+    pdf.addImage(imgData, 'PNG', 0, y, pageWidth, imgHeight);
+  } else {
+    let remaining = imgHeight;
+    let y = 0;
 
-  pdf.addImage(imgData, 'PNG', 0, y, pageWidth, imgHeight);
-  remaining -= pageHeight;
-
-  while (remaining > 0) {
-    y -= pageHeight;
-    pdf.addPage();
     pdf.addImage(imgData, 'PNG', 0, y, pageWidth, imgHeight);
     remaining -= pageHeight;
+
+    while (remaining > 5) { // Threshold to avoid tiny slivers on new pages
+      y -= pageHeight;
+      pdf.addPage();
+      pdf.addImage(imgData, 'PNG', 0, y, pageWidth, imgHeight);
+      remaining -= pageHeight;
+    }
   }
 };
 

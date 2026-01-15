@@ -23,59 +23,59 @@ const HelpCenterPage = () => {
   const steps = [
     {
       number: 1,
-      title: 'معلومات التاجر الأساسية',
-      description: 'أدخل بياناتك الشخصية والاسم الكامل والبريد الإلكتروني وإدخال رقم موبايل التاجر',
+      title: 'معلومات صاحب المتجر',
+      description: 'أدخل بياناتك الشخصية والاسم الكامل والبريد الإلكتروني ورقم الهاتف الخاص بك.',
       image: '/help/steps/step-1.png',
-      tips: ['استخدم بريد تاجري نشط', 'تحقق من البيانات قبل المتابعة'],
+      tips: ['استخدم بريد إلكتروني نشط', 'تأكد من صحة رقم الهاتف لتلقي الإشعارات'],
     },
     {
       number: 2,
-      title: 'بيانات المتجر الأساسية',
-      description: 'اختر اسم متجرك وحدد النطاق الفريد والوصف والفئات الرئيسية',
+      title: 'معلومات المتجر الأساسية',
+      description: 'اختر اسم متجرك، النطاق الفريد (Subdomain)، ووصف المتجر، مع رفع الوثائق المطلوبة.',
       image: '/help/steps/step-2.png',
-      tips: ['اختر اسم سهل التذكر', 'لا يمكن تغيير النطاق لاحقاً'],
+      tips: ['اختر اسماً سهلاً للحفظ', 'تأكد من وضوح صور السجل التجاري والوثائق'],
     },
     {
       number: 3,
-      title: 'بيانات التواصل والشبكات الاجتماعية',
-      description: 'أضف رقم الهاتف للعملاء وحسابات التواصل الاجتماعي',
+      title: 'إعدادات الحساب وشعار المتجر',
+      description: 'قم بضبط كلمة المرور الخاصة بحساب التاجر ورفع الشعار الرسمي لمتجرك.',
       image: '/help/steps/step-3.png',
-      tips: ['اجعل بيانات التواصل سهلة الوصول', 'شارك الروابط مع عملائك'],
+      tips: ['استخدم كلمة مرور قوية', 'يفضل أن يكون الشعار بصيغة PNG وبخلفية شفافة'],
     },
     {
       number: 4,
-      title: 'الوثائق والمستندات',
-      description: 'رفع صورة الهوية والشهادات التجارية والصورة الشخصية ورفع صورة من السجل التجاري ورخصة المزاولة',
+      title: 'مراجعة البيانات',
+      description: 'تأكد من صحة جميع البيانات المدخلة في الخطوات السابقة قبل المتابعة.',
       image: '/help/steps/step-4.png',
-      tips: ['الوثائق يجب أن تكون واضحة وبجودة عالية', 'تأكد من ظهور كل البيانات'],
+      tips: ['راجع الاسم والروابط بدقة', 'يمكنك العودة لتعديل أي معلومة قبل الخطوة النهائية'],
     },
     {
       number: 5,
-      title: 'شعار المتجر',
-      description: 'رفع شعار متجرك بصيغة PNG أو JPG مع ضمان وضوحه',
-      image: '/help/steps/step-5.png',
-      tips: ['الحد الأدنى: 200x200 بكسل', 'الحد الأفضل: 500x500 بكسل أو أكثر'],
+      title: 'إضافة المنتجات والتصنيفات',
+      description: 'ابدأ بإضافة منتجاتك الأولى مع تحديد الأسعار والصور والأوصاف المناسبة.',
+      image: '/help/steps/step-6.png',
+      tips: ['استخدم صوراً عالية الجودة لمنتجاتك', 'نظم منتجاتك في تصنيفات واضحة لسهولة التصفح'],
     },
     {
       number: 6,
-      title: 'إضافة المنتجات',
-      description: 'أضف المنتجات مع الأسعار والأوصاف والألوان المتاحة',
+      title: 'إضافة صور السلايدرز',
+      description: 'أضف الصور المتحركة (Sliders) التي ستظهر في واجهة متجرك للترويج لعروضك.',
       image: '/help/steps/step-6.png',
-      tips: ['اجعل الوصف واضح ومفصل', 'أضف صور عالية الجودة'],
+      tips: ['اختر صوراً جذابة تعبر عن هوية متجرك', 'أضف نصوصاً واضحة على صور السلايدر'],
     },
     {
       number: 7,
-      title: 'سياسات المتجر',
-      description: 'حدد سياسات الشحن والإرجاع والضمان',
+      title: 'موقع المخزن',
+      description: 'حدد موقع مخزنك الرئيسي على الخريطة لتسهيل حساب تكاليف الشحن وعمليات التوصيل.',
       image: '/help/steps/step-7.png',
-      tips: ['كن واضحاً في السياسات', 'اشرح شروط الشحن والدفع'],
+      tips: ['حدد الموقع بدقة على الخريطة', 'أضف وصفاً دقيقاً للعنوان ليسهل الوصول إليه'],
     },
     {
       number: 8,
-      title: 'المراجعة النهائية والتفعيل',
-      description: 'تحقق من جميع البيانات وفعّل متجرك بعد الموافقة على شروط الخدمة والخصوصية',
+      title: 'المراجعة النهائية والجاهزية',
+      description: 'أنت الآن جاهز! تحقق من ملخص متجرك واضغط على "إنشاء المتجر" للانطلاق.',
       image: '/help/steps/step-8.png',
-      tips: ['راجع كل التفاصيل بعناية', 'تواصل مع الدعم إذا واجهت مشكلة'],
+      tips: ['تأكد من الموافقة على شروط الخدمة', 'متجرك سيكون متاحاً فور الضغط على زر الإنشاء'],
     },
   ];
 
@@ -143,39 +143,42 @@ const HelpCenterPage = () => {
           </div>
 
           {/* Steps */}
-          <div className="space-y-8">
+          <div className="space-y-12">
             {steps.map((step, index) => (
               <div
                 key={step.number}
                 data-pdf-page="true"
-                className="border-2 border-gray-200 rounded-lg p-6 hover:border-green-400 transition-colors"
+                className="border-2 border-gray-200 rounded-xl p-8 hover:border-green-400 transition-colors bg-white"
               >
-                <div className="flex items-start gap-4 mb-4">
-                  <div className="bg-gradient-to-br from-green-500 to-blue-600 text-white rounded-full w-12 h-12 flex items-center justify-center flex-shrink-0 font-bold text-lg">
+                <div className="flex items-center gap-6 mb-8 border-b border-gray-100 pb-6">
+                  <div className="bg-gradient-to-br from-green-600 to-green-400 text-white rounded-2xl w-16 h-16 flex items-center justify-center flex-shrink-0 font-bold text-2xl shadow-lg">
                     {step.number}
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-2xl font-bold text-gray-900 mb-2">{step.title}</h3>
-                    <p className="text-gray-700 mb-4">{step.description}</p>
+                    <h3 className="text-3xl font-bold text-gray-900 mb-2">{step.title}</h3>
+                    <p className="text-gray-600 text-lg leading-relaxed">{step.description}</p>
                   </div>
                 </div>
 
-                {/* Image */}
-                <div className="mb-4 bg-gray-100 rounded-lg overflow-hidden">
+                {/* Image Container with specific aspect ratio for PDF */}
+                <div className="mb-8 bg-gray-50 rounded-2xl overflow-hidden border border-gray-100 shadow-inner">
                   <img
                     src={step.image}
                     alt={`الخطوة ${step.number}`}
-                    className="w-full h-auto"
+                    className="w-full h-auto max-h-[600px] object-contain mx-auto"
                   />
                 </div>
 
-                {/* Tips */}
-                <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
-                  <h4 className="font-bold text-blue-900 mb-2">💡 نصائح مهمة:</h4>
-                  <ul className="space-y-1">
+                {/* Tips Section */}
+                <div className="bg-green-50 border-r-4 border-green-500 p-6 rounded-xl">
+                  <h4 className="font-bold text-green-900 mb-3 text-lg flex items-center gap-2">
+                    <span className="text-xl">💡</span>
+                    نصائح النجاح:
+                  </h4>
+                  <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {step.tips.map((tip, tipIndex) => (
-                      <li key={tipIndex} className="text-blue-800 flex items-start gap-2">
-                        <span className="text-green-600 font-bold">✓</span>
+                      <li key={tipIndex} className="text-green-800 flex items-start gap-2">
+                        <span className="text-green-600 font-bold mt-1">●</span>
                         {tip}
                       </li>
                     ))}
