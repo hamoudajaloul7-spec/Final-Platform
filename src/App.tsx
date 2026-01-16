@@ -42,6 +42,7 @@ import AddToCartSuccessModal from "@/components/AddToCartSuccessModal";
 import OrderSuccessModal from "@/components/OrderSuccessModal";
 import WelcomePopup from "@/components/WelcomePopup";
 import StoreCreatedSuccessModal from "@/components/StoreCreatedSuccessModal";
+import NotifyWhenAvailable from "@/components/NotifyWhenAvailable";
 import BrandSlider from "@/components/BrandSlider";
 import EnhancedStoresCarousel from "@/components/StoresCarousel";
 import { partnersData, statsData, storesData, generateOrderId, getStoresData, invalidateStoresCache, cleanupAnonymousStores } from "@/data/ecommerceData";
@@ -1229,6 +1230,8 @@ export default function Home() {
   const [orders, setOrders] = useState<any[]>([]);
   const [favorites, setFavorites] = useState<any[]>([]);
   const [unavailableItems, setUnavailableItems] = useState<any[]>([]);
+  const [showNotifyModal, setShowNotifyModal] = useState(false);
+  const [notifyProduct, setNotifyProduct] = useState<any>(null);
   const [showWelcomePopup, setShowWelcomePopup] = useState(false);
   const [showStoreSuccessModal, setShowStoreSuccessModal] = useState(false);
   const [createdStoreName, setCreatedStoreName] = useState('');
@@ -1371,7 +1374,7 @@ export default function Home() {
   }, [currentPage, currentStore, currentProduct]);
 
   // معالجة URL والـ routing
-  const handleRouting = (pathname: string) => {
+  const handleRouting = async (pathname: string) => {
     if (pathname === '/' || pathname === '') {
       setCurrentPage('home');
       setCurrentStore(null);
@@ -1415,6 +1418,20 @@ export default function Home() {
         const productId = storeMatch[2] ? parseInt(storeMatch[2]) : null;
         
         setCurrentStore(store);
+        
+        // Load products for this store to ensure they are available for the product page
+        try {
+          const storeData = await loadStoreBySlug(store);
+          if (storeData?.products && storeData.products.length > 0) {
+            setCurrentStoreProducts(storeData.products);
+          } else {
+            const fallbackProducts = allStoreProducts.filter(p => p.storeId === storeData?.storeId);
+            setCurrentStoreProducts(fallbackProducts);
+          }
+        } catch (e) {
+          setCurrentStoreProducts([]);
+        }
+
         if (productId) {
           setCurrentPage('product');
           setCurrentProduct(productId);
@@ -1430,7 +1447,7 @@ export default function Home() {
   useEffect(() => {
     const handlePopState = (event: PopStateEvent) => {
       const pathname = window.location.pathname;
-      handleRouting(pathname);
+      void handleRouting(pathname);
     };
     
     window.addEventListener('popstate', handlePopState);
@@ -1441,7 +1458,7 @@ export default function Home() {
   useEffect(() => {
     const pathname = window.location.pathname;
     if (pathname && pathname !== '/') {
-      handleRouting(pathname);
+      void handleRouting(pathname);
     }
   }, []);
 
@@ -3208,7 +3225,10 @@ export default function Home() {
           <div className="text-center space-y-4">
             <p className="text-lg">هذا المنتج غير متوفر حالياً.</p>
             <Button
-              onClick={() => {}}
+              onClick={() => {
+                setNotifyProduct({ id: currentProduct, name: 'منتج غير معروف', storeSlug: currentStore });
+                setShowNotifyModal(true);
+              }}
               className="bg-orange-600 hover:bg-orange-700 text-white"
             >
               <Bell className="h-4 w-4 mr-2" />
@@ -3547,6 +3567,19 @@ export default function Home() {
             </p>
           </div>
         </div>
+      )}
+
+      {/* نافذة نبهني عند التوفر */}
+      {showNotifyModal && (
+        <NotifyWhenAvailable
+          isOpen={showNotifyModal}
+          product={notifyProduct}
+          onClose={() => {
+            setShowNotifyModal(false);
+            setNotifyProduct(null);
+          }}
+          storeSlug={currentStore || undefined}
+        />
       )}
     </div>
   );

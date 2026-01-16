@@ -564,7 +564,17 @@ const ModernStorePage: React.FC<ModernStorePageProps> = ({
           favorites={favorites}
         />
       ) : storeConfig && store ? (
-        <UnifiedStoreSlider storeSlug={store.slug} />
+        <UnifiedStoreSlider 
+          storeSlug={store.slug} 
+          initialSliders={sliderImages.map(img => ({
+            id: img.id,
+            title: img.title || '',
+            subtitle: img.subtitle || '',
+            buttonText: img.buttonText || 'تسوق الآن',
+            imagePath: img.imageUrl || img.image || '',
+            image: img.imageUrl || img.image || ''
+          }))}
+        />
       ) : sliderImages.length > 0 ? (
         /* السلايدر العادي للمتاجر الديناميكية بدون إعدادات مركزية */
           <div
