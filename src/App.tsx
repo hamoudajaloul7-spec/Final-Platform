@@ -3156,8 +3156,9 @@ export default function Home() {
           }
         }}
         onNotifyWhenAvailable={(productId) => {
-          
-          // النافذة الآن تُعرض محلياً في صفحات المتاجر والمنتجات
+          const product = allStoreProducts.find(p => p.id === productId) || currentStoreProducts.find(p => p.id === productId);
+          setNotifyProduct(product || { id: productId, name: 'منتج غير معروف', storeSlug: currentStore });
+          setShowNotifyModal(true);
         }}
         onSubmitNotification={async (product, notificationData) => {
           try {
@@ -3260,8 +3261,9 @@ export default function Home() {
           }
         }}
         onNotifyWhenAvailable={(productId) => {
-          
-          // النافذة الآن تُعرض محلياً في صفحات المتاجر والمنتجات
+          const product = allStoreProducts.find(p => p.id === productId) || currentStoreProducts.find(p => p.id === productId);
+          setNotifyProduct(product || { id: productId, name: 'منتج غير معروف', storeSlug: currentStore });
+          setShowNotifyModal(true);
         }}
         storeSlug={currentStore || undefined}
         isFavorite={favorites.some(f => f.id === currentProduct)}
