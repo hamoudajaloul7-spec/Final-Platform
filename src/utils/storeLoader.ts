@@ -51,7 +51,21 @@ function getApiBase(): string {
   if (typeof window !== 'undefined' && (window as any).__API_BASE__) {
     return (window as any).__API_BASE__;
   }
-  return import.meta.env.VITE_API_URL?.replace('/api', '') || import.meta.env.VITE_MOAMALAT_HASH_ENDPOINT || 'http://localhost:5000';
+  
+  const envApiUrl = import.meta.env.VITE_API_URL;
+  
+  // If VITE_API_URL is an absolute URL, use it
+  if (envApiUrl && envApiUrl.startsWith('http')) {
+    return envApiUrl.replace('/api', '');
+  }
+  
+  // If we're on localhost, use local backend
+  if (typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname)) {
+    return 'http://localhost:5000';
+  }
+  
+  // Otherwise use relative path (empty string means current domain)
+  return '';
 }
 
 function normalizeImagePaths(data: any, apiBase: string, slug: string, isServedStatic: boolean): any {

@@ -17,6 +17,19 @@ const getDefaultApiUrl = (): string => {
 
 const API_BASE_URL = getDefaultApiUrl();
 const BACKEND_BASE_URL = API_BASE_URL.replace('/api', '');
+
+// Helper to get absolute or relative URL safely
+const getSafeUrl = (endpoint: string): string => {
+  if (endpoint.startsWith('http')) return endpoint;
+  
+  // If we have a BACKEND_BASE_URL that is an absolute URL, use it
+  if (BACKEND_BASE_URL && BACKEND_BASE_URL.startsWith('http')) {
+    return `${BACKEND_BASE_URL}${endpoint.startsWith('/') ? '' : '/'}${endpoint}`;
+  }
+  
+  // Otherwise use relative path
+  return endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+};
 const TOKEN_KEY = 'eishro_auth_token';
 const REFRESH_TOKEN_KEY = 'eishro_refresh_token';
 
@@ -112,8 +125,12 @@ class UnifiedApiService {
   ): Promise<ApiResponse<T>> {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        const baseUrl = isMinimaxRequest ? MINIMAX_API_CONFIG.baseURL : API_BASE_URL;
-        const url = `${baseUrl}${endpoint}`;
+        let url = '';
+        if (isMinimaxRequest) {
+          url = `${MINIMAX_API_CONFIG.baseURL}${endpoint}`;
+        } else {
+          url = getSafeUrl(endpoint);
+        }
 
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), MINIMAX_API_CONFIG.timeout);
@@ -201,9 +218,8 @@ class UnifiedApiService {
   }
 
   async createStoreWithImages(formData: FormData): Promise<ApiResponse> {
-
     try {
-      const url = `${BACKEND_BASE_URL}/api/stores/create-with-images`;
+      const url = getSafeUrl('/api/stores/create-with-images');
 
       const response = await fetch(url, {
         method: 'POST',
@@ -264,38 +280,46 @@ class UnifiedApiService {
   }
 
   async checkBackendHealth(): Promise<{ isHealthy: boolean; message: string }> {
-    const backendUrl = BACKEND_BASE_URL;
-    
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000);
       
-      const response = await fetch(`${backendUrl}/health`, {
-        method: 'GET',
-        signal: controller.signal,
-      });
+      // Try multiple health endpoints
+      const endpoints = [`${BACKEND_BASE_URL}/api/health`, `${BACKEND_BASE_URL}/health`].filter(Boolean);
+      // If BACKEND_BASE_URL is empty, add relative paths
+      if (!BACKEND_BASE_URL) {
+        endpoints.push('/api/health');
+        endpoints.push('/health');
+      }
+      
+      for (const url of [...new Set(endpoints)]) {
+        try {
+          const response = await fetch(url, {
+            method: 'GET',
+            signal: controller.signal,
+          });
+          
+          if (response.ok) {
+            clearTimeout(timeoutId);
+            return { 
+              isHealthy: true, 
+              message: `✅ Backend server is responding on ${url}` 
+            };
+          }
+        } catch (e) {
+          // Try next endpoint
+        }
+      }
       
       clearTimeout(timeoutId);
-      
-      if (response.ok) {
-        return { 
-          isHealthy: true, 
-          message: `✅ Backend server is running on ${BACKEND_BASE_URL}` 
-        };
-      } else {
-        return { 
-          isHealthy: false, 
-          message: '❌ Backend server returned an error. Status: ' + response.status 
-        };
-      }
-    } catch (error) {
-      const message = error instanceof Error && error.name === 'AbortError' 
-        ? '❌ Connection timeout. Backend server may not be responding.'
-        : `❌ Cannot connect to backend server. Make sure it's running on ${BACKEND_BASE_URL}`;
-      
       return { 
         isHealthy: false, 
-        message 
+        message: '❌ Cannot connect to backend server on any health endpoint.'
+      };
+    } catch (error) {
+      return { 
+        isHealthy: false, 
+        message: `❌ Health check failed: ${error instanceof Error ? error.message : 'Unknown error'}` 
       };
     }
   }

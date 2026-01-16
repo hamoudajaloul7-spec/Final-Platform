@@ -392,30 +392,41 @@ const CreateStorePage: React.FC<CreateStorePageProps> = ({
       const backendUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || (isLocalhost ? 'http://localhost:5000' : '');
 
       const urls = [] as string[];
-      if (backendUrl) {
+      
+      // 1. Try proxied API health (preferred in production)
+      urls.push('/api/health');
+      
+      // 2. Try backend URL from env if available
+      if (backendUrl && backendUrl.startsWith('http')) {
         urls.push(`${backendUrl}/health`);
+        urls.push(`${backendUrl}/api/health`);
       }
+      
+      // 3. Try relative health
       urls.push('/health');
       
-      for (const url of urls) {
+      // Remove duplicates
+      const uniqueUrls = [...new Set(urls)];
+      
+      for (const url of uniqueUrls) {
         try {
           const res = await fetch(url, { 
             cache: 'no-store',
-            method: 'GET'
+            method: 'GET',
+            headers: { 'Accept': 'application/json' }
           });
+          
           if (res.ok) {
             const data = await res.json().catch(() => ({}));
-
             return { isHealthy: true, message: data?.status || 'ok' };
           }
         } catch (e) {
-          // Silently ignore fetch errors
+          // Silently ignore fetch errors for individual endpoints
         }
       }
       
       return { isHealthy: false, message: 'Backend not responding on any endpoint' };
     } catch (e: any) {
-
       return { isHealthy: false, message: e?.message || 'network error' };
     }
   };

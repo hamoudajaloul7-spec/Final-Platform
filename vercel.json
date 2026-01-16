@@ -21,7 +21,11 @@
       "destination": "https://final-platform-eshro.onrender.com/api/$1"
     },
     {
-      "source": "/((?!api/|assets/|help/|AdsForms/|favicon\\.ico|robots\\.txt|sitemap\\.xml).*)",
+      "source": "/health",
+      "destination": "https://final-platform-eshro.onrender.com/health"
+    },
+    {
+      "source": "/((?!api/|assets/|help/|AdsForms/|favicon\\.ico|robots\\.txt|sitemap\\.xml|health).*)",
       "destination": "/index.html"
     }
   ],
