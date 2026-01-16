@@ -110,40 +110,56 @@ export class StoreGeneratorService {
       logger.info(`  🧹 Cache cleared for fresh store generation`);
 
       // Generate TS files for development
-      const storeDir = path.join(this.frontendStoresPath, data.storeSlug);
-      await fsPromises.mkdir(storeDir, { recursive: true });
-      logger.info(`  📁 Created TS directory: ${storeDir}`);
+      try {
+        const storeDir = path.join(this.frontendStoresPath, data.storeSlug);
+        await fsPromises.mkdir(storeDir, { recursive: true });
+        logger.info(`  📁 Created TS directory: ${storeDir}`);
 
-      await this.generateConfigFile(storeDir, data);
-      logger.info(`    ✅ config.ts`);
+        await this.generateConfigFile(storeDir, data);
+        logger.info(`    ✅ config.ts`);
 
-      await this.generateProductsFile(storeDir, data);
-      logger.info(`    ✅ products.ts (${data.products.length} products)`);
+        await this.generateProductsFile(storeDir, data);
+        logger.info(`    ✅ products.ts (${data.products.length} products)`);
 
-      await this.generateSliderFile(storeDir, data);
-      logger.info(`    ✅ Slider.tsx`);
+        await this.generateSliderFile(storeDir, data);
+        logger.info(`    ✅ Slider.tsx`);
 
-      await this.generateIndexFile(storeDir, data);
-      logger.info(`    ✅ index.ts`);
+        await this.generateIndexFile(storeDir, data);
+        logger.info(`    ✅ index.ts`);
 
-      await this.generateSliderDataFile(storeDir, data);
-      logger.info(`    ✅ sliderData.ts (${data.sliderImages.length} sliders)`);
+        await this.generateSliderDataFile(storeDir, data);
+        logger.info(`    ✅ sliderData.ts (${data.sliderImages.length} sliders)`);
 
-      logger.info(`  ✅ TS files generated for development`);
+        logger.info(`  ✅ TS files generated for development`);
+      } catch (tsError) {
+        logger.warn(`  ⚠️ Failed to generate TS files (likely cloud environment): ${tsError instanceof Error ? tsError.message : String(tsError)}`);
+      }
 
       // Ensure asset directories exist
       logger.info(`  📦 Setting up asset directories...`);
-      await this.ensureAssetDirectories(data.storeSlug);
+      try {
+        await this.ensureAssetDirectories(data.storeSlug);
+      } catch (assetDirError) {
+        logger.warn(`  ⚠️ Failed to create some asset directories: ${assetDirError instanceof Error ? assetDirError.message : String(assetDirError)}`);
+      }
 
       // Generate JSON files for production
       logger.info(`  📦 Generating JSON files for permanent storage...`);
-      await this.generateJSONFiles(data);
-      logger.info(`  ✅ JSON files generated for production`);
+      try {
+        await this.generateJSONFiles(data);
+        logger.info(`  ✅ JSON files generated for production`);
+      } catch (jsonError) {
+        logger.warn(`  ⚠️ Failed to generate JSON files: ${jsonError instanceof Error ? jsonError.message : String(jsonError)}`);
+      }
 
       // Sync assets to frontend
       logger.info(`  📡 Syncing assets to frontend...`);
-      await this.syncAssetsToFrontend(data.storeSlug);
-      logger.info(`  ✅ Assets synced to frontend`);
+      try {
+        await this.syncAssetsToFrontend(data.storeSlug);
+        logger.info(`  ✅ Assets synced to frontend`);
+      } catch (syncError) {
+        logger.warn(`  ⚠️ Failed to sync assets (likely cloud environment): ${syncError instanceof Error ? syncError.message : String(syncError)}`);
+      }
 
       // Copy logo to brands directory
       logger.info(`  🏷️  Copying logo to brands directory...`);

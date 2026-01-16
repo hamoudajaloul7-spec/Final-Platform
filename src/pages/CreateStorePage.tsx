@@ -183,6 +183,7 @@ const CreateStorePage: React.FC<CreateStorePageProps> = ({
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
+  const [creationStatus, setCreationStatus] = useState('');
   const [showAccountSuccessModal, setShowAccountSuccessModal] = useState(false);
   const [showStoreSuccessModal, setShowStoreSuccessModal] = useState(false);
   const [createdStoreData, setCreatedStoreData] = useState<any>(null);
@@ -428,18 +429,11 @@ const CreateStorePage: React.FC<CreateStorePageProps> = ({
     }
 
     setIsLoading(true);
-
-
+    setCreationStatus('جاري التحقق من حالة الخادم...');
 
     const healthCheck = await checkBackendHealthLocal();
-
     
-    if (!healthCheck.isHealthy) {
-      // Backend not healthy, will use local fallback
-    } else {
-      // Backend is healthy
-    }
-
+    setCreationStatus('جاري فحص توفر اسم المتجر والبريد...');
     try {
 
       const checkResponse = await fetch('/api/stores/check-exists', {
@@ -690,6 +684,7 @@ const CreateStorePage: React.FC<CreateStorePageProps> = ({
       let createResponse: Response | null = null;
       let apiResponse: any = null;
 
+      setCreationStatus('جاري رفع الصور والبيانات للسحابة (قد يستغرق ذلك دقيقة)...');
       try {
         createResponse = await fetch('/api/stores/create-with-images', {
           method: 'POST',
@@ -2188,6 +2183,23 @@ const CreateStorePage: React.FC<CreateStorePageProps> = ({
           </div>
         </div>
       </div>
+
+      {/* شاشة التحميل مع الحالة */}
+      {isLoading && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4 text-center">
+          <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl animate-in fade-in zoom-in duration-300">
+            <div className="w-20 h-20 border-4 border-green-100 border-t-green-600 rounded-full animate-spin mx-auto mb-6"></div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">جاري إنشاء متجرك</h3>
+            <p className="text-gray-600 text-lg font-medium">{creationStatus || 'يرجى الانتظار...'}</p>
+            <div className="mt-6 flex flex-col gap-2">
+              <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
+                <div className="h-full bg-green-500 animate-[loading_2s_ease-in-out_infinite]"></div>
+              </div>
+              <p className="text-xs text-gray-400">يرجى عدم إغلاق المتصفح أو تحديث الصفحة</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* نافذة نجاح إنشاء الحساب */}
       {showAccountSuccessModal && (

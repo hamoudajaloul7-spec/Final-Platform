@@ -195,6 +195,39 @@ export async function loadStoreBySlug(slug: string): Promise<StoreData | null> {
     return localStoreData;
   }
 
+  // Fallback to API if not found locally
+  try {
+    const apiBase = getApiBase();
+    const response = await fetch(`${apiBase}/api/stores/public/${slug}`);
+    if (response.ok) {
+      const data = await response.json();
+      if (data.success && data.store) {
+        const storeData: StoreData = {
+          id: data.store.id,
+          storeId: data.store.id,
+          slug: data.store.slug,
+          name: data.store.name,
+          nameAr: data.store.name,
+          nameEn: data.store.slug,
+          description: data.store.description || '',
+          icon: '🏪',
+          color: 'from-blue-400 to-blue-600',
+          logo: data.store.logo || '/assets/default-store.png',
+          categories: data.store.categories || data.store.category ? [data.store.category] : [],
+          products: data.products || [],
+          sliderImages: data.sliders || []
+        };
+        
+        // Normalize image paths if they are not absolute
+        const normalized = normalizeImagePaths(storeData, apiBase, slug, false);
+        cachedStores.set(slug, normalized);
+        return normalized;
+      }
+    }
+  } catch (error) {
+    console.warn(`Failed to fetch store ${slug} from API:`, error);
+  }
+
   return null;
 }
 

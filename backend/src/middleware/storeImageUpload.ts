@@ -41,9 +41,13 @@ const storage = multer.diskStorage({
   filename: (req, file, cb) => {
     try {
       const { sanitizedName } = sanitizeFilename(file.originalname);
+      const ext = path.extname(sanitizedName);
+      const base = path.basename(sanitizedName, ext);
+      const uniqueName = `${base}-${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
+      
       (file as any).originalFilenameSanitized = sanitizedName;
       (file as any).originalFilenameUnsafe = file.originalname;
-      cb(null, sanitizedName);
+      cb(null, uniqueName);
     } catch (error) {
       cb(new Error('Failed to sanitize filename'), file.originalname);
     }

@@ -29,7 +29,7 @@ const waitForImages = async (root: HTMLElement) => {
 
 const renderElementToCanvas = async (el: HTMLElement) => {
   return html2canvas(el, {
-    scale: 1.5, // Reduced scale to keep file size reasonable
+    scale: 1.2, // Further reduced for significant speed boost
     allowTaint: true,
     useCORS: true,
     logging: false,
@@ -192,13 +192,18 @@ export const generateMerchantPDF = async (elementId: string = 'pdf-content') => 
   const stepPages = Array.from(element.querySelectorAll('[data-pdf-page="true"]')) as PDFPageEl[];
   const pages: PDFPageEl[] = stepPages.length > 0 ? stepPages : [element];
 
-  for (let i = 0; i < pages.length; i++) {
-    const pageEl = pages[i];
-
+  // Parallelize canvas rendering for speed
+  const canvasPromises = pages.map(async (pageEl) => {
     await waitForImages(pageEl);
+    return renderElementToCanvas(pageEl);
+  });
 
-    const canvas = await renderElementToCanvas(pageEl);
-    const imgData = canvas.toDataURL('image/png');
+  const canvases = await Promise.all(canvasPromises);
+
+  for (let i = 0; i < canvases.length; i++) {
+    const canvas = canvases[i];
+    // Use JPEG for faster generation and smaller file size (background is white anyway)
+    const imgData = canvas.toDataURL('image/jpeg', 0.7); 
     const imgHeight = (canvas.height * pageWidth) / canvas.width;
 
     if (i > 0) {
