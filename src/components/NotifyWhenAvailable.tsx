@@ -8,6 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { Phone, Mail, MessageCircle, Check } from 'lucide-react';
 import type { Product } from '@/data/storeProducts';
 import { getStoresData } from '@/data/ecommerceData';
+import { getProxyImageUrl } from '@/utils/assetProxyUtil';
+import { getDefaultProductImageSync } from '@/utils/imageUtils';
 
 interface NotifyWhenAvailableProps {
   product: Product | any;
@@ -372,16 +374,16 @@ const NotifyWhenAvailable: React.FC<NotifyWhenAvailableProps> = ({
   const productPriceBlock = (
     <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl">
       <img
-        src={product?.images?.[0]}
+        src={getProxyImageUrl(product?.images?.[0] || product?.image || getDefaultProductImageSync(derivedStoreSlug), derivedStoreSlug, 'products')}
         alt={product?.name}
         className="w-20 h-20 object-cover rounded-lg"
         onError={(e) => {
-          (e.target as HTMLImageElement).style.display = 'none';
+          (e.target as HTMLImageElement).src = getDefaultProductImageSync(derivedStoreSlug);
         }}
       />
       <div className="text-right flex-1">
-        <h3 className="font-bold text-gray-800 text-lg">{product?.name}</h3>
-        <p className="text-sm text-gray-600 mt-1">قيمة المنتج: 0 د.ل</p>
+        <h3 className="font-bold text-gray-800 text-lg">{product?.name || 'منتج غير معروف'}</h3>
+        <p className="text-sm text-gray-600 mt-1">قيمة المنتج: {product?.price || 0} د.ل</p>
       </div>
     </div>
   );

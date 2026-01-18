@@ -1240,6 +1240,7 @@ export default function Home() {
   const [showAddToCartPopup, setShowAddToCartPopup] = useState<any>(null);
   const [showAddToCartSuccess, setShowAddToCartSuccess] = useState<any>(null);
   const [showWelcomeBackModal, setShowWelcomeBackModal] = useState<any>(null);
+  const [isLoadingProducts, setIsLoadingProducts] = useState(false);
   const [currentMerchant, setCurrentMerchant] = useState<any>(null);
   const [isLoggedInAsMerchant, setIsLoggedInAsMerchant] = useState(false);
   const [currentVisitor, setCurrentVisitor] = useState<any>(null);
@@ -1418,6 +1419,7 @@ export default function Home() {
         const productId = storeMatch[2] ? parseInt(storeMatch[2]) : null;
         
         setCurrentStore(store);
+        setIsLoadingProducts(true);
         
         // Load products for this store to ensure they are available for the product page
         try {
@@ -1430,6 +1432,8 @@ export default function Home() {
           }
         } catch (e) {
           setCurrentStoreProducts([]);
+        } finally {
+          setIsLoadingProducts(false);
         }
 
         if (productId) {
@@ -2022,9 +2026,24 @@ export default function Home() {
     setCurrentPage('store');
   };
 
-  const handleProductClick = (productId: number) => {
+  const handleProductClick = async (productId: number) => {
     setCurrentProduct(productId);
     setCurrentPage('product');
+    
+    // تأكد من تحميل منتجات المتجر إذا لم تكن محملة (مهم للمتاجر الديناميكية)
+    if (currentStore && currentStoreProducts.length === 0) {
+      setIsLoadingProducts(true);
+      try {
+        const storeData = await loadStoreBySlug(currentStore);
+        if (storeData?.products && storeData.products.length > 0) {
+          setCurrentStoreProducts(storeData.products);
+        }
+      } catch (e) {
+        console.error('Error loading products in click handler:', e);
+      } finally {
+        setIsLoadingProducts(false);
+      }
+    }
   };
 
   const handleBackToStore = () => {
@@ -3156,7 +3175,7 @@ export default function Home() {
           }
         }}
         onNotifyWhenAvailable={(productId) => {
-          const product = allStoreProducts.find(p => p.id === productId) || currentStoreProducts.find(p => p.id === productId);
+          const product = allStoreProducts.find(p => String(p.id) === String(productId)) || currentStoreProducts.find(p => String(p.id) === String(productId));
           setNotifyProduct(product || { id: productId, name: 'منتج غير معروف', storeSlug: currentStore });
           setShowNotifyModal(true);
         }}
@@ -3212,12 +3231,24 @@ export default function Home() {
 
   // عرض صفحة المنتج
   if (currentPage === 'product' && currentProduct) {
+    // Show loading spinner if we are currently fetching store products
+    if (isLoadingProducts) {
+      return (
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <div className="flex flex-col items-center gap-4">
+            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-lg font-medium text-muted-foreground">جاري تحميل بيانات المنتج...</p>
+          </div>
+        </div>
+      );
+    }
+
     // البحث في المنتجات الحالية للمتجر أولاً (أفضل أداء)
-    let selectedProduct = currentStoreProducts.find(p => p.id === currentProduct);
+    let selectedProduct = currentStoreProducts.find(p => String(p.id) === String(currentProduct));
 
     // إذا لم يُعثر عليه، البحث في جميع منتجات المتاجر
     if (!selectedProduct) {
-      selectedProduct = allStoreProducts.find(p => p.id === currentProduct);
+      selectedProduct = allStoreProducts.find(p => String(p.id) === String(currentProduct));
     }
 
     if (!selectedProduct) {
@@ -3261,7 +3292,7 @@ export default function Home() {
           }
         }}
         onNotifyWhenAvailable={(productId) => {
-          const product = allStoreProducts.find(p => p.id === productId) || currentStoreProducts.find(p => p.id === productId);
+          const product = allStoreProducts.find(p => String(p.id) === String(productId)) || currentStoreProducts.find(p => String(p.id) === String(productId));
           setNotifyProduct(product || { id: productId, name: 'منتج غير معروف', storeSlug: currentStore });
           setShowNotifyModal(true);
         }}

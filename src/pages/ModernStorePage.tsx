@@ -589,51 +589,54 @@ const ModernStorePage: React.FC<ModernStorePageProps> = ({
               aria-label="محتوى السلايدر"
             >
               {sliderImages.map((item, index) => {
-                const isSliderBanner = item.imageUrl && (item.title || item.subtitle || item.discount);
+                const isSliderBanner = item.imageUrl || (item.image && typeof item.image === 'string');
                 
                 if (isSliderBanner) {
+                  const imageUrl = item.imageUrl || item.image;
                   return (
-                    <div key={item.id} className="w-full flex-shrink-0 relative h-full">
+                    <div key={item.id || index} className="w-full flex-shrink-0 relative h-full">
                       <img
-                        src={item.imageUrl}
+                        src={imageUrl}
                         alt={item.title || 'عرض'}
-                        className="w-full h-full object-contain"
+                        className="w-full h-full object-cover"
                         loading={index === 0 ? 'eager' : 'lazy'}
                         decoding="async"
                         fetchPriority={index === 0 ? 'high' : 'auto'}
                       />
-                      <div dir="rtl" className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent">
-                        <div className="absolute bottom-0 left-0 right-0 p-8 text-white">
-                          {item.discount && (
-                            <div className="mb-4">
-                              <span className="inline-block bg-red-600 text-white px-6 py-2 rounded-full text-2xl font-bold shadow-lg animate-pulse">
-                                خصم {item.discount}%
-                              </span>
-                            </div>
-                          )}
-                          
-                          {item.title && (
-                            <h2 className="text-4xl md:text-5xl font-bold mb-3 drop-shadow-2xl">
-                              {item.title}
-                            </h2>
-                          )}
-                          
-                          {item.subtitle && (
-                            <p className="text-xl md:text-2xl mb-6 drop-shadow-lg opacity-90">
-                              {item.subtitle}
-                            </p>
-                          )}
-                          
-                          {item.buttonText && (
-                            <Button 
-                              size="lg" 
-                              className="px-8 py-3 bg-white text-gray-900 rounded-full font-bold text-lg shadow-xl hover:bg-gray-100"
-                            >
-                              {item.buttonText}
-                            </Button>
-                          )}
+                      {(item.title || item.subtitle || item.discount || item.buttonText) && (
+                        <div dir="rtl" className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent">
+                          <div className="absolute bottom-0 left-0 right-0 p-8 text-white">
+                            {item.discount && (
+                              <div className="mb-4">
+                                <span className="inline-block bg-red-600 text-white px-6 py-2 rounded-full text-2xl font-bold shadow-lg animate-pulse">
+                                  خصم {item.discount}%
+                                </span>
+                              </div>
+                            )}
+                            
+                            {item.title && (
+                              <h2 className="text-4xl md:text-5xl font-bold mb-3 drop-shadow-2xl">
+                                {item.title}
+                              </h2>
+                            )}
+                            
+                            {item.subtitle && (
+                              <p className="text-xl md:text-2xl mb-6 drop-shadow-lg opacity-90">
+                                {item.subtitle}
+                              </p>
+                            )}
+                            
+                            {item.buttonText && (
+                              <Button 
+                                size="lg" 
+                                className="px-8 py-3 bg-white text-gray-900 rounded-full font-bold text-lg shadow-xl hover:bg-gray-100"
+                              >
+                                {item.buttonText}
+                              </Button>
+                            )}
+                          </div>
                         </div>
-                      </div>
+                      )}
                     </div>
                   );
                 }
