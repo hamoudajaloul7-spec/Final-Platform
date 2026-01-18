@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 import { storesData } from '@/data/ecommerceData';
 import { allStoreProducts } from '@/data/allStoreProducts';
-import { convertConfigProductToProduct } from '@/utils/storeConfigLoader';
+import { convertConfigProductToProduct, normalizeApiProduct } from '@/utils/storeConfigLoader';
 import { getStoreConfig } from '@/config/storeConfig';
 import type { Product } from '@/data/storeProducts';
 import EnhancedNotifyModal from '@/components/EnhancedNotifyModal';
@@ -305,7 +305,7 @@ const ModernStorePage: React.FC<ModernStorePageProps> = ({
 
               setDynamicStoreData({
                 products: apiProducts && Array.isArray(apiProducts) && apiProducts.length > 0 
-                  ? apiProducts 
+                  ? apiProducts.map(normalizeApiProduct)
                   : null,
                 sliderImages: apiSliders || []
               });
@@ -326,7 +326,7 @@ const ModernStorePage: React.FC<ModernStorePageProps> = ({
             try {
               const parsed = JSON.parse(stored);
               if (Array.isArray(parsed) && parsed.length > 0) {
-                setDynamicStoreData({ products: parsed, sliderImages: [] });
+                setDynamicStoreData({ products: parsed.map(normalizeApiProduct), sliderImages: [] });
                 setLoadingStore(false);
                 return;
               }

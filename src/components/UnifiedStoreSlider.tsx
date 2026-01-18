@@ -73,7 +73,7 @@ const UnifiedStoreSlider: React.FC<UnifiedStoreSliderProps> = ({
   }, [storeSlug, initialSliders]);
 
   const loadSliders = async () => {
-    const storageKey = `eshro_store_sliders_${storeSlug}`;
+    const storageKey = `eshro_sliders_${storeSlug}`;
   
     // Show static/cached data immediately
     if (staticConfig?.sliders) {
@@ -114,18 +114,13 @@ const UnifiedStoreSlider: React.FC<UnifiedStoreSliderProps> = ({
         const result = await response.json();
         if (result.data && Array.isArray(result.data) && result.data.length > 0) {
           const loadedSliders = result.data.map((slider: any) => {
-            // Fix image URL logic
-            let imagePath = slider.imagePath || slider.image;
+            let imagePath = slider.imagePath || slider.image || '';
             
-            if (imagePath) {
+            if (imagePath && imagePath.startsWith('http')) {
               if (imagePath.includes('localhost:5000')) {
                 imagePath = imagePath.replace(/^https?:\/\/localhost:5000/, '');
               } else if (imagePath.includes('eishro-backend.onrender.com')) {
                 imagePath = imagePath.replace(/^https?:\/\/eishro-backend\.onrender\.com/, '');
-              }
-              
-              if (imagePath.startsWith('/assets/')) {
-                imagePath = imagePath;
               }
             }
 
