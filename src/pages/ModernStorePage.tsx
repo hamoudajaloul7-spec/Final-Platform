@@ -55,7 +55,7 @@ const ModernStorePage: React.FC<ModernStorePageProps> = ({
   favorites = []
 }) => {
   const [activeSlide, setActiveSlide] = useState(0);
-  const [currentView, setCurrentView] = useState<'all' | 'discounts' | 'new'>('all');
+  const [currentView, setCurrentView] = useState<'all' | 'discounts' | 'new' | 'unavailable'>('all');
   const [showNotifyModal, setShowNotifyModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [dynamicStoreData, setDynamicStoreData] = useState<any>(null);
@@ -182,9 +182,14 @@ const ModernStorePage: React.FC<ModernStorePageProps> = ({
 
   const displayProducts = useMemo(() => {
     if (currentView === 'discounts') {
-      return storeProducts.filter(p => p.tags.includes('تخفيضات'));
+      return storeProducts.filter(p => p.tags.includes('تخفيضات') || p.tags.includes('تخفيض'));
     } else if (currentView === 'new') {
       return storeProducts.filter(p => p.tags.includes('جديد'));
+    } else if (currentView === 'unavailable') {
+      return storeProducts.filter(p => {
+        const quantity = Number(p.quantity) || 0;
+        return quantity <= 0 || p.tags.includes('غير متوفر');
+      });
     }
     return storeProducts;
   }, [storeProducts, currentView]);
@@ -299,8 +304,10 @@ const ModernStorePage: React.FC<ModernStorePageProps> = ({
               }));
 
               setDynamicStoreData({
-                products: apiProducts,
-                sliderImages: apiSliders
+                products: apiProducts && Array.isArray(apiProducts) && apiProducts.length > 0 
+                  ? apiProducts 
+                  : null,
+                sliderImages: apiSliders || []
               });
 
               setLoadingStore(false);
@@ -547,6 +554,16 @@ const ModernStorePage: React.FC<ModernStorePageProps> = ({
                 }`}
               >
                 المنتجات الجديدة
+              </button>
+              <button
+                onClick={() => setCurrentView('unavailable')}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  currentView === 'unavailable' 
+                    ? 'bg-white text-primary shadow-sm' 
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                غير متوفرة
               </button>
             </div>
           </div>

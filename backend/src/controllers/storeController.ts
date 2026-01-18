@@ -983,8 +983,7 @@ export const getStorePublicData = async (
     });
 
     if (!store) {
-      sendError(res, 'Store not found', 404);
-      return;
+      logger.warn(`Store not found in database: ${slug}, will attempt fallback to static files`);
     }
 
     const resolveStoreJsonPath = (storeSlug: string): string => {
@@ -1014,16 +1013,16 @@ export const getStorePublicData = async (
       return candidates[0];
     };
 
-    const dbSliders = await StoreSlider.findAll({
+    const dbSliders = store ? await StoreSlider.findAll({
       where: { storeId: store.id },
       order: [['sortOrder', 'ASC']]
-    }).catch(() => []);
+    }).catch(() => []) : [];
 
-    const dbProducts = await Product.findAll({
+    const dbProducts = store ? await Product.findAll({
       where: { storeId: store.id },
       include: [{ model: ProductImage, as: 'productImages', required: false }],
       order: [['createdAt', 'DESC']]
-    }).catch(() => []);
+    }).catch(() => []) : [];
 
     let products: any[] = dbProducts.map((p: any) => {
       const plain = typeof p?.get === 'function' ? p.get({ plain: true }) : p;
@@ -1121,16 +1120,26 @@ export const getStorePublicData = async (
       }
     }
 
+    const storeResponse = store ? {
+      id: store.id,
+      name: store.name,
+      slug: store.slug,
+      description: store.description,
+      logo: store.logo,
+      category: store.category,
+      isActive: store.isActive
+    } : {
+      id: -1,
+      name: slug,
+      slug: slug,
+      description: 'Store loaded from static files',
+      logo: '/assets/default-store.png',
+      category: 'general',
+      isActive: true
+    };
+
     sendSuccess(res, {
-      store: {
-        id: store.id,
-        name: store.name,
-        slug: store.slug,
-        description: store.description,
-        logo: store.logo,
-        category: store.category,
-        isActive: store.isActive
-      },
+      store: storeResponse,
       products,
       sliders
     });
@@ -1230,6 +1239,7 @@ export const adminPurgeStores = async (
     const expected = String(process.env.ADMIN_PURGE_TOKEN || '');
 
     if (!expected || token !== expected) {
+      logger.warn(`🔴 محاولة حذف غير مصرح بها من IP: ${req.ip} بـ token: ${token.substring(0, 10)}...`);
       sendError(res, 'Unauthorized', 401);
       return;
     }
@@ -1248,6 +1258,11 @@ export const adminPurgeStores = async (
       sendError(res, 'slugs or emails is required', 400);
       return;
     }
+
+    logger.error(`🔴 تنبيه حرج: محاولة حذف من Supabase للمتاجر: ${slugs.join(', ')} والبريد: ${emails.join(', ')}`);
+    logger.info(`⏰ الوقت: ${new Date().toISOString()}`);
+    logger.info(`📍 الـ IP: ${req.ip}`);
+    logger.info(`🔑 Token المستخدم: ${token.substring(0, 20)}...`);
 
     const result = {
       slugs,
@@ -1312,10 +1327,13 @@ export const adminPurgeStores = async (
     });
 
     for (const slug of slugs) {
+      logger.error(`💥 جاري حذف جميع بيانات Supabase للمتجر: ${slug}`);
       const purge = await purgeStoreFromSupabase(slug);
+      logger.error(`✅ تم حذف ${purge.removed}/${purge.attempted} ملف من Supabase للمتجر: ${slug}`);
       result.supabase.push({ slug, ...purge });
     }
 
+    logger.error(`🔴 اكتمل الحذف من Supabase. تم حذف ${result.supabase.reduce((s, r) => s + r.removed, 0)} ملف إجمالاً`);
     sendSuccess(res, result, 200, 'Purge completed');
   } catch (error) {
     logger.error('Error during admin purge:', error);
