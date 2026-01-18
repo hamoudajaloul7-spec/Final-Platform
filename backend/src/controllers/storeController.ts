@@ -1057,8 +1057,8 @@ export const getStorePublicData = async (
       title: s.title,
       subtitle: s.subtitle,
       buttonText: s.buttonText,
-      imageUrl: normalizeSliderImagePath(store.slug, s.imagePath),
-      image: normalizeSliderImagePath(store.slug, s.imagePath)
+      imageUrl: normalizeSliderImagePath(store?.slug || slug, s.imagePath),
+      image: normalizeSliderImagePath(store?.slug || slug, s.imagePath)
     }));
 
     const applyStoreJsonPayload = (payload: any) => {
@@ -1084,7 +1084,7 @@ export const getStorePublicData = async (
 
     if (products.length === 0 || sliders.length === 0) {
       try {
-        const storeJsonPath = resolveStoreJsonPath(store.slug);
+        const storeJsonPath = resolveStoreJsonPath(store?.slug || slug);
         if (fs.existsSync(storeJsonPath)) {
           const raw = await fsPromises.readFile(storeJsonPath, 'utf-8');
           const parsed = JSON.parse(raw);
@@ -1092,7 +1092,7 @@ export const getStorePublicData = async (
         }
       } catch (jsonError) {
         logger.warn('Failed to read store.json for public store data', {
-          slug: store.slug,
+          slug: store?.slug || slug,
           error: jsonError instanceof Error ? jsonError.message : String(jsonError)
         });
       }
@@ -1102,7 +1102,7 @@ export const getStorePublicData = async (
           const forwardedProto = String(req.headers['x-forwarded-proto'] || '').split(',')[0].trim();
           const protocol = forwardedProto || req.protocol || 'https';
           const host = req.get('host');
-          const url = host ? `${protocol}://${host}/assets/${store.slug}/store.json` : '';
+          const url = host ? `${protocol}://${host}/assets/${store?.slug || slug}/store.json` : '';
 
           if (url) {
             const response = await fetch(url, { headers: { accept: 'application/json' } });
@@ -1113,7 +1113,7 @@ export const getStorePublicData = async (
           }
         } catch (httpError) {
           logger.warn('Failed to fetch store.json over HTTP for public store data', {
-            slug: store.slug,
+            slug: store?.slug || slug,
             error: httpError instanceof Error ? httpError.message : String(httpError)
           });
         }
