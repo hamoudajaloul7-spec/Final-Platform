@@ -1,4 +1,5 @@
 import type { Product } from '@/data/storeProducts';
+import { normalizeApiProduct } from '@/utils/storeConfigLoader';
 import { nawaemProducts } from '@/data/stores/nawaem/products';
 import { sheirineProducts } from '@/data/stores/sheirine/products';
 import { prettyProducts } from '@/data/stores/pretty/products';
@@ -137,6 +138,9 @@ function loadStoreFromLocalStorage(slug: string): StoreData | null {
     const productsData = localStorage.getItem(`store_products_${slug}`);
     const slidersData = localStorage.getItem(`store_sliders_${slug}`);
 
+    const parsedProducts = productsData ? JSON.parse(productsData) : storeData.products || [];
+    const normalizedProducts = Array.isArray(parsedProducts) ? parsedProducts.map(normalizeApiProduct) : [];
+
     const finalStoreData: StoreData = {
       id: storeData.id || storeData.storeId || 0,
       storeId: storeData.storeId || storeData.id || 0,
@@ -149,7 +153,7 @@ function loadStoreFromLocalStorage(slug: string): StoreData | null {
       color: storeData.color || 'from-blue-400 to-blue-600',
       logo: storeData.logo || '/assets/default-store.png',
       categories: storeData.categories || [],
-      products: productsData ? JSON.parse(productsData) : storeData.products || [],
+      products: normalizedProducts,
       sliderImages: slidersData ? JSON.parse(slidersData) : storeData.sliderImages || []
     };
 
@@ -228,7 +232,7 @@ export async function loadStoreBySlug(slug: string): Promise<StoreData | null> {
           color: 'from-blue-400 to-blue-600',
           logo: data.store.logo || '/assets/default-store.png',
           categories: data.store.categories || data.store.category ? [data.store.category] : [],
-          products: data.products || [],
+          products: Array.isArray(data.products) ? data.products.map(normalizeApiProduct) : [],
           sliderImages: data.sliders || []
         };
         

@@ -3251,11 +3251,16 @@ export default function Home() {
       selectedProduct = allStoreProducts.find(p => String(p.id) === String(currentProduct));
     }
 
+    // إذا لم يُعثر عليه، جرب البحث في enhancedSampleProducts
+    if (!selectedProduct) {
+      selectedProduct = enhancedSampleProducts.find(p => String(p.id) === String(currentProduct));
+    }
+
     if (!selectedProduct) {
       return (
         <div className="min-h-screen bg-background flex items-center justify-center p-8">
           <div className="text-center space-y-4">
-            <p className="text-lg">هذا المنتج غير متوفر حالياً.</p>
+            <p className="text-lg">جاري تحميل بيانات المنتج...</p>
             <Button
               onClick={() => {
                 setNotifyProduct({ id: currentProduct, name: 'منتج غير معروف', storeSlug: currentStore });

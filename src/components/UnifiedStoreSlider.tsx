@@ -114,7 +114,7 @@ const UnifiedStoreSlider: React.FC<UnifiedStoreSliderProps> = ({
         const result = await response.json();
         if (result.data && Array.isArray(result.data) && result.data.length > 0) {
           const loadedSliders = result.data.map((slider: any) => {
-            let imagePath = slider.imageUrl || slider.imagePath || slider.image || '';
+            let imagePath = slider.imagePath || slider.imageUrl || slider.image || '';
             
             if (imagePath && imagePath.startsWith('http')) {
               if (imagePath.includes('localhost:5000')) {
