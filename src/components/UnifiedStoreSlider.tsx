@@ -114,7 +114,7 @@ const UnifiedStoreSlider: React.FC<UnifiedStoreSliderProps> = ({
         const result = await response.json();
         if (result.data && Array.isArray(result.data) && result.data.length > 0) {
           const loadedSliders = result.data.map((slider: any) => {
-            let imagePath = slider.imagePath || slider.image || '';
+            let imagePath = slider.imageUrl || slider.imagePath || slider.image || '';
             
             if (imagePath && imagePath.startsWith('http')) {
               if (imagePath.includes('localhost:5000')) {
@@ -127,15 +127,15 @@ const UnifiedStoreSlider: React.FC<UnifiedStoreSliderProps> = ({
             return {
               id: slider.id,
               title: slider.title,
-              subtitle: slider.subtitle,
-              buttonText: slider.buttonText,
+              subtitle: slider.subtitle || '',
+              buttonText: slider.buttonText || '',
               imagePath: imagePath,
               image: imagePath,
-              sortOrder: slider.sortOrder,
+              sortOrder: slider.sortOrder !== undefined ? slider.sortOrder : 999,
             };
           });
           
-          loadedSliders.sort((a: Slider, b: Slider) => (a.sortOrder || 0) - (b.sortOrder || 0));
+          loadedSliders.sort((a: Slider, b: Slider) => (a.sortOrder || 999) - (b.sortOrder || 999));
           setSliders(loadedSliders);
           localStorage.setItem(storageKey, JSON.stringify(loadedSliders));
         }

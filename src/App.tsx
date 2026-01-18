@@ -2030,8 +2030,8 @@ export default function Home() {
     setCurrentProduct(productId);
     setCurrentPage('product');
     
-    // تأكد من تحميل منتجات المتجر إذا لم تكن محملة (مهم للمتاجر الديناميكية)
-    if (currentStore && currentStoreProducts.length === 0) {
+    // دائماً حمّل منتجات المتجر من API للمتاجر الديناميكية
+    if (currentStore) {
       setIsLoadingProducts(true);
       try {
         const storeData = await loadStoreBySlug(currentStore);
