@@ -199,7 +199,7 @@ export async function loadStoreBySlug(slug: string): Promise<StoreData | null> {
       color: 'from-blue-400 to-blue-600',
       logo: '/assets/default-store.png',
       categories: [],
-      products: products,
+      products: products.map(normalizeApiProduct),
       sliderImages: []
     };
     
@@ -243,7 +243,7 @@ export async function loadStoreBySlug(slug: string): Promise<StoreData | null> {
       }
     }
   } catch (error) {
-    console.warn(`Failed to fetch store ${slug} from API:`, error);
+    // Fallback when API is not available
   }
 
   return null;
