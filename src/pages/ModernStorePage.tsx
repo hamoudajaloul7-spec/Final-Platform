@@ -198,15 +198,13 @@ const ModernStorePage: React.FC<ModernStorePageProps> = ({
 
   useEffect(() => {
     const getSliderImages = () => {
+      // 1. البحث الأول في dynamicStoreData من API
       if (dynamicStoreData?.sliderImages && dynamicStoreData.sliderImages.length > 0) {
         return dynamicStoreData.sliderImages;
       }
       
+      // 2. البحث في localStorage
       try {
-        if (!isLocalhost) {
-          return [];
-        }
-
         const newKey = `eshro_sliders_${storeSlug}`;
         const oldKey = `store_sliders_${storeSlug}`;
         
@@ -246,12 +244,9 @@ const ModernStorePage: React.FC<ModernStorePageProps> = ({
         // Silently ignore slider loading errors
       }
 
-      const knownStores = ['nawaem', 'sheirine', 'pretty', 'delta-store', 'magna-beauty', 'indeesh'];
-      if (!knownStores.includes(storeSlug)) {
-        return [];
-      }
-      
-      return storeProducts.slice(0, 5);
+      // 3. لا تحاول إنشاء سلايديرز من المنتجات - الأمر خطر
+      // معظم المتاجر لديها سلايديرز من API أو localStorage
+      return [];
     };
 
     const images = getSliderImages();

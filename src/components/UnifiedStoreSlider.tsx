@@ -112,8 +112,10 @@ const UnifiedStoreSlider: React.FC<UnifiedStoreSliderProps> = ({
   
       if (response.ok) {
         const result = await response.json();
-        if (result.data && Array.isArray(result.data) && result.data.length > 0) {
-          const loadedSliders = result.data.map((slider: any) => {
+        const slidersData = result.data || result.sliders || [];
+        
+        if (Array.isArray(slidersData) && slidersData.length > 0) {
+          const loadedSliders = slidersData.map((slider: any) => {
             let imagePath = slider.imagePath || slider.imageUrl || slider.image || '';
             
             if (imagePath && imagePath.startsWith('http')) {
@@ -125,13 +127,13 @@ const UnifiedStoreSlider: React.FC<UnifiedStoreSliderProps> = ({
             }
 
             return {
-              id: slider.id,
-              title: slider.title,
+              id: slider.id || `slider_${Date.now()}_${Math.random()}`,
+              title: slider.title || '',
               subtitle: slider.subtitle || '',
               buttonText: slider.buttonText || '',
               imagePath: imagePath,
               image: imagePath,
-              sortOrder: slider.sortOrder !== undefined ? slider.sortOrder : 999,
+              sortOrder: typeof slider.sortOrder === 'number' ? slider.sortOrder : 999,
             };
           });
           

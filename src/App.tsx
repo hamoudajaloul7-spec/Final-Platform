@@ -2027,9 +2027,6 @@ export default function Home() {
   };
 
   const handleProductClick = async (productId: number) => {
-    setCurrentProduct(productId);
-    setCurrentPage('product');
-    
     // دائماً حمّل منتجات المتجر من API للمتاجر الديناميكية
     if (currentStore) {
       setIsLoadingProducts(true);
@@ -2044,6 +2041,10 @@ export default function Home() {
         setIsLoadingProducts(false);
       }
     }
+    
+    // بعد تحميل المنتجات، انتقل للصفحة
+    setCurrentProduct(productId);
+    setCurrentPage('product');
   };
 
   const handleBackToStore = () => {
@@ -3256,11 +3257,23 @@ export default function Home() {
       selectedProduct = enhancedSampleProducts.find(p => String(p.id) === String(currentProduct));
     }
 
+    // إذا لم يُعثر عليه، قد تكون المنتجات قيد التحميل - انتظر
+    if (!selectedProduct && isLoadingProducts) {
+      return (
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <div className="flex flex-col items-center gap-4">
+            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-lg font-medium text-muted-foreground">جاري تحميل بيانات المنتج...</p>
+          </div>
+        </div>
+      );
+    }
+
     if (!selectedProduct) {
       return (
         <div className="min-h-screen bg-background flex items-center justify-center p-8">
           <div className="text-center space-y-4">
-            <p className="text-lg">جاري تحميل بيانات المنتج...</p>
+            <p className="text-lg">هذا المنتج غير متوفر حالياً.</p>
             <Button
               onClick={() => {
                 setNotifyProduct({ id: currentProduct, name: 'منتج غير معروف', storeSlug: currentStore });
