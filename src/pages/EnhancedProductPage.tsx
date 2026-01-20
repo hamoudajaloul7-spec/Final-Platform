@@ -412,6 +412,11 @@ const EnhancedProductPage: React.FC<EnhancedProductPageProps> = ({
               <div className="flex items-center gap-3 mb-2">
                 <h1 className="text-3xl font-bold text-gray-900">
                   {product.name}
+                  {(product as any).nameEn && (
+                    <span className="text-lg text-gray-600 font-normal mr-2">
+                      / {(product as any).nameEn}
+                    </span>
+                  )}
                 </h1>
                 <button
                   onClick={handleShare}
