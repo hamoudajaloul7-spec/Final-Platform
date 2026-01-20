@@ -23,57 +23,37 @@ export function convertConfigProductToProduct(configProduct: StoreConfigProduct)
 }
 
 export function normalizeApiProduct(apiProduct: any): Product {
-  // التحقق من التوفر من عدة حقول محتملة
+  // Final stock logic: quantity has priority; fall back to explicit inStock/isAvailable/availability/status
   let inStock = true;
   let quantity = 1;
 
-  // التحقق من quantity أولاً - هذا أهم مؤشر للتوفر
+  // 1) derive quantity from potential fields
   if (typeof apiProduct.quantity === 'number') {
     quantity = apiProduct.quantity;
-    inStock = quantity > 0;
   } else if (typeof apiProduct.stock === 'number') {
     quantity = apiProduct.stock;
-    inStock = quantity > 0;
   } else if (typeof apiProduct.available_quantity === 'number') {
     quantity = apiProduct.available_quantity;
-    inStock = quantity > 0;
   } else if (typeof apiProduct.availableQuantity === 'number') {
     quantity = apiProduct.availableQuantity;
-    inStock = quantity > 0;
   }
+  // 2) base stock on quantity
+  inStock = quantity > 0;
 
-  // التحقق من حقول التوفر الصريحة - تتجاوز quantity إذا كانت محددة
+  // 3) explicit flags override only if present
   if (apiProduct.inStock !== undefined && apiProduct.inStock !== null) {
-    const inStockValue = !!apiProduct.inStock;
-    // إذا كان inStock محددة صراحة، استخدمها
-    inStock = inStockValue;
-    // إذا كانت quantity غير محددة، اعتبرها 1 إذا كان inStock = true
-    if (quantity === 1 && !inStockValue) {
-      quantity = 0;
-    }
+    inStock = !!apiProduct.inStock;
   } else if (apiProduct.isAvailable !== undefined && apiProduct.isAvailable !== null) {
     inStock = !!apiProduct.isAvailable;
-    if (quantity === 1 && !inStock) {
-      quantity = 0;
-    }
   } else if (apiProduct.availability !== undefined && apiProduct.availability !== null) {
     inStock = !!apiProduct.availability;
-    if (quantity === 1 && !inStock) {
-      quantity = 0;
-    }
   } else if (apiProduct.status !== undefined && typeof apiProduct.status === 'string') {
-    const statusLower = apiProduct.status.toLowerCase().trim();
-    const isUnavailable = statusLower === 'unavailable' || statusLower === 'out_of_stock' || statusLower === 'out-of-stock';
+    const status = apiProduct.status.toLowerCase().trim();
+    const isUnavailable = status === 'unavailable' || status === 'out_of_stock' || status === 'out-of-stock';
     inStock = !isUnavailable;
-    if (quantity === 1 && isUnavailable) {
-      quantity = 0;
-    }
+    if (isUnavailable) quantity = 0;
   }
-  
-  // قاعدة نهائية: إذا كانت الكمية 0 أو سالب، المنتج غير متوفر
-  if (quantity <= 0) {
-    inStock = false;
-  }
+  if (quantity <= 0) inStock = false;
 
   return {
     id: apiProduct.id || 0,

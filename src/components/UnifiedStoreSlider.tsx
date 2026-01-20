@@ -72,11 +72,22 @@ const UnifiedStoreSlider: React.FC<UnifiedStoreSliderProps> = ({
     };
   }, [storeSlug, initialSliders]);
 
-  const loadSliders = async () => {
+const loadSliders = async () => {
     const storageKey = `eshro_sliders_${storeSlug}`;
-  
-    // Show static/cached data immediately
-    if (staticConfig?.sliders) {
+   
+    // First try localStorage (most up-to-date)
+    const savedSliders = localStorage.getItem(storageKey);
+    if (savedSliders) {
+      try {
+        const parsed = JSON.parse(savedSliders);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setSliders(parsed);
+        }
+      } catch {}
+    }
+   
+    // Then try static config as fallback
+    if (!savedSliders && staticConfig?.sliders) {
       const mappedSliders = staticConfig.sliders.map((slider: any) => ({
         id: slider.id,
         title: slider.title,
@@ -87,16 +98,8 @@ const UnifiedStoreSlider: React.FC<UnifiedStoreSliderProps> = ({
         sortOrder: slider.sortOrder,
       }));
       setSliders(mappedSliders);
-    } else {
-      const savedSliders = localStorage.getItem(storageKey);
-      if (savedSliders) {
-        try {
-          const parsed = JSON.parse(savedSliders);
-          setSliders(parsed);
-        } catch {}
-      }
     }
-  
+   
     // Fetch API data in background with timeout
     try {
       const isLocalhost = typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname);
@@ -140,6 +143,36 @@ const UnifiedStoreSlider: React.FC<UnifiedStoreSliderProps> = ({
           loadedSliders.sort((a: Slider, b: Slider) => (a.sortOrder || 999) - (b.sortOrder || 999));
           setSliders(loadedSliders);
           localStorage.setItem(storageKey, JSON.stringify(loadedSliders));
+        }
+      } else {
+        // If API fails, try alternative endpoint
+        try {
+          const altResponse = await fetch(`${apiUrl}/stores/${storeSlug}/sliders`, {
+            signal: controller.signal
+          });
+          
+          if (altResponse.ok) {
+            const result = await altResponse.json();
+            const slidersData = result.data || result.sliders || [];
+            
+            if (Array.isArray(slidersData) && slidersData.length > 0) {
+              const loadedSliders = slidersData.map((slider: any) => ({
+                id: slider.id || `slider_${Date.now()}_${Math.random()}`,
+                title: slider.title || '',
+                subtitle: slider.subtitle || '',
+                buttonText: slider.buttonText || '',
+                imagePath: slider.imagePath || slider.imageUrl || slider.image || '',
+                image: slider.imagePath || slider.imageUrl || slider.image || '',
+                sortOrder: typeof slider.sortOrder === 'number' ? slider.sortOrder : 999,
+              }));
+              
+              loadedSliders.sort((a: Slider, b: Slider) => (a.sortOrder || 999) - (b.sortOrder || 999));
+              setSliders(loadedSliders);
+              localStorage.setItem(storageKey, JSON.stringify(loadedSliders));
+            }
+          }
+        } catch (altError) {
+          // Silent error handling
         }
       }
     } catch (error) {

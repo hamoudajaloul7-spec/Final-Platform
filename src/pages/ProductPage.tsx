@@ -201,7 +201,12 @@ const ProductPage: React.FC<ProductPageProps> = ({
           <div className="space-y-6">
             {/* اسم المنتج والسعر */}
             <div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">{product.name}</h1>
+  <h1 className="text-2xl font-bold text-gray-900 mb-2">
+    {product.name}
+    {(product as any).nameEn && (
+      <span className="text-lg text-gray-600 font-normal ml-2">/ {(product as any).nameEn}</span>
+    )}
+  </h1>
               <p className="text-gray-600 mb-4">{product.description}</p>
               
               <div className="flex items-center gap-4 mb-4">
