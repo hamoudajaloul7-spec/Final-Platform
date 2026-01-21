@@ -4,7 +4,7 @@ import { findStoreBySlug } from '../services/storeService';
 const router = Router();
 
 // POST /api/stores-exists 
-router.post('/stores-exists', async (req, res) => { 
+router.post('/', async (req, res) => { 
     const { storeSlug, storeName, email1, email2 } = req.body;
 
     if (!storeSlug) { 

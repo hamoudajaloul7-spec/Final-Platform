@@ -18,6 +18,7 @@ import {
 } from '@middleware/securityMiddleware';
 import logger from '@utils/logger';
 import routes from '@routes/index';
+import storesExistsRouter from './routes/stores-exists';
 
 const app: Express = express();
 
@@ -162,6 +163,7 @@ app.use((req: Request, res: Response, next: NextFunction): void => {
   next();
 });
 
+app.use('/api/stores-exists', storesExistsRouter);
 app.use(routes);
 
 app.use(notFoundHandler);
