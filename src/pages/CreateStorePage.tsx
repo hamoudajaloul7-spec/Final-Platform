@@ -447,7 +447,7 @@ const CreateStorePage: React.FC<CreateStorePageProps> = ({
     setCreationStatus('جاري فحص توفر اسم المتجر والبريد...');
     try {
 
-      const checkResponse = await fetch('/api/stores/check-exists', {
+      const checkResponse = await fetch('/api/stores-exists', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
