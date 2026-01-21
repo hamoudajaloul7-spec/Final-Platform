@@ -24,7 +24,7 @@
           "value": "(?!ishro\\.ly).*"
         }
       ],
-      "destination": "https://ishro.ly/$1",
+      "destination": "https://www.ishro.ly/$1",
       "permanent": true
     }
   ],
