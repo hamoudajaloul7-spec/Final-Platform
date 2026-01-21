@@ -21,7 +21,7 @@
       "has": [
         {
           "type": "host",
-          "value": "(?!ishro\\.ly).*"
+          "value": "(.*)\\.vercel\\.app"
         }
       ],
       "destination": "https://www.ishro.ly/$1",
