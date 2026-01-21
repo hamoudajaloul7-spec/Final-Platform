@@ -85,6 +85,8 @@ app.use(
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
+app.use('/api', storesExistsRouter);
+
 app.use(securityHeaders);
 
 app.use(comprehensiveSecurityMiddleware);
@@ -163,7 +165,6 @@ app.use((req: Request, res: Response, next: NextFunction): void => {
   next();
 });
 
-app.use('/api/stores-exists', storesExistsRouter);
 app.use(routes);
 
 app.use(notFoundHandler);
