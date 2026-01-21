@@ -1,14 +1,17 @@
-export async function findStoreBySlug(slug: string): Promise<any | null> {
-  // Attempt to use a global DB client if available; this keeps compile-time clean
+import Store from '../models/Store';
+
+/**
+ * Finds a store by its slug using the real database model
+ * @param slug The store slug to search for
+ * @returns The store model instance or null if not found
+ */
+export const findStoreBySlug = async (slug: string) => {
   try {
-    // @ts-ignore
-    const db = (globalThis as any).dbClient;
-    if (db && typeof db.findStoreBySlug === 'function') {
-      return await db.findStoreBySlug(slug);
-    }
-  } catch {
-    // ignore
+    return await Store.findOne({
+      where: { slug }
+    });
+  } catch (error) {
+    console.error('Error in findStoreBySlug service:', error);
+    return null;
   }
-  // If no DB is configured yet, return null
-  return null;
-}
+};
