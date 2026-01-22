@@ -61,6 +61,7 @@ const StoreFrontSlider: React.FC<StoreFrontSliderProps> = ({
           }));
           setSliders(mapped);
           localStorage.setItem(`eshro_sliders_${storeSlug}`, JSON.stringify(mapped));
+          localStorage.setItem(`store_sliders_${storeSlug}`, JSON.stringify(mapped));
           return;
         }
       } catch {
@@ -69,9 +70,17 @@ const StoreFrontSlider: React.FC<StoreFrontSliderProps> = ({
     }
     
     const storageKey = `eshro_sliders_${storeSlug}`;
-    const savedData = localStorage.getItem(storageKey);
+    const fallbackKey = `store_sliders_${storeSlug}`;
+    const savedData = localStorage.getItem(storageKey) || localStorage.getItem(fallbackKey);
     if (savedData) {
-      setSliders(JSON.parse(savedData));
+      try {
+        const parsed = JSON.parse(savedData);
+        if (Array.isArray(parsed)) {
+          setSliders(parsed);
+        }
+      } catch (e) {
+        console.error('Error parsing sliders from localStorage:', e);
+      }
     }
   };
 

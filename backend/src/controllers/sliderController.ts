@@ -33,6 +33,8 @@ export const getStoreSliders = async (req: Request, res: Response): Promise<void
       order: [['sortOrder', 'ASC']],
     });
 
+    logger.info(`Found ${sliders.length} sliders for store ${store.slug} (ID: ${store.id})`);
+
     res.json({
       success: true,
       data: sliders.map(s => {

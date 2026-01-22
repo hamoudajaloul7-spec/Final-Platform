@@ -8,7 +8,7 @@ const router = Router();
  * GET /api/stores-exists
  * Health check / browser test endpoint
  */
-router.get('/stores-exists', (req, res) => {
+router.get('/stores-exists', (_req, res) => {
     sendSuccess(res, { 
         message: 'Stores existence check endpoint is live. Use POST to verify a specific store.',
         timestamp: new Date().toISOString()

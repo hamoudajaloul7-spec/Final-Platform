@@ -2217,6 +2217,7 @@ const CreateStorePage: React.FC<CreateStorePageProps> = ({
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl relative border-2 border-green-200">
             <button
+              type="button"
               onClick={() => setShowAccountSuccessModal(false)}
               title="إغلاق"
               className="absolute top-4 left-4 w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center hover:bg-gray-300 transition-colors z-10"
@@ -2259,11 +2260,12 @@ const CreateStorePage: React.FC<CreateStorePageProps> = ({
 
               {/* زر البدء */}
               <button
+                type="button"
                 onClick={() => {
                   setShowAccountSuccessModal(false);
                   setShowWelcomeModal(true);
                 }}
-                className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2 text-lg"
+                className="w-full bg-linear-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2 text-lg"
               >
                 <Sparkles className="h-5 w-5" />
                 ابدأ رحلتك مع إشرو
@@ -2289,6 +2291,7 @@ const CreateStorePage: React.FC<CreateStorePageProps> = ({
                 نتمنى لك وقتا ممتعا معنا
               </p>
               <button
+                type="button"
                 onClick={() => {
                   const payload = createdStoreData;
                   setShowStoreSuccessModal(false);
@@ -2309,7 +2312,7 @@ const CreateStorePage: React.FC<CreateStorePageProps> = ({
                     });
                   }
                 }}
-                className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                className="w-full bg-linear-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
               >
                 متابعة
               </button>
@@ -2323,6 +2326,7 @@ const CreateStorePage: React.FC<CreateStorePageProps> = ({
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl relative border-2 border-red-200">
             <button
+              type="button"
               onClick={() => setShowDuplicateModal(false)}
               title="إغلاق"
               className="absolute top-4 left-4 w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center hover:bg-gray-300 transition-colors z-10"
@@ -2366,8 +2370,9 @@ const CreateStorePage: React.FC<CreateStorePageProps> = ({
 
               {/* زر فهم */}
               <button
+                type="button"
                 onClick={() => setShowDuplicateModal(false)}
-                className="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                className="w-full bg-linear-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
               >
                 فهمت، سأقوم بتغيير البيانات
               </button>
@@ -2379,10 +2384,11 @@ const CreateStorePage: React.FC<CreateStorePageProps> = ({
       {/* نافذة ترحيب التاجر */}
       {showWelcomeModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-gradient-to-br from-green-50 via-blue-50 to-primary/10 rounded-3xl max-w-md w-full max-h-[90vh] overflow-hidden shadow-2xl relative border-2 border-primary/20">
+          <div className="bg-linear-to-br from-green-50 via-blue-50 to-primary/10 rounded-3xl max-w-md w-full max-h-[90vh] overflow-hidden shadow-2xl relative border-2 border-primary/20">
 
             {/* زر الإغلاق */}
             <button
+              type="button"
               onClick={() => {
                 setShowWelcomeModal(false);
                 onNavigateToLogin();
@@ -2465,11 +2471,12 @@ const CreateStorePage: React.FC<CreateStorePageProps> = ({
 
               {/* زر البدء */}
               <button
+                type="button"
                 onClick={() => {
                   setShowWelcomeModal(false);
                   onNavigateToLogin();
                 }}
-                className="w-full bg-gradient-to-r from-green-500 to-primary hover:from-green-600 hover:to-primary/90 text-white font-bold py-4 rounded-xl shadow-lg text-base"
+                className="w-full bg-linear-to-r from-green-500 to-primary hover:from-green-600 hover:to-primary/90 text-white font-bold py-4 rounded-xl shadow-lg text-base"
               >
                 🏪 ابدأ إدارة متجرك الآن 🏪
               </button>

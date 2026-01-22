@@ -699,13 +699,17 @@ export const createStoreWithImages = async (
     
     const slidersWithImages: SliderImage[] = parsedSliders.map((slider, i) => {
       const file = sliderFiles[i];
-      const image = uploadedSliderUrls[file.filename];
+      const image = file ? uploadedSliderUrls[file.filename] : undefined;
+      
+      logger.info(`  📸 Slider ${i} mapping: file=${file?.filename}, image=${image}`);
 
       return {
         ...slider,
         image
       };
-    });
+    }).filter(s => s.image);
+
+    logger.info(`✅ Mapped ${slidersWithImages.length} sliders with images out of ${parsedSliders.length} parsed sliders`);
 
     const logoUrl = uploadedLogoUrl;
     logger.info(`  🏷️ Logo: ${logoUrl}`);

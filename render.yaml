@@ -32,7 +32,7 @@ services:
       - key: JWT_EXPIRE
         value: 7d
       - key: FRONTEND_URL
-        value: https://final-platform-gamma.vercel.app
+        value: https://www.ishro.ly
       - key: MOAMALAT_MID
         value: 10081014649
       - key: MOAMALAT_TID

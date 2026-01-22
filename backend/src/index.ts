@@ -33,6 +33,13 @@ const initializeDatabase = async (): Promise<void> => {
     }
 
     if (dbConnected) {
+      logger.info('📊 Running database migrations...');
+      try {
+        await runMigrations();
+      } catch (error) {
+        logger.error('❌ Database migration failed, continuing with sync:', error);
+      }
+
       logger.info('📊 Synchronizing database schema...');
       try {
         await syncDatabase(false);
@@ -41,27 +48,16 @@ const initializeDatabase = async (): Promise<void> => {
         return;
       }
 
-          logger.info('🌱 Seeding database with initial data...');
-          if (process.env.SEED_DB === 'true') {
-         try {
-        await seedDatabase();
-         } catch (error) {
-        logger.warn('⚠️ Database seeding failed, continuing:', error);
-         }
-          } else {
-         logger.info('ℹ️ Skipping database seeding');
-          }
-
-                logger.info('🌱 Seeding database with initial data...');
-                if (process.env.SEED_DB === 'true') {
-             try {
+      logger.info('🌱 Seeding database with initial data...');
+      if (config.environment === 'development' || process.env.SEED_DB === 'true') {
+        try {
           await seedDatabase();
-             } catch (error) {
+        } catch (error) {
           logger.warn('⚠️ Database seeding failed, continuing:', error);
-             }
-                } else {
-            logger.info('ℹ️ Skipping database seeding');
-               }
+        }
+      } else {
+        logger.info('ℹ️ Skipping database seeding');
+      }
 
       logger.info('📦 Fixing slider paths and populating default sliders for existing stores...');
       try {
