@@ -699,15 +699,15 @@ export const createStoreWithImages = async (
     
     const slidersWithImages: SliderImage[] = parsedSliders.map((slider, i) => {
       const file = sliderFiles[i];
-      const image = file ? uploadedSliderUrls[file.filename] : undefined;
+      const image = file ? uploadedSliderUrls[file.filename] : '';
       
       logger.info(`  📸 Slider ${i} mapping: file=${file?.filename}, image=${image}`);
 
       return {
         ...slider,
-        image
+        image: image || ''
       };
-    }).filter(s => s.image);
+    }).filter(s => s.image && s.image.length > 0);
 
     logger.info(`✅ Mapped ${slidersWithImages.length} sliders with images out of ${parsedSliders.length} parsed sliders`);
 
