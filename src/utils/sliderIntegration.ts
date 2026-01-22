@@ -372,7 +372,7 @@ class StorageManager {
       if (mainData) {
         const sliders = JSON.parse(mainData);
         if (this.validateSliders(sliders)) {
-          return sliders;
+          return this.normalizeSliders(sliders);
         }
       }
 
@@ -381,18 +381,17 @@ class StorageManager {
       if (backupData) {
         const sliders = JSON.parse(backupData);
         if (this.validateSliders(sliders)) {
-
           // Restore main storage from backup
-          this.saveStoreSliders(storeSlug, sliders);
-          return sliders;
+          const normalized = this.normalizeSliders(sliders);
+          this.saveStoreSliders(storeSlug, normalized);
+          return normalized;
         }
       }
 
       // Return default if no valid data found
-      return this.getDefaultSliders(storeSlug);
+      return this.normalizeSliders(this.getDefaultSliders(storeSlug));
     } catch (error) {
-
-      return this.getDefaultSliders(storeSlug);
+      return this.normalizeSliders(this.getDefaultSliders(storeSlug));
     }
   }
 
@@ -400,9 +399,10 @@ class StorageManager {
   saveStoreSliders(storeSlug: string, sliders: SliderImage[]): boolean {
     try {
       if (!this.validateSliders(sliders)) {
-
         return false;
       }
+
+      const normalized = this.normalizeSliders(sliders);
 
       // Create backup before saving
       const existingData = localStorage.getItem(`${this.STORAGE_PREFIX}sliders_${storeSlug}`);
@@ -411,26 +411,45 @@ class StorageManager {
       }
 
       // Save main data
-      localStorage.setItem(`${this.STORAGE_PREFIX}sliders_${storeSlug}`, JSON.stringify(sliders));
+      localStorage.setItem(`${this.STORAGE_PREFIX}sliders_${storeSlug}`, JSON.stringify(normalized));
 
       // Update global store data
-      this.updateGlobalStoreData(storeSlug, sliders);
+      this.updateGlobalStoreData(storeSlug, normalized);
 
       // Update configuration
-      this.updateStoreConfig(storeSlug, sliders);
+      this.updateStoreConfig(storeSlug, normalized);
 
       // Notify listeners
-      this.notifyListeners(`slider_change_${storeSlug}`, sliders);
+      this.notifyListeners(`slider_change_${storeSlug}`, normalized);
 
       // Trigger sync event
-      this.triggerSyncEvent(storeSlug, 'slider_update', sliders);
-
+      this.triggerSyncEvent(storeSlug, 'slider_update', normalized);
 
       return true;
     } catch (error) {
-
       return false;
     }
+  }
+
+  private normalizeSliders(sliders: SliderImage[]): SliderImage[] {
+    if (!Array.isArray(sliders)) return [];
+    return sliders.map(slider => ({
+      ...slider,
+      imageUrl: this.normalizeImageUrl(slider.imageUrl)
+    }));
+  }
+
+  private normalizeImageUrl(path: string): string {
+    if (!path) return '';
+    if (typeof path !== 'string') return '';
+    if (path.startsWith('http')) {
+      if (path.includes('localhost:5000')) {
+        return path.replace(/^https?:\/\/localhost:5000/, '');
+      } else if (path.includes('eishro-backend.onrender.com')) {
+        return path.replace(/^https?:\/\/eishro-backend\.onrender\.com/, '');
+      }
+    }
+    return path;
   }
 
   // Validate slider data integrity

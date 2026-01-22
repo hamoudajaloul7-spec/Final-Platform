@@ -72,7 +72,19 @@ const UnifiedStoreSlider: React.FC<UnifiedStoreSliderProps> = ({
     };
   }, [storeSlug, initialSliders]);
 
-const loadSliders = async () => {
+  const normalizeImageUrl = (path: string) => {
+    if (!path) return '';
+    if (path.startsWith('http')) {
+      if (path.includes('localhost:5000')) {
+        return path.replace(/^https?:\/\/localhost:5000/, '');
+      } else if (path.includes('eishro-backend.onrender.com')) {
+        return path.replace(/^https?:\/\/eishro-backend\.onrender\.com/, '');
+      }
+    }
+    return path;
+  };
+
+  const loadSliders = async () => {
     const storageKey = `eshro_sliders_${storeSlug}`;
    
     // First try localStorage (most up-to-date)
@@ -93,8 +105,8 @@ const loadSliders = async () => {
         title: slider.title,
         subtitle: slider.subtitle,
         buttonText: slider.buttonText,
-        imagePath: slider.image || slider.imagePath,
-        image: slider.image || slider.imagePath,
+        imagePath: normalizeImageUrl(slider.image || slider.imagePath),
+        image: normalizeImageUrl(slider.image || slider.imagePath),
         sortOrder: slider.sortOrder,
       }));
       setSliders(mappedSliders);
@@ -119,16 +131,8 @@ const loadSliders = async () => {
         
         if (Array.isArray(slidersData) && slidersData.length > 0) {
           const loadedSliders = slidersData.map((slider: any) => {
-            let imagePath = slider.imagePath || slider.imageUrl || slider.image || '';
+            const imagePath = normalizeImageUrl(slider.imagePath || slider.imageUrl || slider.image || '');
             
-            if (imagePath && imagePath.startsWith('http')) {
-              if (imagePath.includes('localhost:5000')) {
-                imagePath = imagePath.replace(/^https?:\/\/localhost:5000/, '');
-              } else if (imagePath.includes('eishro-backend.onrender.com')) {
-                imagePath = imagePath.replace(/^https?:\/\/eishro-backend\.onrender\.com/, '');
-              }
-            }
-
             return {
               id: slider.id || `slider_${Date.now()}_${Math.random()}`,
               title: slider.title || '',
@@ -156,15 +160,18 @@ const loadSliders = async () => {
             const slidersData = result.data || result.sliders || [];
             
             if (Array.isArray(slidersData) && slidersData.length > 0) {
-              const loadedSliders = slidersData.map((slider: any) => ({
-                id: slider.id || `slider_${Date.now()}_${Math.random()}`,
-                title: slider.title || '',
-                subtitle: slider.subtitle || '',
-                buttonText: slider.buttonText || '',
-                imagePath: slider.imagePath || slider.imageUrl || slider.image || '',
-                image: slider.imagePath || slider.imageUrl || slider.image || '',
-                sortOrder: typeof slider.sortOrder === 'number' ? slider.sortOrder : 999,
-              }));
+              const loadedSliders = slidersData.map((slider: any) => {
+                const imagePath = normalizeImageUrl(slider.imagePath || slider.imageUrl || slider.image || '');
+                return {
+                  id: slider.id || `slider_${Date.now()}_${Math.random()}`,
+                  title: slider.title || '',
+                  subtitle: slider.subtitle || '',
+                  buttonText: slider.buttonText || '',
+                  imagePath: imagePath,
+                  image: imagePath,
+                  sortOrder: typeof slider.sortOrder === 'number' ? slider.sortOrder : 999,
+                };
+              });
               
               loadedSliders.sort((a: Slider, b: Slider) => (a.sortOrder || 999) - (b.sortOrder || 999));
               setSliders(loadedSliders);

@@ -44,6 +44,18 @@ const StoreFrontSlider: React.FC<StoreFrontSliderProps> = ({
     };
   }, [storeSlug]);
 
+  const normalizeImageUrl = (path: string) => {
+    if (!path) return '';
+    if (path.startsWith('http')) {
+      if (path.includes('localhost:5000')) {
+        return path.replace(/^https?:\/\/localhost:5000/, '');
+      } else if (path.includes('eishro-backend.onrender.com')) {
+        return path.replace(/^https?:\/\/eishro-backend\.onrender\.com/, '');
+      }
+    }
+    return path;
+  };
+
   const loadSliders = async () => {
     if (storeSlug) {
       try {
@@ -52,7 +64,7 @@ const StoreFrontSlider: React.FC<StoreFrontSliderProps> = ({
           const result = await response.json();
           const mapped = result.data.map((slider: any) => ({
             id: slider.id,
-            imageUrl: slider.imagePath,
+            imageUrl: normalizeImageUrl(slider.imagePath || slider.imageUrl || slider.image),
             title: slider.title,
             subtitle: slider.subtitle || '',
             discount: slider.metadata?.discount || '',
@@ -76,7 +88,17 @@ const StoreFrontSlider: React.FC<StoreFrontSliderProps> = ({
       try {
         const parsed = JSON.parse(savedData);
         if (Array.isArray(parsed)) {
-          setSliders(parsed);
+          // Map properties for backward compatibility and different data sources
+          const normalized = parsed.map((slider: any) => ({
+            id: slider.id || `local_${Math.random()}`,
+            imageUrl: normalizeImageUrl(slider.imageUrl || slider.imagePath || slider.image || ''),
+            title: slider.title || '',
+            subtitle: slider.subtitle || '',
+            discount: slider.discount || (slider.metadata?.discount) || '',
+            buttonText: slider.buttonText || '',
+            order: slider.order || slider.sortOrder || 0
+          }));
+          setSliders(normalized);
         }
       } catch (e) {
         console.error('Error parsing sliders from localStorage:', e);

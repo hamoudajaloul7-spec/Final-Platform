@@ -6,6 +6,8 @@ import { prettyProducts } from '@/data/stores/pretty/products';
 import { deltaProducts } from '@/data/stores/delta-store/products';
 import { magnaBeautyProducts } from '@/data/stores/magna-beauty/products';
 import { indeeshProducts } from '@/data/stores/indeesh/products';
+import { allStoreProducts as staticAllProducts } from '@/data/allStoreProducts';
+import { enhancedSampleProducts } from '@/data/productCategories';
 
 const storesProductsMap: Record<string, Product[]> = {
   'nawaem': nawaemProducts,
@@ -77,7 +79,7 @@ function normalizeImagePaths(data: any, apiBase: string, slug: string, isServedS
       ...product,
       images: Array.isArray(product.images) 
         ? product.images.map((img: string) => {
-            if (img && !img.startsWith('http')) {
+            if (img && typeof img === 'string' && !img.startsWith('http')) {
               return isServedStatic ? img : apiBase + img;
             }
             return img;
@@ -87,15 +89,18 @@ function normalizeImagePaths(data: any, apiBase: string, slug: string, isServedS
   }
   
   if (Array.isArray(data.sliderImages)) {
-    data.sliderImages = data.sliderImages.map((slider: any) => ({
-      ...slider,
-      image: (slider.image && !slider.image.startsWith('http'))
-        ? isServedStatic ? slider.image : apiBase + slider.image
-        : slider.image
-    }));
+    data.sliderImages = data.sliderImages.map((slider: any) => {
+      const normalized = { ...slider };
+      ['image', 'imagePath', 'imageUrl'].forEach(key => {
+        if (normalized[key] && typeof normalized[key] === 'string' && !normalized[key].startsWith('http')) {
+          normalized[key] = isServedStatic ? normalized[key] : apiBase + normalized[key];
+        }
+      });
+      return normalized;
+    });
   }
   
-  if (data.logo && !data.logo.startsWith('http')) {
+  if (data.logo && typeof data.logo === 'string' && !data.logo.startsWith('http')) {
     data.logo = isServedStatic ? data.logo : apiBase + data.logo;
   }
   
@@ -279,12 +284,65 @@ export async function getStoreConfig(slug: string): Promise<any> {
 
 export async function getAllStoreProducts(): Promise<Product[]> {
   const allProducts: Product[] = [];
+  const productIds = new Set<string>();
+
+  const addProduct = (p: any) => {
+    const id = String(p.id);
+    if (!productIds.has(id)) {
+      allProducts.push(normalizeApiProduct(p));
+      productIds.add(id);
+    }
+  };
   
+  // 1. Add static all products from central data
+  if (Array.isArray(staticAllProducts)) {
+    staticAllProducts.forEach(addProduct);
+  }
+
+  // 2. Add enhanced sample products
+  if (Array.isArray(enhancedSampleProducts)) {
+    enhancedSampleProducts.forEach(addProduct);
+  }
+
+  // 3. Add products from storesProductsMap
   Object.values(storesProductsMap).forEach(products => {
     if (Array.isArray(products)) {
-      allProducts.push(...products);
+      products.forEach(addProduct);
     }
   });
+
+  // 4. Add dynamic store products from localStorage
+  if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('store_products_')) {
+          const productsData = localStorage.getItem(key);
+          if (productsData) {
+            const parsed = JSON.parse(productsData);
+            if (Array.isArray(parsed)) {
+              parsed.forEach(addProduct);
+            }
+          }
+        }
+      }
+      
+      // Also check eshro_stores for completed setups
+      const rawStored = localStorage.getItem('eshro_stores');
+      if (rawStored) {
+        const eshroStores = JSON.parse(rawStored);
+        if (Array.isArray(eshroStores)) {
+          for (const store of eshroStores) {
+            if (store.setupComplete && store.products && Array.isArray(store.products)) {
+              store.products.forEach(addProduct);
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error loading dynamic products for global search:', error);
+    }
+  }
   
   return allProducts;
 }

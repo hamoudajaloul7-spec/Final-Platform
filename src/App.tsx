@@ -48,7 +48,7 @@ import EnhancedStoresCarousel from "@/components/StoresCarousel";
 import { partnersData, statsData, storesData, generateOrderId, getStoresData, invalidateStoresCache, cleanupAnonymousStores } from "@/data/ecommerceData";
 import { enhancedSampleProducts } from "@/data/productCategories";
 import { allStoreProducts } from "@/data/allStoreProducts";
-import { loadStoreBySlug, getStoreProducts } from "@/utils/storeLoader";
+import { loadStoreBySlug, getStoreProducts, getAllStoreProducts as getDynamicAllStoreProducts } from "@/utils/storeLoader";
 
 const API_BASE = (() => {
   const apiUrl = import.meta.env.VITE_API_URL;
@@ -149,7 +149,9 @@ export const getStoreProducts = (): Product[] => {
   const sliderImages = storeData.sliderImages || [];
   const slidesArray = sliderImages.map((slide, index) => `    {
       id: 'banner${index + 1}',
-      image: '${slide.image || ''}',
+      image: '${slide.image || slide.imageUrl || slide.imagePath || ''}',
+      imageUrl: '${slide.imageUrl || slide.image || slide.imagePath || ''}',
+      imagePath: '${slide.imagePath || slide.image || slide.imageUrl || ''}',
       title: '${slide.title || ''}',
       subtitle: '${slide.subtitle || ''}',
       buttonText: '${slide.buttonText || 'تسوق الآن'}'
@@ -1224,6 +1226,7 @@ export default function Home() {
   const [currentStore, setCurrentStore] = useState<string | null>(null);
   const [currentProduct, setCurrentProduct] = useState<number | null>(null);
   const [currentStoreProducts, setCurrentStoreProducts] = useState<any[]>([]);
+  const [dynamicProducts, setDynamicProducts] = useState<any[]>([]);
   
   // حالة السلة والطلبات
   const [cartItems, setCartItems] = useState<any[]>([]);
@@ -1270,6 +1273,29 @@ export default function Home() {
     return unavailableItems.filter(item => item?.storeId === currentMerchant.id);
   }, [unavailableItems, currentMerchant?.id]);
 
+
+  // تحميل المنتجات الديناميكية عند الحاجة
+  useEffect(() => {
+    if (currentPage === 'product' && currentProduct) {
+      const isStatic = allStoreProducts.some(p => String(p.id) === String(currentProduct)) || 
+                       enhancedSampleProducts.some(p => String(p.id) === String(currentProduct)) ||
+                       currentStoreProducts.some(p => String(p.id) === String(currentProduct));
+      
+      if (!isStatic) {
+        setIsLoadingProducts(true);
+        getDynamicAllStoreProducts().then(allDynamic => {
+          const found = allDynamic.find(p => String(p.id) === String(currentProduct));
+          if (found) {
+            setDynamicProducts(prev => {
+              if (prev.some(p => String(p.id) === String(found.id))) return prev;
+              return [...prev, found];
+            });
+          }
+          setIsLoadingProducts(false);
+        }).catch(() => setIsLoadingProducts(false));
+      }
+    }
+  }, [currentPage, currentProduct, currentStoreProducts]);
 
   // Emergency Cleanup for Center Hamoda
   useEffect(() => {
@@ -1427,7 +1453,7 @@ export default function Home() {
           if (storeData?.products && storeData.products.length > 0) {
             setCurrentStoreProducts(storeData.products);
           } else {
-            const fallbackProducts = allStoreProducts.filter(p => p.storeId === storeData?.storeId);
+            const fallbackProducts = allStoreProducts.filter(p => String(p.storeId) === String(storeData?.storeId));
             setCurrentStoreProducts(fallbackProducts);
           }
         } catch (e) {
@@ -1515,11 +1541,11 @@ export default function Home() {
               if (!entry) {
                 return null;
               }
-              if (typeof entry === 'number') {
-                return catalog.find((product) => product.id === entry) || null;
+              if (typeof entry === 'number' || typeof entry === 'string') {
+                return catalog.find((product) => String(product.id) === String(entry)) || null;
               }
-              if (entry.id) {
-                const reference = catalog.find((product) => product.id === entry.id);
+              if (entry && entry.id) {
+                const reference = catalog.find((product) => String(product.id) === String(entry.id));
                 if (reference) {
                   const referenceImages = Array.isArray(reference.images) ? reference.images : [];
                   const entryImages = Array.isArray(entry.images) ? entry.images : [];
@@ -2015,7 +2041,7 @@ export default function Home() {
         setCurrentStoreProducts(storeData.products);
       } else {
         
-        const fallbackProducts = allStoreProducts.filter(p => p.storeId === storeData?.storeId);
+        const fallbackProducts = allStoreProducts.filter(p => String(p.storeId) === String(storeData?.storeId));
         setCurrentStoreProducts(fallbackProducts);
       }
     } catch (error) {
@@ -2047,9 +2073,24 @@ export default function Home() {
     setCurrentPage('product');
   };
 
-  const handleBackToStore = () => {
-    setCurrentPage('store');
-    setCurrentProduct(null);
+  const handleBackToStore = (product?: any) => {
+    if (currentStore) {
+      setCurrentPage('store');
+      setCurrentProduct(null);
+      return;
+    }
+
+    if (product && product.storeId) {
+      const store = getStoresData().find(s => String(s.id) === String(product.storeId));
+      if (store) {
+        setCurrentStore(store.slug);
+        setCurrentPage('store');
+        setCurrentProduct(null);
+        return;
+      }
+    }
+
+    handleBackToHome();
   };
 
   const handleAddToCart = (product: any, size: string, color: string, quantity: number) => {
@@ -2081,12 +2122,12 @@ export default function Home() {
 
   const handleUpdateCartQuantity = (itemId: number, quantity: number) => {
     setCartItems(prev => prev.map(item => 
-      item.id === itemId ? { ...item, quantity } : item
+      String(item.id) === String(itemId) ? { ...item, quantity } : item
     ));
   };
 
   const handleRemoveFromCart = (itemId: number) => {
-    setCartItems(prev => prev.filter(item => item.id !== itemId));
+    setCartItems(prev => prev.filter(item => String(item.id) !== String(itemId)));
   };
 
   const handleOrderComplete = (orderData: any) => {
@@ -2117,7 +2158,7 @@ export default function Home() {
   };
 
   const handleDashboardOrderRequest = (payload: CreateOrderPayload): OrderRecord => {
-    const product = allStoreProducts.find((item) => item.id === payload.productId);
+    const product = allStoreProducts.find((item) => String(item.id) === String(payload.productId));
     if (!product) {
       throw new Error('PRODUCT_NOT_FOUND');
     }
@@ -3160,10 +3201,12 @@ export default function Home() {
         onProductClick={handleProductClick}
         onAddToCart={handleAddToCart}
         onToggleFavorite={(productId) => {
-          const product = allStoreProducts.find(p => p.id === productId) || enhancedSampleProducts.find(p => p.id === productId);
+          const product = allStoreProducts.find(p => String(p.id) === String(productId)) || 
+                          enhancedSampleProducts.find(p => String(p.id) === String(productId)) ||
+                          currentStoreProducts.find(p => String(p.id) === String(productId));
           if (product) {
-            if (favorites.find(f => f.id === productId)) {
-              setFavorites(prev => prev.filter(f => f.id !== productId));
+            if (favorites.find(f => String(f.id) === String(productId))) {
+              setFavorites(prev => prev.filter(f => String(f.id) !== String(productId)));
             } else {
               const productWithDate = {
                 ...product,
@@ -3247,7 +3290,12 @@ export default function Home() {
     // البحث في المنتجات الحالية للمتجر أولاً (أفضل أداء)
     let selectedProduct = currentStoreProducts.find(p => String(p.id) === String(currentProduct));
 
-    // إذا لم يُعثر عليه، البحث في جميع منتجات المتاجر
+    // إذا لم يُعثر عليه، البحث في المنتجات التي تم تحميلها ديناميكياً
+    if (!selectedProduct) {
+      selectedProduct = dynamicProducts.find(p => String(p.id) === String(currentProduct));
+    }
+
+    // إذا لم يُعثر عليه، البحث في جميع منتجات المتاجر الثابتة
     if (!selectedProduct) {
       selectedProduct = allStoreProducts.find(p => String(p.id) === String(currentProduct));
     }
@@ -3273,21 +3321,23 @@ export default function Home() {
       return (
         <div className="min-h-screen bg-background flex items-center justify-center p-8">
           <div className="text-center space-y-4">
-            <p className="text-lg">هذا المنتج غير متوفر حالياً.</p>
-            <Button
-              onClick={() => {
-                setNotifyProduct({ id: currentProduct, name: 'منتج غير معروف', storeSlug: currentStore });
-                setShowNotifyModal(true);
-              }}
-              className="bg-orange-600 hover:bg-orange-700 text-white"
-            >
-              <Bell className="h-4 w-4 mr-2" />
-              نبهني عند التوفر
-            </Button>
-            <br />
-            <Button onClick={currentStore ? handleBackToStore : handleBackToHome} variant="outline">
-              العودة
-            </Button>
+            <h1 className="text-2xl font-bold text-red-600">المنتج غير موجود</h1>
+            <p className="text-lg text-muted-foreground">عذراً، لم نتمكن من العثور على المنتج الذي تبحث عنه.</p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mt-6">
+              <Button
+                onClick={() => {
+                  setNotifyProduct({ id: currentProduct, name: 'منتج غير معروف', storeSlug: currentStore });
+                  setShowNotifyModal(true);
+                }}
+                className="bg-orange-600 hover:bg-orange-700 text-white"
+              >
+                <Bell className="h-4 w-4 mr-2" />
+                نبهني عند التوفر
+              </Button>
+              <Button onClick={() => handleBackToStore()} variant="outline">
+                العودة للمتجر
+              </Button>
+            </div>
           </div>
         </div>
       );
@@ -3296,14 +3346,16 @@ export default function Home() {
     return (
       <EnhancedProductPageLazy
         product={selectedProduct}
-        onBack={currentStore ? handleBackToStore : handleBackToHome}
+        onBack={() => handleBackToStore(selectedProduct)}
         onAddToCart={handleAddToCart}
         onBuyNow={handleBuyNow}
         onToggleFavorite={(productId) => {
-          const product = allStoreProducts.find(p => p.id === productId) || enhancedSampleProducts.find(p => p.id === productId);
+          const product = allStoreProducts.find(p => String(p.id) === String(productId)) || 
+                          enhancedSampleProducts.find(p => String(p.id) === String(productId)) ||
+                          currentStoreProducts.find(p => String(p.id) === String(productId));
           if (product) {
-            if (favorites.find(f => f.id === productId)) {
-              setFavorites(prev => prev.filter(f => f.id !== productId));
+            if (favorites.find(f => String(f.id) === String(productId))) {
+              setFavorites(prev => prev.filter(f => String(f.id) !== String(productId)));
             } else {
               setFavorites(prev => [...prev, { ...product, storeId: currentMerchant?.id || currentMerchant?.storeId }]);
             }
@@ -3366,10 +3418,12 @@ export default function Home() {
           alert('تم إضافة المنتج للسلة!');
         }}
         onToggleFavorite={(productId) => {
-          const product = allStoreProducts.find(p => p.id === productId) || enhancedSampleProducts.find(p => p.id === productId);
+          const product = allStoreProducts.find(p => String(p.id) === String(productId)) || 
+                          enhancedSampleProducts.find(p => String(p.id) === String(productId)) ||
+                          currentStoreProducts.find(p => String(p.id) === String(productId));
           if (product) {
-            if (favorites.find(f => f.id === productId)) {
-              setFavorites(prev => prev.filter(f => f.id !== productId));
+            if (favorites.find(f => String(f.id) === String(productId))) {
+              setFavorites(prev => prev.filter(f => String(f.id) !== String(productId)));
             } else {
               setFavorites(prev => [...prev, { ...product, storeId: currentMerchant?.id || currentMerchant?.storeId }]);
             }
