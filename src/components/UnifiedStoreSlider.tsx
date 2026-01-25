@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { getStoreConfig } from '@/config/storeConfig';
 import { getApiBase, getApiUrl, stripApiBase } from '@/utils/apiConfig';
+import { getProxyImageUrl } from '@/utils/assetProxyUtil';
 
 interface SliderHeightConfig {
   mobile?: number;
@@ -56,14 +57,29 @@ const UnifiedStoreSlider: React.FC<UnifiedStoreSliderProps> = ({
   });
 
   useEffect(() => {
+    const apiBase = getApiBase();
+    
+    // Process initial sliders if provided
     if (initialSliders && initialSliders.length > 0) {
-      setSliders(initialSliders);
+      const resolved = initialSliders.map((s: any) => {
+        const normalized = normalizeImageUrl(s.image || s.imagePath || '');
+        const fullUrl = getProxyImageUrl(normalized, storeSlug, 'sliders');
+        return {
+          ...s,
+          image: fullUrl,
+          imagePath: fullUrl
+        };
+      });
+      setSliders(resolved);
+      
+      // Still load from API in background to ensure freshness, skipping stale cache
+      loadSliders(true);
     } else {
-      loadSliders();
+      loadSliders(false);
     }
 
     const handleSliderUpdate = (event: CustomEvent) => {
-      loadSliders();
+      loadSliders(true);
     };
 
     window.addEventListener('storeSlidersUpdated', handleSliderUpdate as EventListener);
@@ -75,32 +91,35 @@ const UnifiedStoreSlider: React.FC<UnifiedStoreSliderProps> = ({
 
   const normalizeImageUrl = (path: string) => stripApiBase(path);
 
-  const loadSliders = async () => {
+  const loadSliders = async (skipCache: boolean = false) => {
     const storageKey = `eshro_sliders_${storeSlug}`;
     const apiBase = getApiBase();
    
-    // First try localStorage (most up-to-date)
+    // Only try localStorage if we don't already have sliders and not skipping cache
     const savedSliders = localStorage.getItem(storageKey);
-    if (savedSliders) {
+    if (savedSliders && !skipCache) {
       try {
         const parsed = JSON.parse(savedSliders);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          // Prepend apiBase for rendering
-          const rendered = parsed.map((s: any) => ({
-            ...s,
-            image: (s.image && !s.image.startsWith('http')) ? apiBase + s.image : s.image,
-            imagePath: (s.imagePath && !s.imagePath.startsWith('http')) ? apiBase + s.imagePath : s.imagePath
-          }));
+          // Resolve URLs for rendering
+          const rendered = parsed.map((s: any) => {
+            const normalized = normalizeImageUrl(s.image || s.imagePath || '');
+            const fullUrl = getProxyImageUrl(normalized, storeSlug, 'sliders');
+            return {
+              ...s,
+              image: fullUrl,
+              imagePath: fullUrl
+            };
+          });
           setSliders(rendered);
         }
       } catch {}
     }
    
-    // Then try static config as fallback
-    if (!savedSliders && staticConfig?.sliders) {
+    if (savedSliders === null && staticConfig?.sliders && !skipCache) {
       const mappedSliders = staticConfig.sliders.map((slider: any) => {
         const normalized = normalizeImageUrl(slider.image || slider.imagePath);
-        const imageUrl = (normalized && !normalized.startsWith('http')) ? apiBase + normalized : normalized;
+        const imageUrl = getProxyImageUrl(normalized, storeSlug, 'sliders');
         return {
           id: slider.id,
           title: slider.title,
@@ -147,12 +166,16 @@ const UnifiedStoreSlider: React.FC<UnifiedStoreSliderProps> = ({
           
           mappedForStorage.sort((a: any, b: any) => (a.sortOrder || 999) - (b.sortOrder || 999));
           
-          // Prepend apiBase for rendering
-          const rendered = mappedForStorage.map((s: any) => ({
-            ...s,
-            image: (s.image && !s.image.startsWith('http')) ? apiBase + s.image : s.image,
-            imagePath: (s.imagePath && !s.imagePath.startsWith('http')) ? apiBase + s.imagePath : s.imagePath
-          }));
+          // Resolve URLs for rendering
+          const rendered = mappedForStorage.map((s: any) => {
+            const normalized = normalizeImageUrl(s.image || s.imagePath || '');
+            const fullUrl = getProxyImageUrl(normalized, storeSlug, 'sliders');
+            return {
+              ...s,
+              image: fullUrl,
+              imagePath: fullUrl
+            };
+          });
           
           setSliders(rendered);
           localStorage.setItem(storageKey, JSON.stringify(mappedForStorage));
@@ -184,12 +207,16 @@ const UnifiedStoreSlider: React.FC<UnifiedStoreSliderProps> = ({
               
               mappedForStorage.sort((a: any, b: any) => (a.sortOrder || 999) - (b.sortOrder || 999));
               
-              // Prepend apiBase for rendering
-              const rendered = mappedForStorage.map((s: any) => ({
-                ...s,
-                image: (s.image && !s.image.startsWith('http')) ? apiBase + s.image : s.image,
-                imagePath: (s.imagePath && !s.imagePath.startsWith('http')) ? apiBase + s.imagePath : s.imagePath
-              }));
+              // Resolve URLs for rendering
+              const rendered = mappedForStorage.map((s: any) => {
+                const normalized = normalizeImageUrl(s.image || s.imagePath || '');
+                const fullUrl = getProxyImageUrl(normalized, storeSlug, 'sliders');
+                return {
+                  ...s,
+                  image: fullUrl,
+                  imagePath: fullUrl
+                };
+              });
               
               setSliders(rendered);
               localStorage.setItem(storageKey, JSON.stringify(mappedForStorage));

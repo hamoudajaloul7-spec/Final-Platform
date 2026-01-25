@@ -26,6 +26,7 @@ import type { Product } from '@/data/storeProducts';
 import NotifyWhenAvailable from '@/components/NotifyWhenAvailable';
 import { getStoresData } from '@/data/ecommerceData';
 import { getTagColor, getButtonConfig } from '@/utils/badgeCalculator';
+import { getProxyImageUrl } from '@/utils/assetProxyUtil';
 
 interface Color {
   name: string;
@@ -360,7 +361,7 @@ const EnhancedProductPage: React.FC<EnhancedProductPageProps> = ({
               })()}
               
               <img
-                src={product.images[selectedImageIndex] || product.images[0]}
+                src={getProxyImageUrl(product.images[selectedImageIndex] || product.images[0])}
                 alt={product.name}
                 className="w-full h-full object-contain bg-white hover:scale-105 transition-transform duration-500"
                 onError={(e) => {
@@ -394,7 +395,7 @@ const EnhancedProductPage: React.FC<EnhancedProductPageProps> = ({
                     }`}
                   >
                     <img
-                      src={image}
+                      src={getProxyImageUrl(image)}
                       alt={`${product.name} ${index + 1}`}
                       className="w-full h-full object-contain bg-white"
                     />

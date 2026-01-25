@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +17,9 @@ import {
   X
 } from "lucide-react";
 import { sampleProducts } from "@/data/ecommerceData";
+import { allStoreProducts } from "@/data/allStoreProducts";
+import { enhancedSampleProducts } from "@/data/productCategories";
+import { getProxyImageUrl } from "@/utils/assetProxyUtil";
 
 interface ProductPageProps {
   productId: number;
@@ -42,11 +45,47 @@ const ProductPage: React.FC<ProductPageProps> = ({
   const [showColorError, setShowColorError] = useState(false);
   const [showAddToCartPopup, setShowAddToCartPopup] = useState(false);
   
-  // البحث عن المنتج
-  const product = sampleProducts.find(p => p.id === productId);
+  // البحث عن المنتج في جميع المصادر المتاحة
+  const product = useMemo(() => {
+    // 1. البحث في المنتجات الحالية المخزنة في localStorage (للمتاجر الديناميكية)
+    const allStorageKeys = Object.keys(localStorage);
+    const storeProductKeys = allStorageKeys.filter(key => key.startsWith('store_products_'));
+    
+    for (const key of storeProductKeys) {
+      try {
+        const stored = localStorage.getItem(key);
+        if (stored) {
+          const products = JSON.parse(stored);
+          if (Array.isArray(products)) {
+            const found = products.find(p => String(p.id) === String(productId));
+            if (found) return found;
+          }
+        }
+      } catch (e) {}
+    }
+
+    // 2. البحث في القائمة الموحدة للمنتجات
+    const fromAll = allStoreProducts.find(p => String(p.id) === String(productId));
+    if (fromAll) return fromAll;
+
+    // 3. البحث في المنتجات المحسنة
+    const fromEnhanced = enhancedSampleProducts.find(p => String(p.id) === String(productId));
+    if (fromEnhanced) return fromEnhanced;
+
+    // 4. البحث في المنتجات التجريبية (كخيار أخير)
+    return sampleProducts.find(p => String(p.id) === String(productId));
+  }, [productId]);
   
   if (!product) {
-    return <div>المنتج غير موجود</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">المنتج غير موجود</h2>
+          <p className="text-gray-600 mb-6">عذراً، لم نتمكن من العثور على المنتج الذي تبحث عنه.</p>
+          <Button onClick={onBack}>العودة للمتجر</Button>
+        </div>
+      </div>
+    );
   }
 
   // التحقق من توفر المقاس
@@ -154,9 +193,9 @@ const ProductPage: React.FC<ProductPageProps> = ({
             {/* الصورة الرئيسية */}
             <div className="aspect-square bg-white rounded-2xl border overflow-hidden relative">
               <img 
-                src={product.images[selectedImageIndex]} 
+                src={getProxyImageUrl(product.images[selectedImageIndex])} 
                 alt={product.name}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain"
               />
               
               {/* زر الإعجاب */}
@@ -188,9 +227,9 @@ const ProductPage: React.FC<ProductPageProps> = ({
                   onClick={() => setSelectedImageIndex(index)}
                 >
                   <img 
-                    src={image} 
+                    src={getProxyImageUrl(image)} 
                     alt={`${product.name} ${index + 1}`}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-contain"
                   />
                 </div>
               ))}
