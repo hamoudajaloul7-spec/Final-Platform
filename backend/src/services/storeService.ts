@@ -1,56 +1,19 @@
-import Store from '../models/Store';
-import User from '../models/User';
-import { Op } from 'sequelize';
-import logger from '@utils/logger';
+import { createClient } from '@supabase/supabase-js';
 
-/**
- * Finds a store by its slug
- * @param slug The store slug to search for
- * @returns The store model instance or null if not found
- */
-export const findStoreBySlug = async (slug: string) => {
-  try {
-    return await Store.findOne({
-      where: { slug }
-    });
-  } catch (error) {
-    logger.error('Error in findStoreBySlug service:', error);
-    return null;
-  }
-};
+const SUPABASE_URL = process.env.SUPABASE_URL!;
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+export const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-/**
- * Finds a store by its name
- * @param name The store name to search for
- * @returns The store model instance or null if not found
- */
-export const findStoreByName = async (name: string) => {
-  try {
-    return await Store.findOne({
-      where: { name }
-    });
-  } catch (error) {
-    logger.error('Error in findStoreByName service:', error);
-    return null;
-  }
-};
+export async function findStoreBySlug(slug: string): Promise<any | null> {
+  const { data, error, status } = await supabase
+    .from('stores')
+    .select('id, slug')
+    .eq('slug', slug)
+    .single();
 
-/**
- * Finds users by their emails
- * @param emails Array of emails to search for
- * @returns Array of user model instances
- */
-export const findUsersByEmails = async (emails: string[]) => {
-  try {
-    return await User.findAll({
-      where: {
-        email: {
-          [Op.in]: emails.filter(Boolean)
-        }
-      }
-    });
-  } catch (error) {
-    logger.error('Error in findUsersByEmails service:', error);
-    return [];
+  if (error) {
+    if (status === 406 || data == null) return null;
+    throw error;
   }
-};
+  return data ?? null;
+}
