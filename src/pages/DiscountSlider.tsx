@@ -199,13 +199,13 @@ export default function DiscountSlider() {
                     }`}
                   >
                     <img
-                      src={getImageUrl(slide.image).primary}
+                      src={getProxyImageUrl(slide.image)}
                       alt={slide.alt}
                       className="w-full h-full object-contain"
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
-                        if (target.src !== getImageUrl(slide.image).fallback) {
-                          target.src = getImageUrl(slide.image).fallback;
+                        if (!target.src.includes('placeholder')) {
+                          target.src = 'https://placehold.co/400x800?text=' + encodeURIComponent(slide.alt);
                         } else {
                           target.style.display = 'none';
                         }
