@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { getApiUrl } from '@/utils/apiConfig';
+import { getProxyImageUrl } from '@/utils/assetProxyUtil';
 
 interface Ad {
   id: string;
@@ -128,9 +130,7 @@ const StoreAds: React.FC<StoreAdsProps> = ({ storeId, className = '' }) => {
         return;
       }
 
-      const isLocalhost = typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname);
-      const apiUrl = import.meta.env.VITE_API_URL || (isLocalhost ? 'http://localhost:5000/api' : '/api');
-      const response = await fetch(`${apiUrl}/ads/store/${storeId}`);
+      const response = await fetch(`${getApiUrl()}/ads/store/${storeId}`);
       
       if (response.ok) {
         const result = await response.json();
@@ -200,7 +200,7 @@ const StoreAds: React.FC<StoreAdsProps> = ({ storeId, className = '' }) => {
             >
               {ad.imageUrl ? (
                 <img
-                  src={ad.imageUrl}
+                  src={getProxyImageUrl(ad.imageUrl)}
                   alt={ad.title}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
@@ -249,7 +249,7 @@ const StoreAds: React.FC<StoreAdsProps> = ({ storeId, className = '' }) => {
                 {ad.imageUrl && (
                   <div className="w-full md:w-32 h-32 md:h-24 flex-shrink-0 bg-gray-200 rounded-lg overflow-hidden">
                     <img
-                      src={ad.imageUrl}
+                      src={getProxyImageUrl(ad.imageUrl)}
                       alt={ad.title}
                       className="w-full h-full object-cover hover:scale-105 transition-transform"
                     />

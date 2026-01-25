@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { getApiBase, getApiUrl } from '@/utils/apiConfig';
 
 // Store Admin Panel — advanced, extensible control panel to manage stores (local + permanent)
 // Drop this file into your project and render it from App when needed.
@@ -30,8 +31,7 @@ const fallbackLogo = '/default-store.png';
 
 async function fetchPermanentIndex(): Promise<AnyStore[]> {
   try {
-    const apiUrl = typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL ? import.meta.env.VITE_API_URL : '/api';
-    const backendUrl = apiUrl.replace('/api', '');
+    const backendUrl = getApiBase();
     
     let res = await fetch(`${backendUrl}/assets/stores/index.json`, { cache: 'no-store' }).catch(() => null);
     if (!res?.ok) {
@@ -149,11 +149,12 @@ function deleteLocalStore(slug: string) {
 }
 
 async function requestPermanentDelete(slug: string): Promise<{ ok: boolean; message: string }>{
+  const apiUrl = getApiUrl();
   // Try a few conventional endpoints; degrade gracefully if unavailable
   const candidates = [
-    `/api/stores/cleanup?slug=${encodeURIComponent(slug)}`,
-    `/api/stores/delete?slug=${encodeURIComponent(slug)}`,
-    `/api/stores/remove/${encodeURIComponent(slug)}`,
+    `${apiUrl}/stores/cleanup?slug=${encodeURIComponent(slug)}`,
+    `${apiUrl}/stores/delete?slug=${encodeURIComponent(slug)}`,
+    `${apiUrl}/stores/remove/${encodeURIComponent(slug)}`,
   ];
   for (const url of candidates) {
     try {

@@ -1,3 +1,5 @@
+import { getApiBase, stripApiBase } from '@/utils/apiConfig';
+
 // Slider Integration Utilities for Merchant Dashboard
 export interface SliderImage {
   id: string;
@@ -440,16 +442,7 @@ class StorageManager {
   }
 
   private normalizeImageUrl(path: string): string {
-    if (!path) return '';
-    if (typeof path !== 'string') return '';
-    if (path.startsWith('http')) {
-      if (path.includes('localhost:5000')) {
-        return path.replace(/^https?:\/\/localhost:5000/, '');
-      } else if (path.includes('eishro-backend.onrender.com')) {
-        return path.replace(/^https?:\/\/eishro-backend\.onrender\.com/, '');
-      }
-    }
-    return path;
+    return stripApiBase(path);
   }
 
   // Validate slider data integrity

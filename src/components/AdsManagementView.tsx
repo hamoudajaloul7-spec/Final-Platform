@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { AnimatePresence, motion } from 'framer-motion';
 import { Plus, X, Check, AlertCircle, Image as ImageIcon, ArrowRight } from 'lucide-react';
 import { adTemplates, type AdTemplate, type PublishedAd } from '@/data/adTemplates';
+import { getApiUrl } from '@/utils/apiConfig';
 
 interface AdsManagementViewProps {
   storeData: any;
@@ -91,14 +92,7 @@ const AdsManagementView: React.FC<AdsManagementViewProps> = ({
     if (!storeId) return;
     
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || (() => {
-        const currentHost = window.location.hostname;
-        const port = window.location.port;
-        if (currentHost === 'localhost' || currentHost === '127.0.0.1') {
-          return 'http://localhost:5000/api';
-        }
-        return `https://${currentHost}${port ? ':' + port : ''}/api`;
-      })();
+      const apiUrl = getApiUrl();
       const response = await fetch(`${apiUrl}/ads/store/${storeId}`, {
         headers: { 'Content-Type': 'application/json' }
       });
@@ -186,14 +180,7 @@ const AdsManagementView: React.FC<AdsManagementViewProps> = ({
     }
 
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || (() => {
-        const currentHost = window.location.hostname;
-        const port = window.location.port;
-        if (currentHost === 'localhost' || currentHost === '127.0.0.1') {
-          return 'http://localhost:5000/api';
-        }
-        return `https://${currentHost}${port ? ':' + port : ''}/api`;
-      })();
+      const apiUrl = getApiUrl();
       const response = await fetch(`${apiUrl}/ads/store/${storeId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -253,14 +240,7 @@ const AdsManagementView: React.FC<AdsManagementViewProps> = ({
     }
 
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || (() => {
-        const currentHost = window.location.hostname;
-        const port = window.location.port;
-        if (currentHost === 'localhost' || currentHost === '127.0.0.1') {
-          return 'http://localhost:5000/api';
-        }
-        return `https://${currentHost}${port ? ':' + port : ''}/api`;
-      })();
+      const apiUrl = getApiUrl();
       const response = await fetch(`${apiUrl}/ads/store/${storeId}/${adId}`, {
         method: 'DELETE',
       });

@@ -11,22 +11,7 @@ import {
 } from 'lucide-react';
 import type { Product } from '../../storeProducts';
 import { indeeshSliderData } from './sliderData';
-
-const getBackendUrl = () => {
-  const apiUrl = import.meta.env.VITE_API_URL;
-  if (apiUrl) return apiUrl.replace('/api', '');
-  return typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname)
-    ? 'http://localhost:5000'
-    : '';
-};
-
-const getImageUrl = (assetPath: string) => {
-  const backendUrl = getBackendUrl();
-  return {
-    primary: `${backendUrl}${assetPath}`,
-    fallback: assetPath,
-  };
-};
+import { getProxyImageUrl } from '@/utils/assetProxyUtil';
 
 interface SliderImage {
   id: string;
@@ -64,8 +49,8 @@ const IndeeshSlider: React.FC<IndeeshSliderProps> = ({
   const processSliderData = (slides: any[]) => {
     return slides.map(slide => ({
       ...slide,
-      image: getImageUrl(slide.image).primary,
-      fallbackImage: getImageUrl(slide.image).fallback,
+      image: getProxyImageUrl(slide.image, storeSlug, 'sliders'),
+      fallbackImage: slide.image,
     }));
   };
 

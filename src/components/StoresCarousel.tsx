@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { storesData } from '@/data/ecommerceData';
+import { getApiUrl, getApiBase } from '@/utils/apiConfig';
 
 interface StoresCarouselProps {
   onStoreClick: (storeSlug: string) => void;
@@ -142,8 +143,8 @@ function getLocalDynamicStores() {
 
 async function fetchJsonStores(): Promise<any[]> {
   try {
-    const apiUrl = typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL ? import.meta.env.VITE_API_URL : '/api';
-    const backendUrl = apiUrl.replace('/api', '');
+    const apiUrl = getApiUrl();
+    const backendUrl = getApiBase();
 
     try {
       const res = await fetch(`${apiUrl}/stores/list`, { cache: 'no-store' });

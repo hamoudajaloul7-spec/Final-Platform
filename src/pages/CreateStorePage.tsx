@@ -30,6 +30,7 @@ import {
 
 import WarehouseMapPicker from './MapPicker';
 import { getDefaultProductImageSync } from '@/utils/imageUtils';
+import { getApiBase, getApiUrl } from '@/utils/apiConfig';
 
 const canonicalSlug = (v: any) => {
   const n = (v ?? '').toString().trim().toLowerCase().replace(/\s+/g, '-');
@@ -388,21 +389,21 @@ const CreateStorePage: React.FC<CreateStorePageProps> = ({
 
   const checkBackendHealthLocal = async () => {
     try {
-      const isLocalhost = typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname);
-      const backendUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || (isLocalhost ? 'http://localhost:5000' : '');
+      const backendUrl = getApiBase();
+      const apiUrl = getApiUrl();
 
       const urls = [] as string[];
       
-      // 1. Try proxied API health (preferred in production)
-      urls.push('/api/health');
+      // 1. Centralized API health
+      urls.push(`${apiUrl}/health`);
       
-      // 2. Try backend URL from env if available
-      if (backendUrl && backendUrl.startsWith('http')) {
+      // 2. Direct backend health
+      if (backendUrl) {
         urls.push(`${backendUrl}/health`);
-        urls.push(`${backendUrl}/api/health`);
       }
       
-      // 3. Try relative health
+      // 3. Relative fallbacks
+      urls.push('/api/health');
       urls.push('/health');
       
       // Remove duplicates
@@ -447,7 +448,7 @@ const CreateStorePage: React.FC<CreateStorePageProps> = ({
     setCreationStatus('جاري فحص توفر اسم المتجر والبريد...');
     try {
 
-      const checkResponse = await fetch('/api/stores-exists', {
+      const checkResponse = await fetch(`${getApiUrl()}/stores-exists`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -697,7 +698,7 @@ const CreateStorePage: React.FC<CreateStorePageProps> = ({
 
       setCreationStatus('جاري رفع الصور والبيانات للسحابة (قد يستغرق ذلك دقيقة)...');
       try {
-        createResponse = await fetch('/api/stores/create-with-images', {
+        createResponse = await fetch(`${getApiUrl()}/stores/create-with-images`, {
           method: 'POST',
           body: apiFormData
           // Don't set Content-Type header - let the browser set it with boundary

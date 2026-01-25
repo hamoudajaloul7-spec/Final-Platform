@@ -7,22 +7,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import type { Product } from '../../storeProducts';
-
-const getBackendUrl = () => {
-  const apiUrl = import.meta.env.VITE_API_URL;
-  if (apiUrl) return apiUrl.replace('/api', '');
-  return typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname)
-    ? 'http://localhost:5000'
-    : '';
-};
-
-const getImageUrl = (assetPath: string) => {
-  const backendUrl = getBackendUrl();
-  return {
-    primary: `${backendUrl}${assetPath}`,
-    fallback: assetPath,
-  };
-};
+import { getProxyImageUrl } from '@/utils/assetProxyUtil';
 
 interface DeltaSliderProps {
   products: Product[];
@@ -52,47 +37,49 @@ const DeltaSlider: React.FC<DeltaSliderProps> = ({
   const defaultBanners = [
     {
       id: 'delta-banner1',
-      image: getImageUrl('/assets/delta-store/sliders/slider1.webp').primary,
-      fallbackImage: getImageUrl('/assets/delta-store/sliders/slider1.webp').fallback,
+      image: getProxyImageUrl('/assets/delta-store/sliders/slider1.webp', storeSlug, 'sliders'),
+      fallbackImage: '/assets/delta-store/sliders/slider1.webp',
       title: 'مجموعة الأوشحة الفاخرة في دلتا ستور'
     },
     {
       id: 'delta-banner2',
-      image: getImageUrl('/assets/delta-store/sliders/slider2.webp').primary,
-      fallbackImage: getImageUrl('/assets/delta-store/sliders/slider2.webp').fallback,
+      image: getProxyImageUrl('/assets/delta-store/sliders/slider2.webp', storeSlug, 'sliders'),
+      fallbackImage: '/assets/delta-store/sliders/slider2.webp',
       title: 'حجاب أنيق وعصري'
     },
     {
       id: 'delta-banner3',
-      image: getImageUrl('/assets/delta-store/sliders/slider3.webp').primary,
-      fallbackImage: getImageUrl('/assets/delta-store/sliders/slider3.webp').fallback,
+      image: getProxyImageUrl('/assets/delta-store/sliders/slider3.webp', storeSlug, 'sliders'),
+      fallbackImage: '/assets/delta-store/sliders/slider3.webp',
       title: 'إكسسوارات حجاب مميزة'
     },
     {
       id: 'delta-banner4',
-      image: getImageUrl('/assets/delta-store/sliders/slider4.webp').primary,
-      fallbackImage: getImageUrl('/assets/delta-store/sliders/slider4.webp').fallback,
+      image: getProxyImageUrl('/assets/delta-store/sliders/slider4.webp', storeSlug, 'sliders'),
+      fallbackImage: '/assets/delta-store/sliders/slider4.webp',
       title: 'ملابس نسائية أنيقة'
     },
     {
       id: 'delta-banner5',
-      image: getImageUrl('/assets/delta-store/sliders/slider5.webp').primary,
-      fallbackImage: getImageUrl('/assets/delta-store/sliders/slider5.webp').fallback,
+      image: getProxyImageUrl('/assets/delta-store/sliders/slider5.webp', storeSlug, 'sliders'),
+      fallbackImage: '/assets/delta-store/sliders/slider5.webp',
       title: 'تشكيلة صيفية مميزة'
     },
     {
       id: 'delta-banner6',
-      image: getImageUrl('/assets/delta-store/sliders/slider6.webp').primary,
-      fallbackImage: getImageUrl('/assets/delta-store/sliders/slider6.webp').fallback,
+      image: getProxyImageUrl('/assets/delta-store/sliders/slider6.webp', storeSlug, 'sliders'),
+      fallbackImage: '/assets/delta-store/sliders/slider6.webp',
       title: 'أحدث صيحات الموضة'
     },
   ];
 
-  if (sliderImages && sliderImages.length > 0) {
-    void 0;
-  }
-
-  const allSlides = (Array.isArray(sliderImages) && sliderImages.length > 0) ? sliderImages : defaultBanners;
+  const allSlides = (Array.isArray(sliderImages) && sliderImages.length > 0)
+    ? sliderImages.map(slide => ({
+        ...slide,
+        image: getProxyImageUrl(slide.image, storeSlug, 'sliders'),
+        fallbackImage: slide.image
+      }))
+    : defaultBanners;
 
   useEffect(() => {
     if (!isAutoPlaying || allSlides.length <= 1 || isDragging) return;

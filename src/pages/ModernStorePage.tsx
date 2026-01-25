@@ -32,6 +32,7 @@ import SheirineSlider from '@/data/stores/sheirine/Slider';
 import { getDefaultProductImageSync, handleImageError } from '@/utils/imageUtils';
 import { getTagColor, calculateBadge } from '@/utils/badgeCalculator';
 import { getProxyImageUrl, convertProductImages } from '@/utils/assetProxyUtil';
+import { getApiUrl, getApiBase } from '@/utils/apiConfig';
 
 interface ModernStorePageProps {
   storeSlug: string;
@@ -284,7 +285,7 @@ const ModernStorePage: React.FC<ModernStorePageProps> = ({
       setLoadingStore(true);
       try {
         // 1. Try to fetch from Public API first
-        const apiUrl = import.meta.env.VITE_API_URL || (isLocalhost ? 'http://localhost:5000/api' : '/api');
+        const apiUrl = getApiUrl();
         try {
           const response = await fetch(`${apiUrl}/stores/public/${currentSlug}`);
           if (response.ok) {
@@ -406,7 +407,7 @@ const ModernStorePage: React.FC<ModernStorePageProps> = ({
   const fetchAds = async () => {
     try {
       if (storeSlug) {
-        const apiUrl = import.meta.env.VITE_API_URL || (isLocalhost ? 'http://localhost:5000/api' : '/api');
+        const apiUrl = getApiUrl();
         const fetchUrl = `${apiUrl}/ads/store/${storeSlug}`;
         const response = await fetch(fetchUrl);
         if (response.ok) {
@@ -502,7 +503,7 @@ const ModernStorePage: React.FC<ModernStorePageProps> = ({
                 <div className="h-12 w-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center overflow-hidden">
                   {enhancedStore?.logo && (
                     <img
-                      src={enhancedStore.logo}
+                      src={getProxyImageUrl(enhancedStore.logo, storeSlug, 'logo')}
                       alt={enhancedStore.name}
                       className="h-12 w-12 rounded-xl object-contain"
                       onError={(e) => {
@@ -604,7 +605,7 @@ const ModernStorePage: React.FC<ModernStorePageProps> = ({
                 const isSliderBanner = item.imageUrl || (item.image && typeof item.image === 'string');
                 
                 if (isSliderBanner) {
-                  const imageUrl = item.imageUrl || item.image;
+                  const imageUrl = getProxyImageUrl(item.imageUrl || item.image, storeSlug, 'sliders');
                   return (
                     <div key={item.id || index} className="w-full flex-shrink-0 relative h-full">
                       <img

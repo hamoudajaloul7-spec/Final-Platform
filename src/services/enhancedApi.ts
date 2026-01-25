@@ -1,4 +1,6 @@
 // API service محسن مع معالجة أخطاء أفضل لـ Minimax
+import { getApiUrl, getApiBase } from '@/utils/apiConfig';
+
 const MINIMAX_API_CONFIG = {
   baseURL: import.meta.env.VITE_MINIMAX_API_URL || 'https://api.minimax.chat/v1',
   apiKey: import.meta.env.VITE_MINIMAX_API_KEY || 'demo_key',
@@ -306,7 +308,7 @@ class EnhancedApiService {
   // إنشاء متجر مع الصور (محسن)
   async createStoreWithImages(formData: FormData): Promise<ApiResponse> {
     try {
-      const url = 'http://localhost:5000/api/stores/create-with-images';
+      const url = `${getApiUrl()}/stores/create-with-images`;
 
       const response = await fetch(url, {
         method: 'POST',
@@ -333,7 +335,7 @@ class EnhancedApiService {
       
       if (error instanceof Error) {
         if (error.message.includes('Failed to fetch') || error.message.includes('fetch')) {
-          errorMsg = 'الخادم غير متاح. تأكد من تشغيل الـ Backend على http://localhost:5000';
+          errorMsg = `الخادم غير متاح. تأكد من تشغيل الـ Backend على ${getApiBase()}`;
         } else {
           errorMsg = error.message;
         }
@@ -348,7 +350,7 @@ class EnhancedApiService {
 
   // فحص صحة الـ backend
   async checkBackendHealth(): Promise<{ isHealthy: boolean; message: string }> {
-    const backendUrl = 'http://localhost:5000';
+    const backendUrl = getApiBase();
     
     try {
       const controller = new AbortController();
@@ -364,7 +366,7 @@ class EnhancedApiService {
       if (response.ok) {
         return { 
           isHealthy: true, 
-          message: '✅ Backend server is running on http://localhost:5000' 
+          message: `✅ Backend server is running on ${backendUrl}` 
         };
       } else {
         return { 
@@ -375,7 +377,7 @@ class EnhancedApiService {
     } catch (error) {
       const message = error instanceof Error && error.name === 'AbortError' 
         ? '❌ Connection timeout. Backend server may not be responding.'
-        : '❌ Cannot connect to backend server. Make sure it\'s running on http://localhost:5000';
+        : `❌ Cannot connect to backend server. Make sure it's running on ${backendUrl}`;
       
       return { 
         isHealthy: false, 

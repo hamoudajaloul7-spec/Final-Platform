@@ -35,6 +35,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Badge } from './ui/badge';
 import { Checkbox } from './ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
+import { getApiUrl } from '@/utils/apiConfig';
 
 interface InventoryNotification {
   id: string;
@@ -88,8 +89,7 @@ const InventoryNotificationsView: React.FC<InventoryNotificationsViewProps> = ({
         return;
       }
 
-      const isLocalhost = typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname);
-      const apiUrl = import.meta.env.VITE_API_URL || (isLocalhost ? 'http://localhost:5000/api' : '/api');
+      const apiUrl = getApiUrl();
       const response = await fetch(`${apiUrl}/inventory/store/${storeId}/low-stock`);
       if (response.ok) {
         const result = await response.json();

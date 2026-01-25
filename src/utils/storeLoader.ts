@@ -1,5 +1,6 @@
 import type { Product } from '@/data/storeProducts';
 import { normalizeApiProduct } from '@/utils/storeConfigLoader';
+import { getApiBase } from '@/utils/apiConfig';
 import { nawaemProducts } from '@/data/stores/nawaem/products';
 import { sheirineProducts } from '@/data/stores/sheirine/products';
 import { prettyProducts } from '@/data/stores/pretty/products';
@@ -49,27 +50,6 @@ interface StoreIndex {
 const cachedStores: Map<string, StoreData> = new Map();
 let cachedStoreIndex: StoreIndex[] = [];
 let cacheInitialized = false;
-
-function getApiBase(): string {
-  if (typeof window !== 'undefined' && (window as any).__API_BASE__) {
-    return (window as any).__API_BASE__;
-  }
-  
-  const envApiUrl = import.meta.env.VITE_API_URL;
-  
-  // If VITE_API_URL is an absolute URL, use it
-  if (envApiUrl && envApiUrl.startsWith('http')) {
-    return envApiUrl.replace('/api', '');
-  }
-  
-  // If we're on localhost, use local backend
-  if (typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname)) {
-    return 'http://localhost:5000';
-  }
-  
-  // Otherwise use relative path (empty string means current domain)
-  return '';
-}
 
 function normalizeImagePaths(data: any, apiBase: string, slug: string, isServedStatic: boolean): any {
   if (!data) return data;

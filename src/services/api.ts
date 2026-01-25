@@ -1,30 +1,25 @@
-const getDefaultApiUrl = (): string => {
-  const envUrl = import.meta.env.VITE_API_URL;
-  if (envUrl) {
-    return envUrl;
-  }
-  
-  // Detect from current location
-  const currentHost = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
-  const port = typeof window !== 'undefined' ? window.location.port : '';
-  
-  if (currentHost === 'localhost' || currentHost === '127.0.0.1') {
-    return 'http://localhost:5000/api';
-  }
-  
-  return `https://${currentHost}${port ? ':' + port : ''}/api`;
-};
+import { getApiBase, getApiUrl } from '@/utils/apiConfig';
 
-const API_BASE_URL = getDefaultApiUrl();
-const BACKEND_BASE_URL = API_BASE_URL.replace('/api', '');
+const API_BASE_URL = getApiUrl();
+const BACKEND_BASE_URL = getApiBase();
 
 // Helper to get absolute or relative URL safely
 const getSafeUrl = (endpoint: string): string => {
   if (endpoint.startsWith('http')) return endpoint;
   
+  // Handle relative endpoints that might already start with /api
+  let cleanEndpoint = endpoint;
+  if (endpoint.startsWith('/api/')) {
+    cleanEndpoint = endpoint.replace('/api/', '/');
+  } else if (endpoint === '/api') {
+    cleanEndpoint = '/';
+  }
+
   // If we have a BACKEND_BASE_URL that is an absolute URL, use it
   if (BACKEND_BASE_URL && BACKEND_BASE_URL.startsWith('http')) {
-    return `${BACKEND_BASE_URL}${endpoint.startsWith('/') ? '' : '/'}${endpoint}`;
+    const base = BACKEND_BASE_URL.endsWith('/') ? BACKEND_BASE_URL.slice(0, -1) : BACKEND_BASE_URL;
+    const path = cleanEndpoint.startsWith('/') ? cleanEndpoint : `/${cleanEndpoint}`;
+    return `${base}/api${path === '/' ? '' : path}`;
   }
   
   // Otherwise use relative path

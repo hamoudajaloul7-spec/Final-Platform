@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { getApiUrl } from '@/utils/apiConfig';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -162,7 +163,7 @@ export const SubscriptionCheckoutModal: React.FC<SubscriptionCheckoutModalProps>
 
     if (!MID || !TID) {
       try {
-        const resp = await fetch('/api/moamalat/config');
+        const resp = await fetch(`${getApiUrl()}/moamalat/config`);
         if (resp.ok) {
           const data = await resp.json();
           MID = data.MID || MID;
@@ -186,8 +187,7 @@ export const SubscriptionCheckoutModal: React.FC<SubscriptionCheckoutModalProps>
     const payloadForHash = { AmountTrxn, MerchantReference, TrxDateTime, MID, TID };
 
 
-    const apiBase = '';
-    const res = await fetch(`${apiBase}/api/moamalat/hash`, {
+    const res = await fetch(`${getApiUrl()}/moamalat/hash`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

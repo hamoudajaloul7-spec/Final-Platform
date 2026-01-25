@@ -20,6 +20,7 @@ import {
   showSyncNotification,
   type SyncEvent
 } from '@/utils/sliderIntegration';
+import { getApiBase } from '@/utils/apiConfig';
 import type { Product } from '@/data/storeProducts';
 
 interface DynamicStoreSliderProps {
@@ -73,8 +74,16 @@ const DynamicStoreSlider: React.FC<DynamicStoreSliderProps> = ({
   const loadSliders = useCallback(async () => {
     try {
       setError(null);
+      const apiBase = getApiBase();
       const loadedSliders = storageManager.loadStoreSliders(storeSlug);
-      setSliders(loadedSliders);
+      
+      // Prepend apiBase for rendering
+      const rendered = loadedSliders.map((s: any) => ({
+        ...s,
+        imageUrl: (s.imageUrl && !s.imageUrl.startsWith('http')) ? apiBase + s.imageUrl : s.imageUrl
+      }));
+      
+      setSliders(rendered);
       
       setSyncStatus(prev => ({
         ...prev,
@@ -139,8 +148,12 @@ const DynamicStoreSlider: React.FC<DynamicStoreSliderProps> = ({
 
     // Set up real-time listeners
     const cleanupListeners = initializeSliderListeners(storeSlug, (updatedSliders) => {
-
-      setSliders(updatedSliders);
+      const apiBase = getApiBase();
+      const rendered = updatedSliders.map((s: any) => ({
+        ...s,
+        imageUrl: (s.imageUrl && !s.imageUrl.startsWith('http')) ? apiBase + s.imageUrl : s.imageUrl
+      }));
+      setSliders(rendered);
       setSyncStatus(prev => ({
         ...prev,
         lastSync: new Date().toISOString(),
@@ -151,7 +164,12 @@ const DynamicStoreSlider: React.FC<DynamicStoreSliderProps> = ({
 
     // Set up storage change listeners
     const cleanupStorageListener = storageManager.addChangeListener(storeSlug, (updatedSliders) => {
-      setSliders(updatedSliders);
+      const apiBase = getApiBase();
+      const rendered = updatedSliders.map((s: any) => ({
+        ...s,
+        imageUrl: (s.imageUrl && !s.imageUrl.startsWith('http')) ? apiBase + s.imageUrl : s.imageUrl
+      }));
+      setSliders(rendered);
     });
 
     // Enable auto-sync if requested

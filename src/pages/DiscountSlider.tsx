@@ -12,6 +12,7 @@ import React, { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import '../components/DiscountSlider.css';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { getProxyImageUrl } from '@/utils/assetProxyUtil';
 
 // مكون الخلفية المتحركة الاحترافية
 const AnimatedBackground = () => {
@@ -41,28 +42,6 @@ const AnimatedBackground = () => {
       ))}
     </div>
   );
-};
-
-const getBackendUrl = () => {
-  const apiUrl = import.meta.env.VITE_API_URL;
-  if (apiUrl) return apiUrl.replace('/api', '');
-  return typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname)
-    ? 'http://localhost:5000'
-    : '';
-};
-
-const getImageUrl = (assetPath: string) => {
-  if (assetPath.startsWith('/assets/')) {
-    return {
-      primary: assetPath,
-      fallback: assetPath,
-    };
-  }
-  const backendUrl = getBackendUrl();
-  return {
-    primary: `${backendUrl}${assetPath}`,
-    fallback: assetPath,
-  };
 };
 
 // بيانات السلايدر الأفقي العلوي (يتغير تلقائياً كل 5 ثواني)
@@ -144,15 +123,13 @@ export default function DiscountSlider() {
                   }`}
                 >
                   <img
-                    src={getImageUrl(slide.image).primary}
+                    src={getProxyImageUrl(slide.image)}
                     alt={slide.alt}
                     className="w-full h-full object-contain"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
-                      if (target.src !== getImageUrl(slide.image).fallback) {
-                        target.src = getImageUrl(slide.image).fallback;
-                      } else {
-                        target.style.display = 'none';
+                      if (!target.src.includes('placeholder')) {
+                         target.src = 'https://placehold.co/800x400?text=' + encodeURIComponent(slide.alt);
                       }
                     }}
                   />
@@ -271,15 +248,13 @@ export default function DiscountSlider() {
                 >
                   {/* الصورة */}
                   <img
-                    src={getImageUrl(slide.image).primary}
+                    src={getProxyImageUrl(slide.image)}
                     alt={slide.alt}
                     className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-700 ease-out"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
-                      if (target.src !== getImageUrl(slide.image).fallback) {
-                        target.src = getImageUrl(slide.image).fallback;
-                      } else {
-                        target.style.display = 'none';
+                      if (!target.src.includes('placeholder')) {
+                         target.src = 'https://placehold.co/800x400?text=' + encodeURIComponent(slide.alt);
                       }
                     }}
                   />

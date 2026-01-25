@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { getApiUrl } from '@/utils/apiConfig';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { CreditCard, X } from 'lucide-react';
@@ -164,7 +165,7 @@ const MoamalatOfficialLightbox: React.FC<MoamalatOfficialLightboxProps> = ({
       description: `Payment for order ${orderData?.id || merchantReference}`,
       language: 'ar',
       returnUrl: window.location.origin + '/payment/callback',
-      callbackUrl: window.location.origin + '/api/payment/webhook',
+      callbackUrl: getApiUrl() + '/payment/webhook',
       // Additional required fields for LightBox
       cardNumber: cardNumber.replace(/\s/g, ''),
       expiryMonth: expiration.split('/')[0],

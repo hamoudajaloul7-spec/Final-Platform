@@ -30,6 +30,7 @@ import { sheirineStoreConfig } from '@/data/stores/sheirine/config';
 import { magnaStoreConfig } from '@/data/stores/magna-beauty/config';
 import SheirineSlider from '@/data/stores/sheirine/Slider';
 import { getTagColor, calculateBadge, getButtonConfig, applyAutoBadges } from '@/utils/badgeCalculator';
+import { getApiUrl, getApiBase } from '@/utils/apiConfig';
 
 interface StorePageProps {
   storeSlug: string;
@@ -49,7 +50,7 @@ const StorePage: React.FC<StorePageProps> = ({ storeSlug, onBack, onProductClick
   const fetchAds = async () => {
     try {
       if (storeSlug) {
-        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+        const apiUrl = getApiUrl();
         const fetchUrl = `${apiUrl}/ads/store/${storeSlug}`;
         const response = await fetch(fetchUrl);
         if (response.ok) {
@@ -64,7 +65,7 @@ const StorePage: React.FC<StorePageProps> = ({ storeSlug, onBack, onProductClick
   const fetchProducts = async () => {
     try {
       if (!storeSlug) return;
-      const apiUrl = import.meta.env.VITE_API_URL || '/api';
+      const apiUrl = getApiUrl();
       const response = await fetch(`${apiUrl}/products?limit=500&storeSlug=${encodeURIComponent(storeSlug)}`);
       if (response.ok) {
         const result = await response.json();

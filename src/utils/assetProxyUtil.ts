@@ -1,3 +1,5 @@
+import { getApiBase } from './apiConfig';
+
 export const getProxyImageUrl = (
   imagePath: string,
   storeSlug?: string,
@@ -9,11 +11,16 @@ export const getProxyImageUrl = (
     return imagePath;
   }
 
-  if (imagePath.startsWith('/assets/')) {
+  if (imagePath.startsWith('/assets/') || imagePath.startsWith('/AdsForms/')) {
     return imagePath;
   }
 
-  if (!storeSlug) return imagePath;
+  const base = getApiBase();
+  if (base) {
+    // Ensure relative paths from backend are prefixed
+    const cleanPath = imagePath.startsWith('/') ? imagePath : `/${imagePath}`;
+    return `${base}${cleanPath}`;
+  }
 
   return imagePath;
 };

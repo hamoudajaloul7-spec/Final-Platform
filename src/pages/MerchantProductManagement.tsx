@@ -29,6 +29,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { getDefaultProductImageSync, handleImageError } from '@/utils/imageUtils';
+import { stripApiBase } from '@/utils/apiConfig';
 
 interface Product {
   id: number;

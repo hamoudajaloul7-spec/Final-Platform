@@ -1,31 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, ArrowRight, Sparkles } from 'lucide-react';
 import type { Product } from '../../storeProducts';
-
-const getBackendUrl = () => {
-  const apiUrl = import.meta.env.VITE_API_URL;
-  if (apiUrl) return apiUrl.replace('/api', '');
-  return typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname)
-    ? 'http://localhost:5000'
-    : '';
-};
-
-const getImageUrl = (assetPath: string) => {
-  if (assetPath.startsWith('/assets/')) {
-    return {
-      primary: assetPath,
-      fallback: assetPath,
-    };
-  }
-
-  const backendUrl = getBackendUrl();
-  const normalizedBackendUrl = backendUrl.replace(/\/?api\/?$/, '');
-
-  return {
-    primary: `${normalizedBackendUrl}${assetPath}`,
-    fallback: assetPath,
-  };
-};
+import { getProxyImageUrl } from '@/utils/assetProxyUtil';
 
 interface SheirineSliderProps {
   products: Product[];
@@ -55,35 +31,37 @@ const SheirineSlider: React.FC<SheirineSliderProps> = ({
   const defaultBanners = [
     {
       id: 'banner1',
-      image: getImageUrl('/assets/sherine/sliders/slider1.webp').primary,
-      fallbackImage: getImageUrl('/assets/sherine/sliders/slider1.webp').fallback,
+      image: getProxyImageUrl('/assets/sherine/sliders/slider1.webp', storeSlug, 'sliders'),
+      fallbackImage: '/assets/sherine/sliders/slider1.webp',
       title: 'مجموعة ملابس الفاخرة في شيرين'
     },
     {
       id: 'banner2',
-      image: getImageUrl('/assets/sherine/sliders/slider2.jpg').primary,
-      fallbackImage: getImageUrl('/assets/sherine/sliders/slider3.webp').fallback,
+      image: getProxyImageUrl('/assets/sherine/sliders/slider2.jpg', storeSlug, 'sliders'),
+      fallbackImage: '/assets/sherine/sliders/slider3.webp',
       title: 'فساتين نسائية أنيقة'
     },
     {
       id: 'banner3',
-      image: getImageUrl('/assets/sherine/sliders/slider4.webp').primary,
-      fallbackImage: getImageUrl('/assets/sherine/sliders/slider4.webp').fallback,
+      image: getProxyImageUrl('/assets/sherine/sliders/slider4.webp', storeSlug, 'sliders'),
+      fallbackImage: '/assets/sherine/sliders/slider4.webp',
       title: 'ملابس نسائية مميزة'
     },
     {
       id: 'banner4',
-      image: getImageUrl('/assets/sherine/sliders/slider3.webp').primary,
-      fallbackImage: getImageUrl('/assets/sherine/sliders/slider1.webp').fallback,
+      image: getProxyImageUrl('/assets/sherine/sliders/slider3.webp', storeSlug, 'sliders'),
+      fallbackImage: '/assets/sherine/sliders/slider1.webp',
       title: 'مجموعات فساتين خاصة'
     },
   ];
 
-  if (sliderImages && sliderImages.length > 0) {
-    void 0;
-  }
-
-  const allSlides = (Array.isArray(sliderImages) && sliderImages.length > 0) ? sliderImages : defaultBanners;
+  const allSlides = (Array.isArray(sliderImages) && sliderImages.length > 0) 
+    ? sliderImages.map(slide => ({
+        ...slide,
+        image: getProxyImageUrl(slide.image, storeSlug, 'sliders'),
+        fallbackImage: slide.image
+      }))
+    : defaultBanners;
 
   // التشغيل التلقائي
   useEffect(() => {

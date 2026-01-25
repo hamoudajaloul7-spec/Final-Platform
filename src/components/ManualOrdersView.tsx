@@ -39,8 +39,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Badge } from './ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { libyanCities } from '@/data/libya';
+import { getApiUrl } from '@/utils/apiConfig';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+const API_BASE_URL = getApiUrl();
 
 interface ManualOrder {
   id: string;

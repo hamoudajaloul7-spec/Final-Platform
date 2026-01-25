@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
+import { getApiUrl } from '@/utils/apiConfig';
 
 interface MoamalatRealLightboxProps {
   isOpen: boolean;
@@ -171,8 +172,7 @@ const MoamalatRealLightbox: React.FC<MoamalatRealLightboxProps> = ({
 
   const generateSecureHash = async (params: any) => {
     try {
-      const isLocalhost = typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname);
-      const apiUrl = import.meta.env.VITE_API_URL || (isLocalhost ? 'http://localhost:5000/api' : '/api');
+      const apiUrl = getApiUrl();
       const response = await fetch(`${apiUrl}/moamalat/hash`, {
         method: 'POST',
         headers: {

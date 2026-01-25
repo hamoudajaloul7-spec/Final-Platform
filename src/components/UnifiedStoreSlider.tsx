@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { getStoreConfig } from '@/config/storeConfig';
+import { getApiBase, getApiUrl, stripApiBase } from '@/utils/apiConfig';
 
 interface SliderHeightConfig {
   mobile?: number;
@@ -72,20 +73,11 @@ const UnifiedStoreSlider: React.FC<UnifiedStoreSliderProps> = ({
     };
   }, [storeSlug, initialSliders]);
 
-  const normalizeImageUrl = (path: string) => {
-    if (!path) return '';
-    if (path.startsWith('http')) {
-      if (path.includes('localhost:5000')) {
-        return path.replace(/^https?:\/\/localhost:5000/, '');
-      } else if (path.includes('eishro-backend.onrender.com')) {
-        return path.replace(/^https?:\/\/eishro-backend\.onrender\.com/, '');
-      }
-    }
-    return path;
-  };
+  const normalizeImageUrl = (path: string) => stripApiBase(path);
 
   const loadSliders = async () => {
     const storageKey = `eshro_sliders_${storeSlug}`;
+    const apiBase = getApiBase();
    
     // First try localStorage (most up-to-date)
     const savedSliders = localStorage.getItem(storageKey);
@@ -93,29 +85,38 @@ const UnifiedStoreSlider: React.FC<UnifiedStoreSliderProps> = ({
       try {
         const parsed = JSON.parse(savedSliders);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          setSliders(parsed);
+          // Prepend apiBase for rendering
+          const rendered = parsed.map((s: any) => ({
+            ...s,
+            image: (s.image && !s.image.startsWith('http')) ? apiBase + s.image : s.image,
+            imagePath: (s.imagePath && !s.imagePath.startsWith('http')) ? apiBase + s.imagePath : s.imagePath
+          }));
+          setSliders(rendered);
         }
       } catch {}
     }
    
     // Then try static config as fallback
     if (!savedSliders && staticConfig?.sliders) {
-      const mappedSliders = staticConfig.sliders.map((slider: any) => ({
-        id: slider.id,
-        title: slider.title,
-        subtitle: slider.subtitle,
-        buttonText: slider.buttonText,
-        imagePath: normalizeImageUrl(slider.image || slider.imagePath),
-        image: normalizeImageUrl(slider.image || slider.imagePath),
-        sortOrder: slider.sortOrder,
-      }));
+      const mappedSliders = staticConfig.sliders.map((slider: any) => {
+        const normalized = normalizeImageUrl(slider.image || slider.imagePath);
+        const imageUrl = (normalized && !normalized.startsWith('http')) ? apiBase + normalized : normalized;
+        return {
+          id: slider.id,
+          title: slider.title,
+          subtitle: slider.subtitle,
+          buttonText: slider.buttonText,
+          imagePath: imageUrl,
+          image: imageUrl,
+          sortOrder: slider.sortOrder,
+        };
+      });
       setSliders(mappedSliders);
     }
    
     // Fetch API data in background with timeout
     try {
-      const isLocalhost = typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname);
-      const apiUrl = import.meta.env.VITE_API_URL || (isLocalhost ? 'http://localhost:5000/api' : '/api');
+      const apiUrl = getApiUrl();
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000);
   
@@ -130,7 +131,7 @@ const UnifiedStoreSlider: React.FC<UnifiedStoreSliderProps> = ({
         const slidersData = result.data || result.sliders || [];
         
         if (Array.isArray(slidersData) && slidersData.length > 0) {
-          const loadedSliders = slidersData.map((slider: any) => {
+          const mappedForStorage = slidersData.map((slider: any) => {
             const imagePath = normalizeImageUrl(slider.imagePath || slider.imageUrl || slider.image || '');
             
             return {
@@ -144,9 +145,17 @@ const UnifiedStoreSlider: React.FC<UnifiedStoreSliderProps> = ({
             };
           });
           
-          loadedSliders.sort((a: Slider, b: Slider) => (a.sortOrder || 999) - (b.sortOrder || 999));
-          setSliders(loadedSliders);
-          localStorage.setItem(storageKey, JSON.stringify(loadedSliders));
+          mappedForStorage.sort((a: any, b: any) => (a.sortOrder || 999) - (b.sortOrder || 999));
+          
+          // Prepend apiBase for rendering
+          const rendered = mappedForStorage.map((s: any) => ({
+            ...s,
+            image: (s.image && !s.image.startsWith('http')) ? apiBase + s.image : s.image,
+            imagePath: (s.imagePath && !s.imagePath.startsWith('http')) ? apiBase + s.imagePath : s.imagePath
+          }));
+          
+          setSliders(rendered);
+          localStorage.setItem(storageKey, JSON.stringify(mappedForStorage));
         }
       } else {
         // If API fails, try alternative endpoint
@@ -160,7 +169,7 @@ const UnifiedStoreSlider: React.FC<UnifiedStoreSliderProps> = ({
             const slidersData = result.data || result.sliders || [];
             
             if (Array.isArray(slidersData) && slidersData.length > 0) {
-              const loadedSliders = slidersData.map((slider: any) => {
+              const mappedForStorage = slidersData.map((slider: any) => {
                 const imagePath = normalizeImageUrl(slider.imagePath || slider.imageUrl || slider.image || '');
                 return {
                   id: slider.id || `slider_${Date.now()}_${Math.random()}`,
@@ -173,9 +182,17 @@ const UnifiedStoreSlider: React.FC<UnifiedStoreSliderProps> = ({
                 };
               });
               
-              loadedSliders.sort((a: Slider, b: Slider) => (a.sortOrder || 999) - (b.sortOrder || 999));
-              setSliders(loadedSliders);
-              localStorage.setItem(storageKey, JSON.stringify(loadedSliders));
+              mappedForStorage.sort((a: any, b: any) => (a.sortOrder || 999) - (b.sortOrder || 999));
+              
+              // Prepend apiBase for rendering
+              const rendered = mappedForStorage.map((s: any) => ({
+                ...s,
+                image: (s.image && !s.image.startsWith('http')) ? apiBase + s.image : s.image,
+                imagePath: (s.imagePath && !s.imagePath.startsWith('http')) ? apiBase + s.imagePath : s.imagePath
+              }));
+              
+              setSliders(rendered);
+              localStorage.setItem(storageKey, JSON.stringify(mappedForStorage));
             }
           }
         } catch (altError) {

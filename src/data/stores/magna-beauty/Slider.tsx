@@ -4,22 +4,7 @@ import {
   ArrowRight,
   Sparkles
 } from 'lucide-react';
-
-const getBackendUrl = () => {
-  const apiUrl = import.meta.env.VITE_API_URL;
-  if (apiUrl) return apiUrl.replace('/api', '');
-  return typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname)
-    ? 'http://localhost:5000'
-    : '';
-};
-
-const getImageUrl = (assetPath: string) => {
-  const backendUrl = getBackendUrl();
-  return {
-    primary: `${backendUrl}${assetPath}`,
-    fallback: assetPath,
-  };
-};
+import { getProxyImageUrl } from '@/utils/assetProxyUtil';
 
 interface MagnaBeautySliderProps {
   products?: any[];
@@ -49,41 +34,43 @@ const MagnaBeautySlider: React.FC<MagnaBeautySliderProps> = ({
   const defaultBanners = [
     {
       id: 'magna-beauty-banner1',
-      image: getImageUrl('/assets/magna-beauty/sliders/slide1.webp').primary,
-      fallbackImage: getImageUrl('/assets/magna-beauty/sliders/slide1.webp').fallback,
+      image: getProxyImageUrl('/assets/magna-beauty/sliders/slide1.webp', storeSlug, 'sliders'),
+      fallbackImage: '/assets/magna-beauty/sliders/slide1.webp',
       title: 'مكياج عصري أنيق'
     },
     {
       id: 'magna-beauty-banner2',
-      image: getImageUrl('/assets/magna-beauty/sliders/slide2.webp').primary,
-      fallbackImage: getImageUrl('/assets/magna-beauty/sliders/slide2.webp').fallback,
+      image: getProxyImageUrl('/assets/magna-beauty/sliders/slide2.webp', storeSlug, 'sliders'),
+      fallbackImage: '/assets/magna-beauty/sliders/slide2.webp',
       title: 'رموش أنيقة وعصرية'
     },
     {
       id: 'magna-beauty-banner3',
-      image: getImageUrl('/assets/magna-beauty/sliders/slide3.webp').primary,
-      fallbackImage: getImageUrl('/assets/magna-beauty/sliders/slide3.webp').fallback,
+      image: getProxyImageUrl('/assets/magna-beauty/sliders/slide3.webp', storeSlug, 'sliders'),
+      fallbackImage: '/assets/magna-beauty/sliders/slide3.webp',
       title: 'إكسسوارات مميزة'
     },
     {
       id: 'magna-beauty-banner4',
-      image: getImageUrl('/assets/magna-beauty/sliders/slide4.webp').primary,
-      fallbackImage: getImageUrl('/assets/magna-beauty/sliders/slide4.webp').fallback,
+      image: getProxyImageUrl('/assets/magna-beauty/sliders/slide4.webp', storeSlug, 'sliders'),
+      fallbackImage: '/assets/magna-beauty/sliders/slide4.webp',
       title: 'مكياج عصري أنيق'
     },
     {
       id: 'magna-beauty-banner5',
-      image: getImageUrl('/assets/magna-beauty/sliders/slide5.webp').primary,
-      fallbackImage: getImageUrl('/assets/magna-beauty/sliders/slide5.webp').fallback,
+      image: getProxyImageUrl('/assets/magna-beauty/sliders/slide5.webp', storeSlug, 'sliders'),
+      fallbackImage: '/assets/magna-beauty/sliders/slide5.webp',
       title: 'تشكيلة عصرية مميزة'
     },
   ];
 
-  if (sliderImages && sliderImages.length > 0) {
-    void 0;
-  }
-
-  const allSlides = (Array.isArray(sliderImages) && sliderImages.length > 0) ? sliderImages : defaultBanners;
+  const allSlides = (Array.isArray(sliderImages) && sliderImages.length > 0)
+    ? sliderImages.map(slide => ({
+        ...slide,
+        image: getProxyImageUrl(slide.image, storeSlug, 'sliders'),
+        fallbackImage: slide.image
+      }))
+    : defaultBanners;
 
   // Precomputed sparkle positions to avoid Math.random() in render
   const sparklePositions = [...Array(20)].map((_, i) => ({

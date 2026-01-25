@@ -13,22 +13,7 @@ import {
   Eye
 } from 'lucide-react';
 import type { Product } from '../../storeProducts';
-
-const getBackendUrl = () => {
-  const apiUrl = import.meta.env.VITE_API_URL;
-  if (apiUrl) return apiUrl.replace('/api', '');
-  return typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname)
-    ? 'http://localhost:5000'
-    : '';
-};
-
-const getImageUrl = (assetPath: string) => {
-  const backendUrl = getBackendUrl();
-  return {
-    primary: `${backendUrl}${assetPath}`,
-    fallback: assetPath,
-  };
-};
+import { getProxyImageUrl } from '@/utils/assetProxyUtil';
 
 interface NawaemSliderProps {
   products: Product[];
@@ -61,40 +46,40 @@ const NawaemSlider: React.FC<NawaemSliderProps> = ({
       return [
         {
           id: 'banner1',
-          image: getImageUrl('/assets/sherine/sliders/slider1.webp').primary,
-          fallbackImage: getImageUrl('/assets/sherine/sliders/slider1.webp').fallback,
+          image: getProxyImageUrl('/assets/sherine/sliders/slider1.webp', store, 'sliders'),
+          fallbackImage: '/assets/sherine/sliders/slider1.webp',
           title: 'ملابس للمناسبات أحجام كبيرة',
           subtitle: 'اكتشفي مجموعتنا الجديدة من الملابس المناسباتية بأحجام كبيرة لكل المناسبات',
           buttonText: 'تسوقي الآن'
         },
         {
           id: 'banner2',
-          image: getImageUrl('/assets/sherine/sliders/slider3.webp').primary,
-          fallbackImage: getImageUrl('/assets/sherine/sliders/slider3.webp').fallback,
+          image: getProxyImageUrl('/assets/sherine/sliders/slider3.webp', store, 'sliders'),
+          fallbackImage: '/assets/sherine/sliders/slider3.webp',
           title: 'أحذية نسائية أنيقة',
           subtitle: 'مجموعة مميزة من الأحذية النسائية لإطلالات استثنائية في كل خطوة',
           buttonText: 'استكشفي الأحذية'
         },
         {
           id: 'banner3',
-          image: getImageUrl('/assets/sherine/sliders/slider4.webp').primary,
-          fallbackImage: getImageUrl('/assets/sherine/sliders/slider4.webp').fallback,
+          image: getProxyImageUrl('/assets/sherine/sliders/slider4.webp', store, 'sliders'),
+          fallbackImage: '/assets/sherine/sliders/slider4.webp',
           title: 'ملابس للمناسبات أحجام كبيرة',
           subtitle: 'تصاميم فريدة من الملابس المناسباتية بأحجام كبيرة لإطلالة مميزة',
           buttonText: 'اطلعي على المجموعة'
         },
         {
           id: 'banner4',
-          image: getImageUrl('/assets/sherine/sliders/slider1.webp').primary,
-          fallbackImage: getImageUrl('/assets/sherine/sliders/slider1.webp').fallback,
+          image: getProxyImageUrl('/assets/sherine/sliders/slider1.webp', store, 'sliders'),
+          fallbackImage: '/assets/sherine/sliders/slider1.webp',
           title: 'أحذية نسائية راقية',
           subtitle: 'أحذية نسائية بأحدث الصيحات لكل المناسبات والأيام',
           buttonText: 'تسوقي الأحذية'
         },
         {
           id: 'banner5',
-          image: getImageUrl('/assets/sherine/sliders/slider3.webp').primary,
-          fallbackImage: getImageUrl('/assets/sherine/sliders/slider3.webp').fallback,
+          image: getProxyImageUrl('/assets/sherine/sliders/slider3.webp', store, 'sliders'),
+          fallbackImage: '/assets/sherine/sliders/slider3.webp',
           title: 'ملابس مناسبات أحجام كبيرة',
           subtitle: 'مجموعة متنوعة من الملابس المناسباتية بأحجام كبيرة لكل الأذواق',
           buttonText: 'اكتشفي الملابس'
@@ -106,62 +91,62 @@ const NawaemSlider: React.FC<NawaemSliderProps> = ({
     return [
       {
         id: 'banner1',
-        image: getImageUrl('/assets/nawaem/bag2.jpg').primary,
-        fallbackImage: getImageUrl('/assets/nawaem/bag2.jpg').fallback,
+        image: getProxyImageUrl('/assets/nawaem/bag2.jpg', store, 'sliders'),
+        fallbackImage: '/assets/nawaem/bag2.jpg',
         title: 'حقائب نواعم الأنيقة'
       },
       {
         id: 'banner2',
-        image: getImageUrl('/assets/nawaem/bag3-black.jpg').primary,
-        fallbackImage: getImageUrl('/assets/nawaem/bag3-black.jpg').fallback,
+        image: getProxyImageUrl('/assets/nawaem/bag3-black.jpg', store, 'sliders'),
+        fallbackImage: '/assets/nawaem/bag3-black.jpg',
         title: 'حقائب سوداء فاخرة'
       },
       {
         id: 'banner3',
-        image: getImageUrl('/assets/nawaem/bag3-green.jpg').primary,
-        fallbackImage: getImageUrl('/assets/nawaem/bag3-green.jpg').fallback,
+        image: getProxyImageUrl('/assets/nawaem/bag3-green.jpg', store, 'sliders'),
+        fallbackImage: '/assets/nawaem/bag3-green.jpg',
         title: 'حقائب خضراء عصرية'
       },
       {
         id: 'banner4',
-        image: getImageUrl('/assets/nawaem/dress3.jpg').primary,
-        fallbackImage: getImageUrl('/assets/nawaem/dress3.jpg').fallback,
+        image: getProxyImageUrl('/assets/nawaem/dress3.jpg', store, 'sliders'),
+        fallbackImage: '/assets/nawaem/dress3.jpg',
         title: 'فساتين نواعم الراقية'
       },
       {
         id: 'banner5',
-        image: getImageUrl('/assets/nawaem/dress4.jpg').primary,
-        fallbackImage: getImageUrl('/assets/nawaem/dress4.jpg').fallback,
+        image: getProxyImageUrl('/assets/nawaem/dress4.jpg', store, 'sliders'),
+        fallbackImage: '/assets/nawaem/dress4.jpg',
         title: 'فساتين مناسبات مميزة'
       },
       {
         id: 'banner6',
-        image: getImageUrl('/assets/nawaem/dress5.jpg').primary,
-        fallbackImage: getImageUrl('/assets/nawaem/dress5.jpg').fallback,
+        image: getProxyImageUrl('/assets/nawaem/dress5.jpg', store, 'sliders'),
+        fallbackImage: '/assets/nawaem/dress5.jpg',
         title: 'فساتين صيفية أنيقة'
       },
       {
         id: 'banner7',
-        image: getImageUrl('/assets/nawaem/gold-jewelry-set-1.jpg').primary,
-        fallbackImage: getImageUrl('/assets/nawaem/gold-jewelry-set-1.jpg').fallback,
+        image: getProxyImageUrl('/assets/nawaem/gold-jewelry-set-1.jpg', store, 'sliders'),
+        fallbackImage: '/assets/nawaem/gold-jewelry-set-1.jpg',
         title: 'مجوهرات ذهبية فاخرة'
       },
       {
         id: 'banner8',
-        image: getImageUrl('/assets/nawaem/handbag-beige-1.jpg').primary,
-        fallbackImage: getImageUrl('/assets/nawaem/handbag-beige-1.jpg').fallback,
+        image: getProxyImageUrl('/assets/nawaem/handbag-beige-1.jpg', store, 'sliders'),
+        fallbackImage: '/assets/nawaem/handbag-beige-1.jpg',
         title: 'حقائب بيج راقية'
       },
       {
         id: 'banner9',
-        image: getImageUrl('/assets/nawaem/handbag-black-1.jpg').primary,
-        fallbackImage: getImageUrl('/assets/nawaem/handbag-black-1.jpg').fallback,
+        image: getProxyImageUrl('/assets/nawaem/handbag-black-1.jpg', store, 'sliders'),
+        fallbackImage: '/assets/nawaem/handbag-black-1.jpg',
         title: 'حقائب سوداء أنيقة'
       },
       {
         id: 'banner10',
-        image: getImageUrl('/assets/nawaem/handbags-luxury-1.jpg').primary,
-        fallbackImage: getImageUrl('/assets/nawaem/handbags-luxury-1.jpg').fallback,
+        image: getProxyImageUrl('/assets/nawaem/handbags-luxury-1.jpg', store, 'sliders'),
+        fallbackImage: '/assets/nawaem/handbags-luxury-1.jpg',
         title: 'حقائب فاخرة'
       }
     ];
@@ -169,11 +154,13 @@ const NawaemSlider: React.FC<NawaemSliderProps> = ({
 
   const defaultBanners = getSliderBanners(storeSlug);
   
-  if (sliderImages && sliderImages.length > 0) {
-    void 0;
-  }
-  
-  const allSlides = (Array.isArray(sliderImages) && sliderImages.length > 0) ? sliderImages : defaultBanners;
+  const allSlides = (Array.isArray(sliderImages) && sliderImages.length > 0) 
+    ? sliderImages.map(slide => ({
+        ...slide,
+        image: getProxyImageUrl(slide.image, storeSlug, 'sliders'),
+        fallbackImage: slide.image
+      }))
+    : defaultBanners;
 
   // التشغيل التلقائي المحسن
   useEffect(() => {

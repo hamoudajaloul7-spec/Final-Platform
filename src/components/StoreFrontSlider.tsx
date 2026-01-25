@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { getApiBase, getApiUrl, stripApiBase } from '@/utils/apiConfig';
 
 interface SliderData {
   id: string;
@@ -44,22 +45,14 @@ const StoreFrontSlider: React.FC<StoreFrontSliderProps> = ({
     };
   }, [storeSlug]);
 
-  const normalizeImageUrl = (path: string) => {
-    if (!path) return '';
-    if (path.startsWith('http')) {
-      if (path.includes('localhost:5000')) {
-        return path.replace(/^https?:\/\/localhost:5000/, '');
-      } else if (path.includes('eishro-backend.onrender.com')) {
-        return path.replace(/^https?:\/\/eishro-backend\.onrender\.com/, '');
-      }
-    }
-    return path;
-  };
+  const normalizeImageUrl = (path: string) => stripApiBase(path);
 
   const loadSliders = async () => {
+    const apiBase = getApiBase();
     if (storeSlug) {
       try {
-        const response = await fetch(`/api/sliders/store/${storeSlug}`);
+        const apiUrl = getApiUrl();
+        const response = await fetch(`${apiUrl}/sliders/store/${storeSlug}`);
         if (response.ok) {
           const result = await response.json();
           const mapped = result.data.map((slider: any) => ({
@@ -71,7 +64,14 @@ const StoreFrontSlider: React.FC<StoreFrontSliderProps> = ({
             buttonText: slider.buttonText || '',
             order: slider.sortOrder || 0
           }));
-          setSliders(mapped);
+          
+          // Prepend apiBase for rendering
+          const rendered = mapped.map((s: any) => ({
+            ...s,
+            imageUrl: (s.imageUrl && !s.imageUrl.startsWith('http')) ? apiBase + s.imageUrl : s.imageUrl
+          }));
+          
+          setSliders(rendered);
           localStorage.setItem(`eshro_sliders_${storeSlug}`, JSON.stringify(mapped));
           localStorage.setItem(`store_sliders_${storeSlug}`, JSON.stringify(mapped));
           return;
@@ -98,7 +98,14 @@ const StoreFrontSlider: React.FC<StoreFrontSliderProps> = ({
             buttonText: slider.buttonText || '',
             order: slider.order || slider.sortOrder || 0
           }));
-          setSliders(normalized);
+          
+          // Prepend apiBase for rendering
+          const rendered = normalized.map((s: any) => ({
+            ...s,
+            imageUrl: (s.imageUrl && !s.imageUrl.startsWith('http')) ? apiBase + s.imageUrl : s.imageUrl
+          }));
+          
+          setSliders(rendered);
         }
       } catch (e) {
         console.error('Error parsing sliders from localStorage:', e);

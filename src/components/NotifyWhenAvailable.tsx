@@ -10,6 +10,7 @@ import type { Product } from '@/data/storeProducts';
 import { getStoresData } from '@/data/ecommerceData';
 import { getProxyImageUrl } from '@/utils/assetProxyUtil';
 import { getDefaultProductImageSync } from '@/utils/imageUtils';
+import { getApiUrl } from '@/utils/apiConfig';
 
 interface NotifyWhenAvailableProps {
   product: Product | any;
@@ -42,7 +43,7 @@ const VISITOR_FLAG_KEY = 'eshro_logged_in_as_visitor';
 const VISITOR_DATA_KEY = 'eshro_visitor_user';
 const CUSTOMER_KEY = 'eshro_unavailable';
 const MERCHANT_KEY = 'eshro_unavailable_orders';
-const API_BASE_URL = import.meta.env?.VITE_API_URL || '/api';
+const API_BASE_URL = getApiUrl();
 
 const getInitialFormState = () => ({
   customerName: '',

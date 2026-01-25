@@ -49,15 +49,9 @@ import { partnersData, statsData, storesData, generateOrderId, getStoresData, in
 import { enhancedSampleProducts } from "@/data/productCategories";
 import { allStoreProducts } from "@/data/allStoreProducts";
 import { loadStoreBySlug, getStoreProducts, getAllStoreProducts as getDynamicAllStoreProducts } from "@/utils/storeLoader";
+import { getApiBase, getApiUrl, stripApiBase } from "@/utils/apiConfig";
 
-const API_BASE = (() => {
-  const apiUrl = import.meta.env.VITE_API_URL;
-  if (apiUrl) return apiUrl;
-  if (typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname)) {
-    return 'http://localhost:5000/api';
-  }
-  return '/api';
-})();
+const API_BASE = getApiUrl();
 
 const canonicalStoreSlug = (value: unknown): string => {
   const normalized = (value ?? '').toString().trim().toLowerCase().replace(/\s+/g, '-');
@@ -147,15 +141,20 @@ export const getStoreProducts = (): Product[] => {
 
   // Generate slider content with actual images
   const sliderImages = storeData.sliderImages || [];
-  const slidesArray = sliderImages.map((slide, index) => `    {
+  const slidesArray = sliderImages.map((slide, index) => {
+    const img = stripApiBase(slide.image || slide.imageUrl || slide.imagePath || '');
+    const imgUrl = stripApiBase(slide.imageUrl || slide.image || slide.imagePath || '');
+    const imgPath = stripApiBase(slide.imagePath || slide.image || slide.imageUrl || '');
+    return `    {
       id: 'banner${index + 1}',
-      image: '${slide.image || slide.imageUrl || slide.imagePath || ''}',
-      imageUrl: '${slide.imageUrl || slide.image || slide.imagePath || ''}',
-      imagePath: '${slide.imagePath || slide.image || slide.imageUrl || ''}',
+      image: '${img}',
+      imageUrl: '${imgUrl}',
+      imagePath: '${imgPath}',
       title: '${slide.title || ''}',
       subtitle: '${slide.subtitle || ''}',
       buttonText: '${slide.buttonText || 'تسوق الآن'}'
-    }`).join(',\n');
+    }`;
+  }).join(',\n');
 
   const sliderContent = `// ${storeSlug.charAt(0).toUpperCase() + storeSlug.slice(1)}Slider component: Image slider for store banners with auto-play and navigation
 import React, { useState, useEffect, useRef } from 'react';
@@ -172,6 +171,7 @@ import {
   Eye
 } from 'lucide-react';
 import type { Product } from '../../storeProducts';
+import { getApiBase } from '@/utils/apiConfig';
 
 interface ${storeSlug.charAt(0).toUpperCase() + storeSlug.slice(1)}SliderProps {
   products: Product[];
@@ -206,7 +206,10 @@ ${slidesArray}
     return [];
   };
 
-  const banners = getSliderBanners(storeSlug);
+  const banners = getSliderBanners(storeSlug).map(b => ({
+    ...b,
+    image: (b.image && !b.image.startsWith('http')) ? getApiBase() + b.image : b.image
+  }));
 
   useEffect(() => {
     if (!isAutoPlaying || banners.length === 0) return;
@@ -1752,8 +1755,8 @@ export default function Home() {
 
     const syncPermanentStores = async () => {
       try {
-        const apiUrl = import.meta.env.VITE_API_URL || '/api';
-        const backendUrl = apiUrl.replace('/api', '');
+        const apiUrl = getApiUrl();
+        const backendUrl = getApiBase();
         
         let indexResponse = await fetch(`${backendUrl}/assets/stores/index.json`, { cache: 'no-store' }).catch(() => null);
         if (!indexResponse?.ok) {

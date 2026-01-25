@@ -1,3 +1,5 @@
+import { getApiUrl } from "@/utils/apiConfig";
+
 const LIGHTBOX_SRC_SANDBOX = "https://tnpg.moamalat.net:6006/js/lightbox.js";
 const LIGHTBOX_SRC_PRODUCTION = "https://pgw.moamalat.net:6006/js/lightbox.js";
 const DEFAULT_MID = "10081014649";
@@ -102,7 +104,7 @@ async function ensureScriptLoaded(env?: "sandbox" | "production"): Promise<void>
 
 async function fetchServerConfig(): Promise<{ MID?: string; TID?: string; ENV?: string }> {
   try {
-    const response = await fetch("/api/moamalat/config");
+    const response = await fetch(`${getApiUrl()}/moamalat/config`);
     if (!response.ok) return {};
     return (await response.json()) as { MID?: string; TID?: string; ENV?: string };
   } catch {
@@ -151,7 +153,7 @@ async function requestSecureHash(payload: {
   TerminalId: string;
 }): Promise<string> {
   try {
-    const response = await fetch("/api/moamalat/hash", {
+    const response = await fetch(`${getApiUrl()}/moamalat/hash`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),

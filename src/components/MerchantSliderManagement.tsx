@@ -36,6 +36,7 @@ import {
   showSyncNotification,
   type SyncEvent 
 } from '@/utils/sliderIntegration';
+import { getApiBase, getApiUrl } from '@/utils/apiConfig';
 
 interface MerchantSliderManagementProps {
   storeSlug: string;
@@ -71,10 +72,10 @@ const MerchantSliderManagement: React.FC<MerchantSliderManagementProps> = ({
       setSyncStatus('syncing');
       
       let loadedSliders: SliderImage[] = [];
+      const apiBase = getApiBase();
       
       try {
-        const isLocalhost = typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname);
-        const apiUrl = import.meta.env.VITE_API_URL || (isLocalhost ? 'http://localhost:5000/api' : '/api');
+        const apiUrl = getApiUrl();
         const response = await fetch(`${apiUrl}/sliders/store/${storeSlug}`);
         
         if (response.ok) {
@@ -97,7 +98,14 @@ const MerchantSliderManagement: React.FC<MerchantSliderManagementProps> = ({
             }));
             
             storageManager.saveStoreSliders(storeSlug, loadedSliders);
-            setSliders(loadedSliders);
+            
+            // Prepend apiBase for rendering
+            const rendered = loadedSliders.map(s => ({
+              ...s,
+              imageUrl: (s.imageUrl && !s.imageUrl.startsWith('http')) ? apiBase + s.imageUrl : s.imageUrl
+            }));
+            
+            setSliders(rendered);
             setSyncStatus('connected');
             return;
           }
@@ -107,7 +115,14 @@ const MerchantSliderManagement: React.FC<MerchantSliderManagementProps> = ({
       }
       
       loadedSliders = storageManager.loadStoreSliders(storeSlug);
-      setSliders(loadedSliders);
+      
+      // Prepend apiBase for rendering
+      const renderedFromStorage = loadedSliders.map(s => ({
+        ...s,
+        imageUrl: (s.imageUrl && !s.imageUrl.startsWith('http')) ? apiBase + s.imageUrl : s.imageUrl
+      }));
+      
+      setSliders(renderedFromStorage);
       setSyncStatus('connected');
 
     } catch (error) {
@@ -132,8 +147,7 @@ const MerchantSliderManagement: React.FC<MerchantSliderManagementProps> = ({
         onSliderUpdate?.(updatedSliders);
         
         try {
-          const isLocalhost = typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname);
-          const apiUrl = import.meta.env.VITE_API_URL || (isLocalhost ? 'http://localhost:5000/api' : '/api');
+          const apiUrl = getApiUrl();
           for (const slider of updatedSliders) {
             const serverId = slider.metadata?.serverId;
             const isDataUrl = slider.imageUrl?.startsWith('data:');
@@ -250,8 +264,7 @@ const MerchantSliderManagement: React.FC<MerchantSliderManagementProps> = ({
       const formData = new FormData();
       formData.append('sliderImage_0', file);
       
-      const isLocalhost = typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname);
-      const apiUrl = import.meta.env.VITE_API_URL || (isLocalhost ? 'http://localhost:5000/api' : '/api');
+      const apiUrl = getApiUrl();
       const uploadResponse = await fetch(`${apiUrl}/stores/${storeSlug}/upload-slider-image`, {
         method: 'POST',
         body: formData

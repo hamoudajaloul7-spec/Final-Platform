@@ -12,22 +12,7 @@ import {
   Eye
 } from 'lucide-react';
 import type { Product } from '../../storeProducts';
-
-const getBackendUrl = () => {
-  const apiUrl = import.meta.env.VITE_API_URL;
-  if (apiUrl) return apiUrl.replace('/api', '');
-  return typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname)
-    ? 'http://localhost:5000'
-    : '';
-};
-
-const getImageUrl = (assetPath: string) => {
-  const backendUrl = getBackendUrl();
-  return {
-    primary: `${backendUrl}${assetPath}`,
-    fallback: assetPath,
-  };
-};
+import { getProxyImageUrl } from '@/utils/assetProxyUtil';
 
 interface PrettySliderProps {
   products: Product[];
@@ -57,47 +42,49 @@ const PrettySlider: React.FC<PrettySliderProps> = ({
   const defaultBanners = [
     {
       id: 'banner1',
-      image: getImageUrl('/assets/pretty/sliders/slider10.webp').primary,
-      fallbackImage: getImageUrl('/assets/pretty/sliders/slider10.webp').fallback,
+      image: getProxyImageUrl('/assets/pretty/sliders/slider10.webp', storeSlug, 'sliders'),
+      fallbackImage: '/assets/pretty/sliders/slider10.webp',
       title: 'مجموعة العطور الفاخرة في بريتي'
     },
     {
       id: 'banner2',
-      image: getImageUrl('/assets/pretty/sliders/slider11.webp').primary,
-      fallbackImage: getImageUrl('/assets/pretty/sliders/slider11.webp').fallback,
+      image: getProxyImageUrl('/assets/pretty/sliders/slider11.webp', storeSlug, 'sliders'),
+      fallbackImage: '/assets/pretty/sliders/slider11.webp',
       title: 'عطور نسائية أنيقة'
     },
     {
       id: 'banner3',
-      image: getImageUrl('/assets/pretty/sliders/slider12.webp').primary,
-      fallbackImage: getImageUrl('/assets/pretty/sliders/slider12.webp').fallback,
+      image: getProxyImageUrl('/assets/pretty/sliders/slider12.webp', storeSlug, 'sliders'),
+      fallbackImage: '/assets/pretty/sliders/slider12.webp',
       title: 'عطور رجالية مميزة'
     },
     {
       id: 'banner4',
-      image: getImageUrl('/assets/pretty/sliders/slider13.webp').primary,
-      fallbackImage: getImageUrl('/assets/pretty/sliders/slider13.webp').fallback,
+      image: getProxyImageUrl('/assets/pretty/sliders/slider13.webp', storeSlug, 'sliders'),
+      fallbackImage: '/assets/pretty/sliders/slider13.webp',
       title: 'مجموعات عطور خاصة'
     },
     {
       id: 'banner5',
-      image: getImageUrl('/assets/pretty/sliders/slider14.webp').primary,
-      fallbackImage: getImageUrl('/assets/pretty/sliders/slider14.webp').fallback,
+      image: getProxyImageUrl('/assets/pretty/sliders/slider14.webp', storeSlug, 'sliders'),
+      fallbackImage: '/assets/pretty/sliders/slider14.webp',
       title: 'مجموعات عطور فاخرة'
     },
     {
       id: 'banner6',
-      image: getImageUrl('/assets/pretty/sliders/slider15.webp').primary,
-      fallbackImage: getImageUrl('/assets/pretty/sliders/slider15.webp').fallback,
+      image: getProxyImageUrl('/assets/pretty/sliders/slider15.webp', storeSlug, 'sliders'),
+      fallbackImage: '/assets/pretty/sliders/slider15.webp',
       title: 'مجموعات عطور جديدة'
     }
   ];
 
-  if (sliderImages && sliderImages.length > 0) {
-    void 0;
-  }
-
-  const allSlides = (Array.isArray(sliderImages) && sliderImages.length > 0) ? sliderImages : defaultBanners;
+  const allSlides = (Array.isArray(sliderImages) && sliderImages.length > 0)
+    ? sliderImages.map(slide => ({
+        ...slide,
+        image: getProxyImageUrl(slide.image, storeSlug, 'sliders'),
+        fallbackImage: slide.image
+      }))
+    : defaultBanners;
 
   // التشغيل التلقائي
   useEffect(() => {

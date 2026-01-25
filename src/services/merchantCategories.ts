@@ -1,3 +1,5 @@
+import { getApiUrl } from '@/utils/apiConfig';
+
 interface ApiSuccessEnvelope<T> {
   success: true;
   data: T;
@@ -35,7 +37,7 @@ export interface CategoryPayload {
   storeId?: number;
 }
 
-const API_BASE_URL = import.meta.env?.VITE_APP_API_URL || '/api';
+const API_BASE_URL = getApiUrl();
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, {

@@ -4,6 +4,8 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Card, CardContent } from './ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
+import { getApiBase } from '@/utils/apiConfig';
+import { getProxyImageUrl } from '@/utils/assetProxyUtil';
 
 interface ImageGalleryModalProps {
   isOpen: boolean;
@@ -47,7 +49,7 @@ const ImageGalleryModal: React.FC<ImageGalleryModalProps> = ({
     setError(null);
     
     try {
-      const response = await fetch(`/assets/${storeSlug}/store.json`);
+      const response = await fetch(`${getApiBase()}/assets/${storeSlug}/store.json`);
       if (!response.ok) {
         throw new Error('فشل في تحميل بيانات المتجر');
       }
@@ -242,7 +244,7 @@ const ImageGalleryModal: React.FC<ImageGalleryModalProps> = ({
                   <CardContent className="p-2">
                     <div className="aspect-square bg-gray-100 rounded-lg mb-2 overflow-hidden relative group">
                       <img
-                        src={image.url}
+                        src={getProxyImageUrl(image.url)}
                         alt={image.filename}
                         className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
                         onError={(e) => {

@@ -1,3 +1,5 @@
+import { getApiUrl } from '@/utils/apiConfig';
+
 interface NotificationData {
   id: string;
   type: 'order' | 'promotion' | 'system' | 'chat' | 'product' | 'delivery';
@@ -125,7 +127,7 @@ class NotificationManager {
 
     try {
       // In a real implementation, this would send to your push service
-      await fetch('/api/send-push', {
+      await fetch(`${getApiUrl()}/send-push`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
