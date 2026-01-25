@@ -11,7 +11,10 @@ export const getProxyImageUrl = (
     return imagePath;
   }
 
-  if (imagePath.startsWith('/assets/') || imagePath.startsWith('/AdsForms/')) {
+  if (imagePath.startsWith('/assets/') || 
+      imagePath.startsWith('/AdsForms/') || 
+      imagePath.startsWith('/data/') || 
+      imagePath.startsWith('/logo-brands/')) {
     return imagePath;
   }
 

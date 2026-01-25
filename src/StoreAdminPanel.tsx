@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { getApiBase, getApiUrl } from '@/utils/apiConfig';
+import { getProxyImageUrl } from '@/utils/assetProxyUtil';
 
 // Store Admin Panel — advanced, extensible control panel to manage stores (local + permanent)
 // Drop this file into your project and render it from App when needed.
@@ -285,7 +286,7 @@ const StoreAdminPanel: React.FC = () => {
                 </td>
                 <td className="p-2">
                   <div className="flex items-center gap-3">
-                    <img src={s.logo || fallbackLogo} alt="" role="presentation" aria-hidden="true" className="w-9 h-9 rounded-md object-contain border" onError={(e) => { (e.target as HTMLImageElement).src = fallbackLogo; }} />
+                    <img src={getProxyImageUrl(s.logo || fallbackLogo, s.slug, 'logo')} alt="" role="presentation" aria-hidden="true" className="w-9 h-9 rounded-md object-contain border" onError={(e) => { (e.target as HTMLImageElement).src = fallbackLogo; }} />
                     <div>
                       <div className="font-medium">{s.name || s.slug}</div>
                       <div className="text-gray-500 text-xs line-clamp-1">{s.description || ''}</div>

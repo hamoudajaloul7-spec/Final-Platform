@@ -17,6 +17,7 @@ import {
   Star, 
   Store
 } from "lucide-react";
+import { getProxyImageUrl } from '@/utils/assetProxyUtil';
 import { sampleProducts, storesData } from "@/data/ecommerceData";
 import { allStoreProducts } from '@/data/allStoreProducts';
 import { nawaemProducts } from '@/data/stores/nawaem/nawamProducts';
@@ -309,7 +310,7 @@ const StorePage: React.FC<StorePageProps> = ({ storeSlug, onBack, onProductClick
                 return (
                   <div key={ad.id} className="flex-shrink-0 bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow cursor-pointer" onClick={() => ad.linkUrl && window.open(ad.linkUrl, '_blank')}>
                     <div className="relative w-64 h-24">
-                      <img src={template?.image} alt={ad.title} className="w-full h-full object-cover" />
+                      <img src={getProxyImageUrl(template?.image || '')} alt={ad.title} className="w-full h-full object-cover" />
                       <div className={`${getTextPositionStyle(ad.textPosition)} max-w-[95%]`} style={{ color: ad.textColor || '#ffffff', fontFamily: 'Cairo, sans-serif', fontWeight: 600 }}>
                         <h4 className="text-sm font-semibold line-clamp-2">{ad.title}</h4>
                       </div>
@@ -366,7 +367,7 @@ const StorePage: React.FC<StorePageProps> = ({ storeSlug, onBack, onProductClick
                         return (
                           <Card key={ad.id} className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow" onClick={() => ad.linkUrl && window.open(ad.linkUrl, '_blank')}>
                             <div className="relative aspect-video bg-gray-100">
-                              <img src={template?.image} alt={ad.title} className="w-full h-full object-cover" />
+                              <img src={getProxyImageUrl(template?.image || '')} alt={ad.title} className="w-full h-full object-cover" />
                               <div className={`${getTextPositionStyle(ad.textPosition)} w-full px-3`} style={{ color: ad.textColor || '#ffffff', fontFamily: 'Cairo, sans-serif', fontWeight: 600 }}>
                                 <h3 className="font-semibold mb-1 text-sm line-clamp-2">{ad.title}</h3>
                               </div>
@@ -439,7 +440,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode, onClick })
           <div className="flex">
             <div className="w-32 h-32 relative bg-gray-100 flex-shrink-0 rounded-lg overflow-hidden">
               <img
-                src={product.images[0]}
+                src={getProxyImageUrl(product.images[0])}
                 alt={product.name}
                 className="w-full h-full object-cover"
               />
@@ -545,7 +546,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode, onClick })
       <CardContent className="p-0">
         <div className="relative aspect-square bg-gray-100">
           <img 
-            src={product.images[0]} 
+            src={getProxyImageUrl(product.images[0])} 
             alt={product.name}
             className="w-full h-full object-cover"
           />

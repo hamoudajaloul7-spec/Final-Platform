@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { getProxyImageUrl } from '@/utils/assetProxyUtil';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -775,7 +776,7 @@ const MerchantSettings: React.FC = () => {
                 return (
                   <Card key={ad.id} className="overflow-hidden">
                     <div className="aspect-video bg-gray-100 overflow-hidden">
-                      <img src={template?.image} alt={ad.title} className="w-full h-full object-cover" />
+                      <img src={getProxyImageUrl(template?.image || '')} alt={ad.title} className="w-full h-full object-cover" />
                     </div>
                     <CardContent className="p-4">
                       <h3 className="font-semibold mb-2">{ad.title}</h3>
@@ -872,7 +873,7 @@ const MerchantSettings: React.FC = () => {
                           : 'border-gray-200 hover:border-gray-300'
                       }`}
                     >
-                      <img src={template.image} alt={template.name} className="w-full h-20 object-cover rounded mb-2" />
+                      <img src={getProxyImageUrl(template.image)} alt={template.name} className="w-full h-20 object-cover rounded mb-2" />
                       <p className="text-sm font-semibold">{template.name}</p>
                     </button>
                   ))}
@@ -905,7 +906,7 @@ const MerchantSettings: React.FC = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="p-4 bg-gray-50 rounded-lg">
-                  <img src={adTemplates.find(t => t.id === selectedAdTemplate)?.image} alt="preview" className="w-full h-32 object-cover rounded mb-4" />
+                  <img src={getProxyImageUrl(adTemplates.find(t => t.id === selectedAdTemplate)?.image || '')} alt="preview" className="w-full h-32 object-cover rounded mb-4" />
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">العنوان</p>

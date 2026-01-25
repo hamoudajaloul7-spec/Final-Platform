@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { getApiUrl } from '@/utils/apiConfig';
+import { getProxyImageUrl } from '@/utils/assetProxyUtil';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -431,7 +432,7 @@ export const SubscriptionCheckoutModal: React.FC<SubscriptionCheckoutModalProps>
                         }`} onClick={() => handlePaymentSelect(method.id)}>
                           <div className="text-center">
                             <div className="w-20 h-20 mx-auto bg-white rounded-3xl flex items-center justify-center shadow-lg border border-gray-100">
-                              <img src={method.icon} alt={method.name} className="w-16 h-16 object-contain" />
+                              <img src={getProxyImageUrl(method.icon)} alt={method.name} className="w-16 h-16 object-contain" />
                             </div>
                           </div>
                           {selectedPaymentMethod === method.id && (
@@ -469,7 +470,7 @@ export const SubscriptionCheckoutModal: React.FC<SubscriptionCheckoutModalProps>
                     <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-8 rounded-2xl border border-blue-200 shadow-xl">
                       <div className="text-center space-y-6">
                         <div className="w-24 h-24 mx-auto bg-white rounded-2xl flex items-center justify-center shadow-xl border border-blue-100">
-                          <img src="/data/payment/moamalat.png" alt="معاملات" className="w-16 h-16 object-contain" />
+                          <img src={getProxyImageUrl("/data/payment/moamalat.png")} alt="معاملات" className="w-16 h-16 object-contain" />
                         </div>
                         <h3 className="text-2xl font-bold text-blue-900">معاملات</h3>
                         <p className="text-blue-700 text-lg">البوابة الوطنية الليبية للمدفوعات الإلكترونية</p>

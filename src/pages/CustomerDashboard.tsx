@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { getProxyImageUrl } from '@/utils/assetProxyUtil';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -698,7 +699,7 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
           </div>
           <div className="flex flex-col items-center gap-4 rounded-2xl bg-white/15 p-6 backdrop-blur">
             {resolvedAvatar ? (
-              <img src={resolvedAvatar} alt="صورة المستخدم" className="h-20 w-20 rounded-full border-2 border-white object-cover shadow-lg" />
+              <img src={getProxyImageUrl(resolvedAvatar, undefined, 'logo')} alt="صورة المستخدم" className="h-20 w-20 rounded-full border-2 border-white object-cover shadow-lg" />
             ) : (
               <div className="flex h-20 w-20 items-center justify-center rounded-full bg-white/20 text-3xl font-bold text-white">
                 {customerInfo.name?.charAt(0) || 'ن'}
@@ -958,7 +959,7 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                 <div key={product.id || product.name} className="flex items-center gap-4 rounded-2xl border border-gray-100 bg-white/70 p-4 shadow-sm">
                   <div className="h-16 w-16 overflow-hidden rounded-xl bg-gray-100">
                     {image ? (
-                      <img src={image} alt={product.name || 'منتج'} className="h-full w-full object-cover" />
+                      <img src={getProxyImageUrl(image)} alt={product.name || 'منتج'} className="h-full w-full object-cover" />
                     ) : (
                       <div className="flex h-full w-full items-center justify-center text-sm text-gray-500">بدون صورة</div>
                     )}
@@ -984,7 +985,7 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
               return (
                 <div key={item.id || `${item.name}-${index}`} className="flex items-center gap-4 rounded-2xl border border-gray-100 bg-white/70 p-4 shadow-sm">
                   <div className="h-16 w-16 overflow-hidden rounded-xl bg-gray-100">
-                    {image ? <img src={image} alt={item.name || 'منتج غير متوفر'} className="h-full w-full object-cover" /> : <div className="flex h-full w-full items-center justify-center text-sm text-gray-500">قريباً</div>}
+                    {image ? <img src={getProxyImageUrl(image)} alt={item.name || 'منتج غير متوفر'} className="h-full w-full object-cover" /> : <div className="flex h-full w-full items-center justify-center text-sm text-gray-500">قريباً</div>}
                   </div>
                   <div className="flex-1 text-right">
                     <p className="text-sm font-semibold text-gray-900">{item.name || item.product?.name || 'منتج غير متوفر'}</p>
@@ -1009,7 +1010,7 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
               return (
                 <div key={order.id} className="flex items-center gap-4 rounded-2xl border border-gray-100 bg-white/70 p-4 shadow-sm">
                   <div className="h-16 w-16 overflow-hidden rounded-xl bg-gray-100">
-                    {image ? <img src={image} alt={firstItem?.name || 'منتج'} className="h-full w-full object-cover" /> : <div className="flex h-full w-full items-center justify-center text-sm text-gray-500">منتج</div>}
+                    {image ? <img src={getProxyImageUrl(image)} alt={firstItem?.name || 'منتج'} className="h-full w-full object-cover" /> : <div className="flex h-full w-full items-center justify-center text-sm text-gray-500">منتج</div>}
                   </div>
                   <div className="flex-1 text-right">
                     <p className="text-sm font-semibold text-gray-900">طلب #{order.id}</p>
@@ -1035,7 +1036,7 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
             return (
               <div key={order.id} className="flex items-center gap-4 rounded-2xl border border-gray-100 bg-white/70 p-4 shadow-sm">
                 <div className="h-16 w-16 overflow-hidden rounded-xl bg-gray-100">
-                  {image ? <img src={image} alt={firstItem?.name || 'منتج'} className="h-full w-full object-cover" /> : <div className="flex h-full w-full items-center justify-center text-sm text-gray-500">منتج</div>}
+                  {image ? <img src={getProxyImageUrl(image)} alt={firstItem?.name || 'منتج'} className="h-full w-full object-cover" /> : <div className="flex h-full w-full items-center justify-center text-sm text-gray-500">منتج</div>}
                 </div>
                 <div className="flex-1 text-right">
                   <p className="text-sm font-semibold text-gray-900">طلب #{order.id}</p>
@@ -1373,7 +1374,7 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
         <CardContent className="space-y-6">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:gap-6">
             <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-full bg-primary/10 text-3xl text-primary">
-              {avatarPreview ? <img src={avatarPreview} alt="صورة المستخدم" className="h-full w-full object-cover" /> : customerInfo.name?.charAt(0) || 'ن'}
+              {avatarPreview ? <img src={getProxyImageUrl(avatarPreview, undefined, 'logo')} alt="صورة المستخدم" className="h-full w-full object-cover" /> : customerInfo.name?.charAt(0) || 'ن'}
             </div>
             <div className="space-y-2">
               <p className="text-lg font-bold text-gray-900">{customerInfo.name}</p>
@@ -1504,7 +1505,7 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
           <div className="mb-6 flex items-center justify-between">
             <div className="flex items-center gap-3">
               {resolvedAvatar ? (
-                <img src={resolvedAvatar} alt="صورة المستخدم" className="h-12 w-12 rounded-full border border-white/60 object-cover shadow" />
+                <img src={getProxyImageUrl(resolvedAvatar, undefined, 'logo')} alt="صورة المستخدم" className="h-12 w-12 rounded-full border border-white/60 object-cover shadow" />
               ) : (
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-base font-semibold text-primary">
                   {customerInfo.name?.charAt(0) || 'ن'}

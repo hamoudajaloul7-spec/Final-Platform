@@ -738,7 +738,7 @@ const EnhancedProductPage: React.FC<EnhancedProductPageProps> = ({
                 <div key={similarProduct.id} className="group cursor-pointer" onClick={() => onProductSelect?.(similarProduct)}>
                   <div className="relative overflow-hidden rounded-xl mb-3 bg-gray-100 aspect-square">
                     <img
-                      src={similarProduct.images[0]}
+                      src={getProxyImageUrl(similarProduct.images[0])}
                       alt={similarProduct.name}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />

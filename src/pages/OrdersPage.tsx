@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import ShareMenu from '@/components/ShareMenu';
 import NotifyWhenAvailable from '@/components/NotifyWhenAvailable';
+import { getProxyImageUrl } from '@/utils/assetProxyUtil';
 
 interface Order {
   id: string;
@@ -307,7 +308,7 @@ const FavoriteCard: React.FC<{ item: any }> = ({ item }) => (
     <CardContent className="p-0">
       <div className="aspect-[3/2] relative overflow-hidden bg-gray-100">
         <img
-          src={item.images?.[0] || item.image || '/assets/products/placeholder.png'}
+          src={getProxyImageUrl(item.images?.[0] || item.image || '/assets/products/placeholder.png')}
           alt={item.name || ' '}
           className="w-full h-full object-cover"
           onError={(e) => {
@@ -356,7 +357,7 @@ const UnavailableCard: React.FC<{
         <div className="w-full h-full flex items-center justify-center">
           {item.image || item.images?.[0] ? (
             <img 
-              src={item.image || item.images[0]} 
+              src={getProxyImageUrl(item.image || item.images[0])} 
               alt={item.name || '  '}
               className="w-full h-full object-cover opacity-80"
               onError={(e) => {

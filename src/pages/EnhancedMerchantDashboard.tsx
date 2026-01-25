@@ -18,6 +18,7 @@ import { getDefaultProductImageSync, handleImageError } from '@/utils/imageUtils
 import AdsManagementView from '@/components/AdsManagementView';
 
 // Google Maps API types declaration
+import { getProxyImageUrl } from '@/utils/assetProxyUtil';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MERCHANT_PERMISSIONS_EVENT, MERCHANT_PERMISSIONS_KEY, merchantSections, merchants as merchantProfiles } from '@/components/admin/merchantConfig';
 
@@ -11701,7 +11702,7 @@ useEffect(() => {
                             { name: 'الدفع نقداً', src: '/assets/shipping/cash.png' }
                           ].map((method, index) => (
                             <div key={index} className="bg-transparent rounded-lg p-4 text-center border hover:shadow-lg transition-shadow">
-                              <img src={method.src} alt={method.name} className="w-24 h-24 object-contain mx-auto" />
+                              <img src={getProxyImageUrl(method.src)} alt={method.name} className="w-24 h-24 object-contain mx-auto" />
                               
                             </div>
                           ))}
@@ -12768,7 +12769,7 @@ useEffect(() => {
                                 { name: 'الدفع نقداً', src: '/assets/shipping/cash.png' }
                               ].map((method, index) => (
                                 <div key={index} className="bg-white rounded-lg p-4 text-center border hover:shadow-lg transition-shadow cursor-pointer">
-                                  <img src={method.src} alt={method.name} className="w-20 h-20 object-contain mx-auto" />
+                                  <img src={getProxyImageUrl(method.src)} alt={method.name} className="w-20 h-20 object-contain mx-auto" />
                                 </div>
                               ))}
                             </div>

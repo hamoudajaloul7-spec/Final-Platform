@@ -21,6 +21,7 @@ import {
   type SyncEvent
 } from '@/utils/sliderIntegration';
 import { getApiBase } from '@/utils/apiConfig';
+import { getProxyImageUrl } from '@/utils/assetProxyUtil';
 import type { Product } from '@/data/storeProducts';
 
 interface DynamicStoreSliderProps {
@@ -80,7 +81,7 @@ const DynamicStoreSlider: React.FC<DynamicStoreSliderProps> = ({
       // Prepend apiBase for rendering
       const rendered = loadedSliders.map((s: any) => ({
         ...s,
-        imageUrl: (s.imageUrl && !s.imageUrl.startsWith('http')) ? apiBase + s.imageUrl : s.imageUrl
+        imageUrl: getProxyImageUrl(s.imageUrl, storeSlug, 'sliders')
       }));
       
       setSliders(rendered);
@@ -148,10 +149,9 @@ const DynamicStoreSlider: React.FC<DynamicStoreSliderProps> = ({
 
     // Set up real-time listeners
     const cleanupListeners = initializeSliderListeners(storeSlug, (updatedSliders) => {
-      const apiBase = getApiBase();
       const rendered = updatedSliders.map((s: any) => ({
         ...s,
-        imageUrl: (s.imageUrl && !s.imageUrl.startsWith('http')) ? apiBase + s.imageUrl : s.imageUrl
+        imageUrl: getProxyImageUrl(s.imageUrl, storeSlug, 'sliders')
       }));
       setSliders(rendered);
       setSyncStatus(prev => ({

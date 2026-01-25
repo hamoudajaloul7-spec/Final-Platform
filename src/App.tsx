@@ -50,6 +50,7 @@ import { enhancedSampleProducts } from "@/data/productCategories";
 import { allStoreProducts } from "@/data/allStoreProducts";
 import { loadStoreBySlug, getStoreProducts, getAllStoreProducts as getDynamicAllStoreProducts } from "@/utils/storeLoader";
 import { getApiBase, getApiUrl, stripApiBase } from "@/utils/apiConfig";
+import { getProxyImageUrl } from "@/utils/assetProxyUtil";
 
 const API_BASE = getApiUrl();
 
@@ -1164,7 +1165,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           <div className="text-center">
             <div className="flex justify-center mb-4">
-              <img src="/eshro-logo-white.png" alt="إشرو" className="h-10 w-auto" />
+              <img src={getProxyImageUrl("/eshro-logo-white.png")} alt="إشرو" className="h-10 w-auto" />
             </div>
             <p className="text-gray-400 mb-4">
               منصة إشرو للتجارة الإلكترونية - انتقل من التجارة التقليدية إلى الرقمية بكل يسر
@@ -3292,6 +3293,19 @@ export default function Home() {
 
     // البحث في المنتجات الحالية للمتجر أولاً (أفضل أداء)
     let selectedProduct = currentStoreProducts.find(p => String(p.id) === String(currentProduct));
+
+    // إذا لم يُعثر عليه، جرب البحث في localStorage بشكل مباشر (للمتاجر الديناميكية)
+    if (!selectedProduct && currentStore) {
+      try {
+        const storedProducts = localStorage.getItem(`store_products_${currentStore}`);
+        if (storedProducts) {
+          const products = JSON.parse(storedProducts);
+          if (Array.isArray(products)) {
+            selectedProduct = products.find(p => String(p.id) === String(currentProduct));
+          }
+        }
+      } catch (e) {}
+    }
 
     // إذا لم يُعثر عليه، البحث في المنتجات التي تم تحميلها ديناميكياً
     if (!selectedProduct) {
