@@ -51,30 +51,8 @@ class OptimizedUploadMiddleware {
     }
   }
 
-  createOptimizedStorage(uploadDir: string, config: UploadConfig = defaultConfig) {
-    return multer.diskStorage({
-      destination: (req, file, cb) => {
-        try {
-          fsPromises.mkdir(uploadDir, { recursive: true }).then(() => {
-            cb(null, uploadDir);
-          }).catch((error) => {
-            cb(error as any, '' as any);
-          });
-        } catch (error) {
-          cb(error as any, '' as any);
-        }
-      },
-      filename: (req, file, cb) => {
-        const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-        const ext = path.extname(file.originalname);
-        const name = path.basename(file.originalname, ext);
-        cb(null, `${name}-${uniqueSuffix}${ext}`);
-      }
-    });
-  }
-
-  createOptimizedUpload(uploadDir: string, config: UploadConfig = defaultConfig) {
-    const storage = this.createOptimizedStorage(uploadDir, config);
+  createOptimizedUpload(config: UploadConfig = defaultConfig) {
+    const storage = multer.memoryStorage();
 
     return multer({
       storage,
@@ -98,12 +76,11 @@ class OptimizedUploadMiddleware {
   }
 
   uploadMiddlewareWithValidation(
-    uploadDir: string,
     fieldName: string,
     maxCount: number,
     config: UploadConfig = defaultConfig
   ) {
-    const upload = this.createOptimizedUpload(uploadDir, config);
+    const upload = this.createOptimizedUpload(config);
     const uploader = upload.array(fieldName, maxCount);
 
     return async (req: Request, res: Response, next: NextFunction) => {
@@ -206,27 +183,7 @@ class OptimizedUploadMiddleware {
     }));
   }
 
-  async cleanupAbandondedUploads(uploadDir: string, maxAgeMs: number = 3600000): Promise<void> {
-    try {
-      if (!fs.existsSync(uploadDir)) return;
-
-      const files = await fsPromises.readdir(uploadDir);
-      const now = Date.now();
-
-      for (const file of files) {
-        const filePath = path.join(uploadDir, file);
-        const stats = await fsPromises.stat(filePath);
-        const age = now - stats.mtimeMs;
-
-        if (age > maxAgeMs) {
-          await fsPromises.rm(filePath, { recursive: true, force: true });
-          logger.info(`Cleaned up abandoned upload: ${file}`);
-        }
-      }
-    } catch (error) {
-      logger.error('Error cleaning up abandoned uploads:', error);
-    }
-  }
 }
+
 
 export default new OptimizedUploadMiddleware();

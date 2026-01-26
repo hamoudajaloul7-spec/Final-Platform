@@ -8,6 +8,7 @@ interface StoreSliderAttributes {
   subtitle?: string;
   buttonText?: string;
   imagePath: string;
+  placement: string;
   sortOrder: number;
   metadata: Record<string, any> | null;
   createdAt?: Date;
@@ -16,7 +17,7 @@ interface StoreSliderAttributes {
 
 type StoreSliderCreationAttributes = Optional<
   StoreSliderAttributes,
-  'id' | 'subtitle' | 'buttonText' | 'metadata' | 'createdAt' | 'updatedAt'
+  'id' | 'subtitle' | 'buttonText' | 'metadata' | 'createdAt' | 'updatedAt' | 'placement' | 'sortOrder'
 >;
 
 class StoreSlider extends Model<StoreSliderAttributes, StoreSliderCreationAttributes> implements StoreSliderAttributes {
@@ -26,6 +27,7 @@ class StoreSlider extends Model<StoreSliderAttributes, StoreSliderCreationAttrib
   declare subtitle?: string;
   declare buttonText?: string;
   declare imagePath: string;
+  declare placement: string;
   declare sortOrder: number;
   declare metadata: Record<string, any> | null;
   declare createdAt: Date;
@@ -61,6 +63,11 @@ StoreSlider.init(
       type: DataTypes.STRING(1024),
       allowNull: false,
       field: 'image_path',
+    },
+    placement: {
+      type: DataTypes.STRING(50),
+      allowNull: false,
+      defaultValue: 'slider',
     },
     sortOrder: {
       type: DataTypes.INTEGER,

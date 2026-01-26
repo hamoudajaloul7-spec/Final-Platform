@@ -1,6 +1,7 @@
 import type { Product } from '@/data/storeProducts';
 import { normalizeApiProduct } from '@/utils/storeConfigLoader';
 import { getApiBase } from '@/utils/apiConfig';
+import { getProxyImageUrl } from '@/utils/assetProxyUtil';
 import { nawaemProducts } from '@/data/stores/nawaem/products';
 import { sheirineProducts } from '@/data/stores/sheirine/products';
 import { prettyProducts } from '@/data/stores/pretty/products';
@@ -58,12 +59,7 @@ function normalizeImagePaths(data: any, apiBase: string, slug: string, isServedS
     data.products = data.products.map((product: any) => ({
       ...product,
       images: Array.isArray(product.images) 
-        ? product.images.map((img: string) => {
-            if (img && typeof img === 'string' && !img.startsWith('http')) {
-              return isServedStatic ? img : apiBase + img;
-            }
-            return img;
-          })
+        ? product.images.map((img: string) => getProxyImageUrl(img, slug, 'products'))
         : product.images
     }));
   }
@@ -72,16 +68,16 @@ function normalizeImagePaths(data: any, apiBase: string, slug: string, isServedS
     data.sliderImages = data.sliderImages.map((slider: any) => {
       const normalized = { ...slider };
       ['image', 'imagePath', 'imageUrl'].forEach(key => {
-        if (normalized[key] && typeof normalized[key] === 'string' && !normalized[key].startsWith('http')) {
-          normalized[key] = isServedStatic ? normalized[key] : apiBase + normalized[key];
+        if (normalized[key] && typeof normalized[key] === 'string') {
+          normalized[key] = getProxyImageUrl(normalized[key], slug, 'sliders');
         }
       });
       return normalized;
     });
   }
   
-  if (data.logo && typeof data.logo === 'string' && !data.logo.startsWith('http')) {
-    data.logo = isServedStatic ? data.logo : apiBase + data.logo;
+  if (data.logo && typeof data.logo === 'string') {
+    data.logo = getProxyImageUrl(data.logo, slug, 'logo');
   }
   
   return data;

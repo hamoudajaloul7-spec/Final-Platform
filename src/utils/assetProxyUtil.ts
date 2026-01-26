@@ -11,12 +11,28 @@ export const getProxyImageUrl = (
 ): string => {
   if (!imagePath) return '';
 
-  // 1. If it's already an absolute URL or data URI, return it
-  if (imagePath.startsWith('http://') || imagePath.startsWith('https://') || imagePath.startsWith('data:')) {
+  // 1. If it's already a data URI, return it
+  if (imagePath.startsWith('data:')) {
     return imagePath;
   }
 
-  // 2. Handle known local asset paths
+  const base = getApiBase();
+  const getProxyUrl = (src: string) => {
+    const apiUrl = base ? `${base}/api` : '/api';
+    return `${apiUrl}/assets/proxy?src=${encodeURIComponent(src)}`;
+  };
+
+  // 2. If it's an absolute URL, use the proxy for external ones to get caching/optimization
+  if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+    // If it's already from our own storage or domain, return as is
+    if (imagePath.includes(SUPABASE_PROJECT_ID) || (base && imagePath.startsWith(base))) {
+      return imagePath;
+    }
+    // Otherwise, proxy it
+    return getProxyUrl(imagePath);
+  }
+
+  // 3. Handle known local asset paths
   if (imagePath.startsWith('/assets/') || 
       imagePath.startsWith('/AdsForms/') || 
       imagePath.startsWith('/data/') || 
@@ -24,13 +40,11 @@ export const getProxyImageUrl = (
     return imagePath;
   }
 
-  // 3. Performance Hack: Direct Supabase URL for uploaded assets
-  // This bypasses the backend proxy and reduces latency by 90%+
+  // 4. Performance: Direct Supabase URL for uploaded assets
   if (!imagePath.startsWith('/') && imagePath.includes('.')) {
     return `${SUPABASE_PUBLIC_URL}/${imagePath}`;
   }
 
-  const base = getApiBase();
   if (base) {
     // Ensure relative paths from backend are prefixed
     const cleanPath = imagePath.startsWith('/') ? imagePath : `/${imagePath}`;

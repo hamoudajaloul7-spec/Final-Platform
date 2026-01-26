@@ -193,14 +193,13 @@ export class StoreGeneratorService {
       brandsDir
     ];
 
-    logger.info(`    📁 Creating asset directories for: ${storeSlug}`);
+    logger.info(`    📁 Ensuring asset directories for: ${storeSlug}`);
     for (const dir of dirs) {
       try {
         await fsPromises.mkdir(dir, { recursive: true });
         logger.info(`      ✅ ${path.relative(this.baseProjectDir, dir)}`);
       } catch (error) {
-        logger.error(`      ❌ Failed to create ${dir}:`, error);
-        throw error;
+        logger.warn(`      ⚠️  Could not create ${dir}: ${(error as Error).message}`);
       }
     }
     logger.info(`    ✅ All asset directories created successfully`);

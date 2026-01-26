@@ -3,6 +3,8 @@ import StoreSlider from '@models/StoreSlider';
 import Store from '@models/Store';
 import logger from '@utils/logger';
 import { normalizeSliderImagePath } from '@utils/sliderPath';
+import { uploadBufferToSupabase } from '@services/supabaseImageUpload';
+import path from 'path';
 
 export const getStoreSliders = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -87,6 +89,7 @@ export const createStoreSlider = async (req: Request, res: Response): Promise<vo
       subtitle: subtitle ? subtitle.slice(0, 512) : undefined,
       buttonText: buttonText ? buttonText.slice(0, 128) : undefined,
       imagePath: imagePath,
+      placement: req.body.placement || 'slider',
       sortOrder: sortOrder || 0,
       metadata: metadata || null,
     });
@@ -309,16 +312,30 @@ export const uploadSliderImage = async (req: Request, res: Response): Promise<vo
       return;
     }
 
-    const imagePath = `/assets/${store.id}/sliders/${req.file.filename}`;
+    const fileExt = path.extname(req.file.originalname);
+    const fileName = `${Date.now()}-${Math.round(Math.random() * 1e9)}${fileExt}`;
 
-    logger.info(`Slider image uploaded for store ${storeId}: ${req.file.filename}`);
+    const uploadResult = await uploadBufferToSupabase(
+      req.file.buffer,
+      fileName,
+      store.slug,
+      'sliders'
+    );
+
+    if (!uploadResult.success) {
+      throw new Error(uploadResult.error || 'Failed to upload to Supabase');
+    }
+
+    logger.info(`Slider image uploaded to Supabase for store ${store.slug}: ${uploadResult.url}`);
+    
     res.status(201).json({
       success: true,
       data: {
-        filename: req.file.filename,
-        imagePath: imagePath,
+        filename: fileName,
+        imagePath: uploadResult.url, // Return the full Supabase URL
         size: req.file.size,
-        mimetype: req.file.mimetype
+        mimetype: req.file.mimetype,
+        url: uploadResult.url
       }
     });
   } catch (error) {

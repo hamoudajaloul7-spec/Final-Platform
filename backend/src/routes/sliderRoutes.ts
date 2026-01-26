@@ -11,27 +11,12 @@ import {
   updateSlidersOrder,
   uploadSliderImage,
 } from '@controllers/sliderController';
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const { storeId } = req.params;
-    const uploadDir = path.join(process.cwd(), 'public/assets', storeId, 'sliders');
-    
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, path.parse(file.originalname).name + '_' + uniqueSuffix + path.extname(file.originalname));
-  }
-});
+const storage = multer.memoryStorage();
 
 const upload = multer({
   storage: storage,
   fileFilter: (req, file, cb) => {
-    const allowedMimes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/bmp'];
+    const allowedMimes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/bmp', 'image/avif', 'image/svg+xml'];
     if (allowedMimes.includes(file.mimetype)) {
       cb(null, true);
     } else {

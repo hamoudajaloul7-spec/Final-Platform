@@ -124,7 +124,10 @@ const renderElementToCanvas = async (el: HTMLElement) => {
         const styleTags = doc.getElementsByTagName('style');
         for (let i = 0; i < styleTags.length; i++) {
           try {
-            styleTags[i].innerHTML = replaceOklchInString(styleTags[i].innerHTML);
+            const tag = styleTags[i];
+            if (tag) {
+              tag.innerHTML = replaceOklchInString(tag.innerHTML);
+            }
           } catch (e) {}
         }
 
@@ -202,6 +205,8 @@ export const generateMerchantPDF = async (elementId: string = 'pdf-content') => 
 
   for (let i = 0; i < canvases.length; i++) {
     const canvas = canvases[i];
+    if (!canvas) continue;
+
     // Use JPEG for faster generation and smaller file size (background is white anyway)
     const imgData = canvas.toDataURL('image/jpeg', 0.7); 
     const imgHeight = (canvas.height * pageWidth) / canvas.width;

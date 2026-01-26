@@ -1,6 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
 import logger from '@utils/logger';
-import fs from 'fs';
 import path from 'path';
 
 const supabaseUrl = process.env.SUPABASE_URL || 'https://wbakbuqvdbmweujkbzxn.supabase.co';
@@ -40,8 +39,9 @@ const getMimeType = (filename: string): string => {
   return mimeTypes[ext] || 'application/octet-stream';
 };
 
-export const uploadImageToSupabase = async (
-  filePath: string,
+export const uploadBufferToSupabase = async (
+  buffer: Buffer,
+  filename: string,
   storeSlug: string,
   imageType: 'products' | 'sliders' | 'logo'
 ): Promise<UploadImageResult> => {
@@ -50,19 +50,13 @@ export const uploadImageToSupabase = async (
       throw new Error('SUPABASE key is not configured');
     }
 
-    if (!fs.existsSync(filePath)) {
-      throw new Error(`File not found: ${filePath}`);
-    }
-
-    const filename = path.basename(filePath);
     const supabasePath = `stores/${storeSlug}/${imageType}/${filename}`;
-    const fileBuffer = await fs.promises.readFile(filePath);
 
-    logger.info(`📤 Uploading to Supabase: ${supabasePath}`);
+    logger.info(`📤 Uploading buffer to Supabase: ${supabasePath}`);
 
     const { data, error } = await supabase.storage
       .from(supabaseBucket)
-      .upload(supabasePath, fileBuffer, {
+      .upload(supabasePath, buffer, {
         contentType: getMimeType(filename),
         cacheControl: '31536000',
         upsert: true
@@ -74,7 +68,7 @@ export const uploadImageToSupabase = async (
 
     const url = `${supabaseUrl}/storage/v1/object/public/${supabaseBucket}/${supabasePath}`;
 
-    logger.info(`✅ Uploaded to Supabase: ${url}`);
+    logger.info(`✅ Uploaded buffer to Supabase: ${url}`);
 
     return {
       success: true,
@@ -84,10 +78,10 @@ export const uploadImageToSupabase = async (
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    logger.error(`❌ Failed to upload image to Supabase: ${errorMessage}`);
+    logger.error(`❌ Failed to upload buffer to Supabase: ${errorMessage}`);
     return {
       success: false,
-      filename: path.basename(filePath),
+      filename,
       path: '',
       url: '',
       error: errorMessage
@@ -96,14 +90,14 @@ export const uploadImageToSupabase = async (
 };
 
 export const uploadMultipleImagesToSupabase = async (
-  files: Array<{ path: string; filename?: string }>,
+  files: Array<{ buffer: Buffer; filename: string }>,
   storeSlug: string,
   imageType: 'products' | 'sliders' | 'logo'
 ): Promise<UploadImageResult[]> => {
   const results: UploadImageResult[] = [];
 
   for (const file of files) {
-    const result = await uploadImageToSupabase(file.path, storeSlug, imageType);
+    const result = await uploadBufferToSupabase(file.buffer, file.filename, storeSlug, imageType);
     results.push(result);
   }
 

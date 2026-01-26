@@ -38,6 +38,7 @@ import NotifyWhenAvailable from '@/components/NotifyWhenAvailable';
 import StoreFrontSlider from '@/components/StoreFrontSlider';
 import StoreAds from '@/components/StoreAds';
 import { getTagColor, calculateBadge } from '@/utils/badgeCalculator';
+import { getProxyImageUrl } from '@/utils/assetProxyUtil';
 
 interface EnhancedStorePageProps {
   storeSlug: string;
@@ -221,7 +222,7 @@ const EnhancedStorePage: React.FC<EnhancedStorePageProps> = ({
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-xl overflow-hidden bg-gray-100">
                   <img
-                    src={store.logo}
+                    src={getProxyImageUrl(store.logo, storeSlug, 'logo')}
                     alt={store.name}
                     className="w-full h-full object-cover"
                     onError={(e) => {
@@ -363,6 +364,7 @@ const EnhancedStorePage: React.FC<EnhancedStorePageProps> = ({
               <ProductCard
                 key={product.id}
                 product={product}
+                storeSlug={storeSlug}
                 viewMode={viewMode}
                 isFavorite={favorites.includes(product.id)}
                 onProductClick={() => {
@@ -399,6 +401,7 @@ const EnhancedStorePage: React.FC<EnhancedStorePageProps> = ({
 // مكون كارد المنتج
 const ProductCard: React.FC<{
   product: Product;
+  storeSlug: string;
   viewMode: 'grid' | 'list';
   isFavorite: boolean;
   onProductClick: () => void;
@@ -408,6 +411,7 @@ const ProductCard: React.FC<{
   renderStarRating: (rating: number) => React.ReactNode;
 }> = ({
   product,
+  storeSlug,
   viewMode,
   isFavorite,
   onProductClick,
@@ -467,7 +471,7 @@ const ProductCard: React.FC<{
           <div className="flex">
             <div className="w-32 h-32 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center relative flex-shrink-0">
               <img
-                src={product.images[0]}
+                src={getProxyImageUrl(product.images[0] || '', storeSlug, 'products')}
                 alt={product.name}
                 className="w-full h-full object-cover"
                 onError={(e) => {
@@ -578,7 +582,7 @@ const ProductCard: React.FC<{
       <CardContent className="p-0">
         <div className="aspect-square bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center relative">
           <img
-            src={product.images[0]}
+            src={getProxyImageUrl(product.images[0] || '', storeSlug, 'products')}
             alt={product.name}
             className="w-full h-full object-contain bg-white group-hover:scale-105 transition-transform duration-300"
             onError={(e) => {

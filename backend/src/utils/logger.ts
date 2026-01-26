@@ -4,6 +4,7 @@ import path from 'path';
 import config from '@config/environment';
 
 const isVercel = Boolean(process.env.VERCEL);
+const isCloudNative = isVercel || process.env.CLOUD_NATIVE === 'true' || process.env.NODE_ENV === 'production';
 const logsDir = path.dirname(config.logging.file);
 
 const format = winston.format.combine(
@@ -18,7 +19,7 @@ const transports: winston.transport[] = [
   new winston.transports.Console({ format }),
 ];
 
-if (!isVercel) {
+if (!isCloudNative) {
   try {
     if (!fs.existsSync(logsDir)) {
       fs.mkdirSync(logsDir, { recursive: true });

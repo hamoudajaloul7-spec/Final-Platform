@@ -12,6 +12,14 @@ export interface SliderImage {
   createdAt: string;
   updatedAt: string;
   storeSlug?: string;
+  metadata?: {
+    serverId?: any;
+    id?: string;
+    isActive?: boolean;
+    createdAt?: string;
+    updatedAt?: string;
+    [key: string]: any;
+  };
 }
 
 // Store slider configuration

@@ -1,5 +1,6 @@
 import { STORES_CONFIG, getStoreConfig, getStoreProducts, getStoreSliders, type StoreConfigProduct, type SliderBanner } from '@/config/storeConfig';
 import type { Product } from '@/data/storeProducts';
+import { getProxyImageUrl } from './assetProxyUtil';
 
 export interface StoreData {
   config: ReturnType<typeof getStoreConfig>;
@@ -55,6 +56,9 @@ export function normalizeApiProduct(apiProduct: any): Product {
   }
   if (quantity <= 0) inStock = false;
 
+  const productImages = Array.isArray(apiProduct.images) ? apiProduct.images : [];
+  const slug = apiProduct.storeSlug || '';
+
   return {
     id: apiProduct.id || 0,
     storeId: apiProduct.storeId || 0,
@@ -62,7 +66,7 @@ export function normalizeApiProduct(apiProduct: any): Product {
     description: apiProduct.description || '',
     price: apiProduct.price ?? 0,
     originalPrice: apiProduct.originalPrice ?? apiProduct.price ?? 0,
-    images: Array.isArray(apiProduct.images) ? apiProduct.images : [],
+    images: productImages.map((img: string) => getProxyImageUrl(img, slug, 'products')),
     sizes: Array.isArray(apiProduct.sizes) ? apiProduct.sizes : [],
     availableSizes: Array.isArray(apiProduct.availableSizes) ? apiProduct.availableSizes : (Array.isArray(apiProduct.sizes) ? apiProduct.sizes : []),
     colors: Array.isArray(apiProduct.colors) ? apiProduct.colors : [],

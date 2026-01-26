@@ -85,7 +85,9 @@ const EnhancedProductPage: React.FC<EnhancedProductPageProps> = ({
   const notifyStoreName = resolvedStoreInfo?.name;
   const safeProduct = {
     ...product,
-    availableSizes: product.availableSizes || product.sizes || []
+    availableSizes: product.availableSizes || product.sizes || [],
+    inStock: product.inStock !== undefined ? product.inStock : true,
+    isAvailable: product.isAvailable !== undefined ? product.isAvailable : true
   };
 
  
@@ -137,7 +139,7 @@ const EnhancedProductPage: React.FC<EnhancedProductPageProps> = ({
   };
 
   const handleAddToCart = () => {
-    if (!product.inStock || !product.isAvailable) {
+    if (!safeProduct.inStock || !safeProduct.isAvailable) {
       // إظهار رسالة "نبهني عند التوفر"
       onNotifyWhenAvailable(product.id);
       return;
@@ -361,7 +363,7 @@ const EnhancedProductPage: React.FC<EnhancedProductPageProps> = ({
               })()}
               
               <img
-                src={getProxyImageUrl(product.images[selectedImageIndex] || product.images[0])}
+                src={getProxyImageUrl(product.images[selectedImageIndex] || product.images[0] || '')}
                 alt={product.name}
                 className="w-full h-full object-contain bg-white hover:scale-105 transition-transform duration-500"
                 onError={(e) => {
@@ -738,7 +740,7 @@ const EnhancedProductPage: React.FC<EnhancedProductPageProps> = ({
                 <div key={similarProduct.id} className="group cursor-pointer" onClick={() => onProductSelect?.(similarProduct)}>
                   <div className="relative overflow-hidden rounded-xl mb-3 bg-gray-100 aspect-square">
                     <img
-                      src={getProxyImageUrl(similarProduct.images[0])}
+                      src={getProxyImageUrl(similarProduct.images[0] || '')}
                       alt={similarProduct.name}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />

@@ -776,10 +776,11 @@ const CreateStorePage: React.FC<CreateStorePageProps> = ({
       
       let logoDataUrl: string | null = null;
       if (formData.storeLogo) {
+        const logoFile = formData.storeLogo;
         logoDataUrl = await new Promise<string>((resolve) => {
           const reader = new FileReader();
           reader.onload = () => resolve(reader.result as string);
-          reader.readAsDataURL(formData.storeLogo);
+          reader.readAsDataURL(logoFile);
         });
       }
 

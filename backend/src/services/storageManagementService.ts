@@ -3,6 +3,8 @@ import { promises as fsPromises } from 'fs';
 import path from 'path';
 import logger from '@utils/logger';
 
+const isCloudNative = Boolean(process.env.VERCEL) || process.env.CLOUD_NATIVE === 'true' || process.env.NODE_ENV === 'production';
+
 interface StorageStats {
   totalSize: number;
   fileCount: number;
@@ -22,6 +24,14 @@ class StorageManagementService {
   }
 
   async getStorageStats(): Promise<StorageStats> {
+    if (isCloudNative) {
+      return {
+        totalSize: 0,
+        fileCount: 0,
+        folderSizes: { 'cloud-storage': 0 },
+        timestamp: new Date()
+      };
+    }
     try {
       const assetsPath = path.join(this.basePath, 'backend', 'public', 'assets');
       const stats = await this.calculateFolderSize(assetsPath);
@@ -79,6 +89,9 @@ class StorageManagementService {
   }
 
   async cleanupTempUploads(maxAgeHours: number = 24): Promise<{ deletedFiles: number; freedSpace: number }> {
+    if (isCloudNative) {
+      return { deletedFiles: 0, freedSpace: 0 };
+    }
     try {
       const tempPath = path.join(this.basePath, '.tmp-uploads');
       let deletedFiles = 0;
@@ -139,6 +152,7 @@ class StorageManagementService {
   }
 
   private async aggressiveCleanup(): Promise<void> {
+    if (isCloudNative) return;
     try {
       const assetsPath = path.join(this.basePath, 'backend', 'public', 'assets');
       const stores = await fsPromises.readdir(assetsPath, { withFileTypes: true });
@@ -178,6 +192,9 @@ class StorageManagementService {
   }
 
   async getStorageHealth(): Promise<{ status: 'healthy' | 'warning' | 'critical'; percentage: number; message: string }> {
+    if (isCloudNative) {
+      return { status: 'healthy', percentage: 0, message: 'Cloud storage managed externally' };
+    }
     const stats = await this.getStorageStats();
     const percentage = (stats.totalSize / this.maxStorageSize) * 100;
 

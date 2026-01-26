@@ -85,6 +85,12 @@ interface ApiResponse<T = any> {
   fallback?: boolean;
 }
 
+interface AuthResponse {
+  token: string;
+  refreshToken?: string;
+  user?: any;
+}
+
 interface MinimaxToolCall {
   tool_id: string;
   parameters: any;
@@ -186,8 +192,8 @@ class UnifiedApiService {
     return this.requestWithRetry(endpoint, options, 3, false);
     }
 
-  async login(email: string, password: string): Promise<ApiResponse> {
-    const response = await this.request('/auth/login', {
+  async login(email: string, password: string): Promise<ApiResponse<AuthResponse>> {
+    const response = await this.request<AuthResponse>('/auth/login', {
       method: 'POST',
       body: JSON.stringify({ email, password }),
     });
@@ -197,8 +203,8 @@ class UnifiedApiService {
     return response;
   }
 
-  async register(userData: any): Promise<ApiResponse> {
-    const response = await this.request('/auth/register', {
+  async register(userData: any): Promise<ApiResponse<AuthResponse>> {
+    const response = await this.request<AuthResponse>('/auth/register', {
       method: 'POST',
       body: JSON.stringify(userData),
     });

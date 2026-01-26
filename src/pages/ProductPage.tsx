@@ -498,7 +498,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
                 <CardContent className="p-0">
                   <div className="aspect-square bg-white overflow-hidden">
                     <img 
-                      src={relatedProduct.images[0]} 
+                      src={getProxyImageUrl(relatedProduct.images[0] || '')} 
                       alt={relatedProduct.name}
                       className="w-full h-full object-cover"
                     />

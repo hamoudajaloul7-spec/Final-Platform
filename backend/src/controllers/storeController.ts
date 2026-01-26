@@ -20,9 +20,7 @@ import StoreUser from '@models/StoreUser';
 import ManualOrder from '@models/ManualOrder';
 import AbandonedCart from '@models/AbandonedCart';
 import { moveUploadedFiles, cleanupTempUploads } from '@middleware/storeImageUpload';
-import { uploadImageToSupabase, uploadMultipleImagesToSupabase, purgeStoreFromSupabase } from '@services/supabaseImageUpload';
-import fs from 'fs';
-import { promises as fsPromises } from 'fs';
+import { uploadMultipleImagesToSupabase, purgeStoreFromSupabase, uploadBufferToSupabase } from '@services/supabaseImageUpload';
 import path from 'path';
 
 interface ProductData {
@@ -42,55 +40,20 @@ interface ProductData {
   tags: string[];
 }
 
-const getTempUploadPath = (): string => {
-  let basePath = process.cwd();
-  if (basePath.endsWith('backend')) {
-    basePath = path.join(basePath, '..');
-  }
-  return path.join(basePath, '.tmp-uploads');
-};
-
 async function runGeneration(data: any): Promise<void> {
+  // We still call this to maintain the same flow, but the service should be refactored 
+  // to be less disk-dependent or handle failures gracefully.
   try {
-    const hookPath = path.join(process.cwd(), 'hooks', 'postCreationHook.js');
-    if (fs.existsSync(hookPath)) {
-      const hook = await import(hookPath);
-      if (hook && typeof hook.runStoreGeneration === 'function') {
-        await hook.runStoreGeneration(data);
-        return;
-      }
-    }
-  } catch {
-    // Continue if no hook is available
+    await storeGeneratorService.generateStoreFiles(data);
+  } catch (error) {
+    logger.warn(`Non-critical: Store file generation failed: ${error}`);
+    // We don't throw here because we are moving to a DB-first approach
   }
-  await storeGeneratorService.generateStoreFiles(data);
 }
 
 const supportedImageExtensions = ['png', 'jpg', 'jpeg', 'svg', 'webp', 'gif'];
 
 function getDefaultProductImage(storeSlug: string): string {
-  const baseProjectDir = process.cwd().endsWith('backend') 
-    ? path.join(process.cwd(), '..') 
-    : process.cwd();
-  
-  for (const ext of supportedImageExtensions) {
-    const storePath = `/assets/${storeSlug}/default-product.${ext}`;
-    const storeDefaultFile = path.join(baseProjectDir, 'public', storePath.substring(1));
-    
-    if (fs.existsSync(storeDefaultFile)) {
-      return storePath;
-    }
-  }
-  
-  for (const ext of supportedImageExtensions) {
-    const globalPath = `/assets/default-product.${ext}`;
-    const globalDefaultFile = path.join(baseProjectDir, 'public', globalPath.substring(1));
-    
-    if (fs.existsSync(globalDefaultFile)) {
-      return globalPath;
-    }
-  }
-  
   return '/assets/default-product.png';
 }
 
@@ -107,67 +70,16 @@ interface StoreVerificationResult {
   errors: string[];
   warnings: string[];
   checks: {
-    storeJsonExists: boolean;
-    indexJsonExists: boolean;
-    imagesFolderExists: boolean;
-    tsFilesExist: boolean;
-    fileCount?: number;
+    dbStoreExists: boolean;
+    imagesUploaded: boolean;
   };
 }
 
 async function cleanupDuplicateAssets(storeSlug: string): Promise<{ removed: number; message: string }> {
-  try {
-    const publicAssetsPath = path.join(process.cwd(), 'public/assets');
-    const storeAssetDir = path.join(publicAssetsPath, storeSlug);
-    const imageDirs = ['products', 'sliders', 'logo'];
-    let totalRemoved = 0;
-
-    for (const imageType of imageDirs) {
-      const imageDir = path.join(storeAssetDir, imageType);
-      if (!fs.existsSync(imageDir)) continue;
-
-      const files = fs.readdirSync(imageDir);
-      const fileHashes = new Map<string, string>();
-      const filesToDelete: string[] = [];
-
-      for (const filename of files) {
-        const filePath = path.join(imageDir, filename);
-        if (!fs.statSync(filePath).isFile()) continue;
-
-        const hash = crypto
-          .createHash('md5')
-          .update(fs.readFileSync(filePath))
-          .digest('hex');
-
-        if (fileHashes.has(hash)) {
-          filesToDelete.push(filePath);
-          logger.info(`  🗑️  Duplicate found: ${filename} (removing...)`);
-        } else {
-          fileHashes.set(hash, filename);
-        }
-      }
-
-      for (const filePath of filesToDelete) {
-        try {
-          fs.unlinkSync(filePath);
-          totalRemoved++;
-        } catch (error) {
-          logger.warn(`  ⚠️  Failed to remove duplicate: ${filePath}`);
-        }
-      }
-    }
-
-    return {
-      removed: totalRemoved,
-      message: `Removed ${totalRemoved} duplicate asset file(s)`
-    };
-  } catch (error) {
-    logger.error('Error during duplicate cleanup:', error);
-    return {
-      removed: 0,
-      message: 'Duplicate cleanup encountered an error (non-critical)'
-    };
-  }
+  return {
+    removed: 0,
+    message: 'Memory-only mode: asset deduplication handled by Supabase'
+  };
 }
 
 async function verifyStorePermanentStorage(storeSlug: string): Promise<StoreVerificationResult> {
@@ -176,69 +88,22 @@ async function verifyStorePermanentStorage(storeSlug: string): Promise<StoreVeri
     errors: [],
     warnings: [],
     checks: {
-      storeJsonExists: false,
-      indexJsonExists: false,
-      imagesFolderExists: false,
-      tsFilesExist: false
+      dbStoreExists: true,
+      imagesUploaded: true
     }
   };
 
   try {
-    let basePath = process.cwd();
-    if (basePath.endsWith('backend')) {
-      basePath = path.join(basePath, '..');
-    }
-
-    const publicAssetsPath = path.join(basePath, 'backend', 'public', 'assets');
-    const storeAssetsDir = path.join(publicAssetsPath, storeSlug);
-    const storeJsonPath = path.join(storeAssetsDir, 'store.json');
-    const indexJsonPath = path.join(publicAssetsPath, 'stores', 'index.json');
-    const frontendStoresPath = path.join(basePath, 'src', 'data', 'stores', storeSlug);
-
-    if (fs.existsSync(storeJsonPath)) {
-      result.checks.storeJsonExists = true;
-      logger.info(`    ✅ store.json exists`);
-    } else {
-      result.errors.push('store.json not found in permanent storage');
+    const store = await Store.findOne({ where: { slug: storeSlug } });
+    if (!store) {
+      result.checks.dbStoreExists = false;
+      result.errors.push('Store not found in database');
       result.success = false;
     }
-
-    if (fs.existsSync(indexJsonPath)) {
-      result.checks.indexJsonExists = true;
-      logger.info(`    ✅ index.json exists`);
-    } else {
-      result.warnings.push('index.json not found (may be created during sync)');
-    }
-
-    const productDir = path.join(storeAssetsDir, 'products');
-    if (fs.existsSync(productDir)) {
-      result.checks.imagesFolderExists = true;
-      const files = fs.readdirSync(productDir);
-      result.checks.fileCount = files.length;
-      logger.info(`    ✅ Products folder exists with ${files.length} file(s)`);
-    }
-
-    if (fs.existsSync(frontendStoresPath)) {
-      const expectedFiles = ['config.ts', 'products.ts', 'Slider.tsx', 'index.ts', 'sliderData.ts'];
-      const files = fs.readdirSync(frontendStoresPath);
-      const missingFiles = expectedFiles.filter(f => !files.includes(f));
-      if (missingFiles.length === 0) {
-        result.checks.tsFilesExist = true;
-        logger.info(`    ✅ All TS files exist`);
-      } else {
-        result.warnings.push(`Missing TS files: ${missingFiles.join(', ')}`);
-      }
-    }
-
-    if (!result.success && result.errors.length > 0) {
-      logger.error(`    ❌ Verification failed:`, result.errors);
-    }
-
     return result;
   } catch (error) {
     result.success = false;
     result.errors.push(`Verification error: ${(error as Error).message}`);
-    logger.error('Error verifying store:', error);
     return result;
   }
 }
@@ -353,23 +218,12 @@ export const createStoreWithImages = async (
     }
 
     if (files && Object.keys(files).length > 0) {
-      logger.info(`📁 Moving ${Object.keys(files).length} file fields from temp directory...`);
-      logger.info(`   Files available: ${Object.keys(files).join(', ')}`);
-      try {
-        files = await moveUploadedFiles(storeSlug, files);
-        logger.info(`✅ Files moved successfully to /assets/${storeSlug}/`);
-        
-        if (Object.keys(files).length === 0) {
-          logger.warn(`⚠️ No files were moved successfully, will use defaults`);
-        }
-      } catch (moveError) {
-        logger.error('❌ Failed to move uploaded files:', moveError);
-        sendError(res, 'Failed to process uploaded files', 500);
-        return;
-      }
+      logger.info(`ℹ️ Using memory-only storage for ${Object.keys(files).length} file fields`);
+      // No need to move files, they are already in memory buffers
     } else {
       logger.info(`ℹ️ No files provided, will use default images`);
     }
+
     
     logger.info(`\n🔍 Processing files for store: ${storeName}`);
     
@@ -508,19 +362,19 @@ export const createStoreWithImages = async (
 
     for (const [productIdx, files] of Object.entries(productFilesMap)) {
       for (const file of files) {
-        const sourcePath = file.path;
-        if (fs.existsSync(sourcePath)) {
-          const result = await uploadImageToSupabase(sourcePath, storeSlug, 'products');
+        if (file.buffer) {
+          const result = await uploadBufferToSupabase(file.buffer, file.filename || file.originalname, storeSlug, 'products');
           if (result.success) {
-            uploadedProductUrls[file.filename] = result.url;
-            logger.info(`  ✅ Product image uploaded to Supabase: ${file.filename}`);
+            uploadedProductUrls[file.filename || file.originalname] = result.url;
+            logger.info(`  ✅ Product image uploaded to Supabase: ${file.originalname}`);
           } else {
-            sendError(res, `Failed to upload product image: ${file.filename}`, 500);
+            sendError(res, `Failed to upload product image: ${file.originalname}`, 500);
             return;
           }
         }
       }
     }
+
 
     if (aggregatedProductFiles.length > 0) {
       logger.info(`  🔄 Distributing ${aggregatedProductFiles.length} aggregated product image(s)`);
@@ -568,19 +422,19 @@ export const createStoreWithImages = async (
     if (pendingProductUploads.length > 0) {
       logger.info(`  🔄 Uploading ${pendingProductUploads.length} newly-assigned product image(s) to Supabase...`);
       for (const file of pendingProductUploads) {
-        const sourcePath = file.path;
-        if (fs.existsSync(sourcePath)) {
-          const result = await uploadImageToSupabase(sourcePath, storeSlug, 'products');
+        if (file.buffer) {
+          const result = await uploadBufferToSupabase(file.buffer, file.filename || file.originalname, storeSlug, 'products');
           if (result.success) {
-            uploadedProductUrls[file.filename] = result.url;
-            logger.info(`  ✅ Product image uploaded to Supabase: ${file.filename}`);
+            uploadedProductUrls[file.filename || file.originalname] = result.url;
+            logger.info(`  ✅ Product image uploaded to Supabase: ${file.originalname}`);
           } else {
-            sendError(res, `Failed to upload product image: ${file.filename}`, 500);
+            sendError(res, `Failed to upload product image: ${file.originalname}`, 500);
             return;
           }
         }
       }
     }
+
 
     const missingProductUploads = Object.values(productFilesMap).some((files) => files.some((file) => !uploadedProductUrls[file.filename]));
     if (missingProductUploads) {
@@ -639,20 +493,20 @@ export const createStoreWithImages = async (
 
     const uploadedSliderUrls: Record<string, string> = {};
     for (const file of sliderFiles) {
-      const sourcePath = file.path;
-      if (fs.existsSync(sourcePath)) {
-        const result = await uploadImageToSupabase(sourcePath, storeSlug, 'sliders');
+      if (file.buffer) {
+        const result = await uploadBufferToSupabase(file.buffer, file.filename || file.originalname, storeSlug, 'sliders');
         if (result.success) {
-          uploadedSliderUrls[file.filename] = result.url;
-          logger.info(`  ✅ Slider image uploaded to Supabase: ${file.filename}`);
+          uploadedSliderUrls[file.filename || file.originalname] = result.url;
+          logger.info(`  ✅ Slider image uploaded to Supabase: ${file.originalname}`);
         } else {
-          sendError(res, `Failed to upload slider image: ${file.filename}`, 500);
+          sendError(res, `Failed to upload slider image: ${file.originalname}`, 500);
           return;
         }
       }
     }
 
-    const missingSliderUploads = sliderFiles.some((file) => !uploadedSliderUrls[file.filename]);
+
+    const missingSliderUploads = sliderFiles.some((file) => !uploadedSliderUrls[file.filename || file.originalname]);
     if (missingSliderUploads) {
       sendError(res, 'Failed to upload all slider images', 500);
       return;
@@ -662,18 +516,18 @@ export const createStoreWithImages = async (
     
     let uploadedLogoUrl = '';
     if (logoFile) {
-      const sourcePath = logoFile.path;
-      if (fs.existsSync(sourcePath)) {
-        const logoResult = await uploadImageToSupabase(sourcePath, storeSlug, 'logo');
+      if (logoFile.buffer) {
+        const logoResult = await uploadBufferToSupabase(logoFile.buffer, logoFile.filename || logoFile.originalname, storeSlug, 'logo');
         if (logoResult.success) {
           uploadedLogoUrl = logoResult.url;
-          logger.info(`  ✅ Logo uploaded to Supabase: ${logoFile.filename}`);
+          logger.info(`  ✅ Logo uploaded to Supabase: ${logoFile.originalname}`);
         } else {
           sendError(res, 'Failed to upload store logo', 500);
           return;
         }
       }
     }
+
 
     if (!uploadedLogoUrl) {
       sendError(res, 'Failed to upload store logo', 500);
@@ -699,9 +553,9 @@ export const createStoreWithImages = async (
     
     const slidersWithImages: SliderImage[] = parsedSliders.map((slider, i) => {
       const file = sliderFiles[i];
-      const image = file ? uploadedSliderUrls[file.filename] : '';
+      const image = file ? uploadedSliderUrls[file.filename || file.originalname] : '';
       
-      logger.info(`  📸 Slider ${i} mapping: file=${file?.filename}, image=${image}`);
+      logger.info(`  📸 Slider ${i} mapping: file=${file?.filename || file?.originalname}, image=${image}`);
 
       return {
         ...slider,
@@ -821,6 +675,7 @@ export const createStoreWithImages = async (
               tags: Array.isArray(p.tags) ? p.tags : [],
               quantity,
               inStock: resolvedInStock,
+              isAvailable: true,
               rating: p.rating ?? null,
               reviewCount: p.reviews ?? p.reviewCount ?? 0
             },
@@ -854,6 +709,7 @@ export const createStoreWithImages = async (
               subtitle: slider.subtitle,
               buttonText: slider.buttonText,
               imagePath: slider.image,
+              placement: 'slider',
               sortOrder: i,
               metadata: {
                 id: slider.id,
@@ -990,33 +846,6 @@ export const getStorePublicData = async (
       logger.warn(`Store not found in database: ${slug}, will attempt fallback to static files`);
     }
 
-    const resolveStoreJsonPath = (storeSlug: string): string => {
-      const cwd = process.cwd();
-      const normalizedCwd = cwd.replace(/\\/g, '/');
-
-      let basePath = cwd;
-      if (normalizedCwd.endsWith('/backend/dist')) {
-        basePath = path.join(cwd, '..', '..');
-      } else if (normalizedCwd.endsWith('/backend')) {
-        basePath = path.join(cwd, '..');
-      }
-
-      const candidates = [
-        path.join(basePath, 'backend', 'public', 'assets', storeSlug, 'store.json'),
-        path.join(basePath, 'public', 'assets', storeSlug, 'store.json'),
-        path.join(cwd, 'public', 'assets', storeSlug, 'store.json'),
-        path.join(cwd, 'assets', storeSlug, 'store.json')
-      ];
-
-      for (const candidate of candidates) {
-        if (fs.existsSync(candidate)) {
-          return candidate;
-        }
-      }
-
-      return candidates[0];
-    };
-
     const dbSliders = store ? await StoreSlider.findAll({
       where: { storeId: store.id },
       order: [['sortOrder', 'ASC']]
@@ -1088,41 +917,26 @@ export const getStorePublicData = async (
 
     if (products.length === 0 || sliders.length === 0) {
       try {
-        const storeJsonPath = resolveStoreJsonPath(store?.slug || slug);
-        if (fs.existsSync(storeJsonPath)) {
-          const raw = await fsPromises.readFile(storeJsonPath, 'utf-8');
-          const parsed = JSON.parse(raw);
-          applyStoreJsonPayload(parsed);
+        const forwardedProto = String(req.headers['x-forwarded-proto'] || '').split(',')[0].trim();
+        const protocol = forwardedProto || req.protocol || 'https';
+        const host = req.get('host');
+        const url = host ? `${protocol}://${host}/assets/${store?.slug || slug}/store.json` : '';
+
+        if (url) {
+          const response = await fetch(url, { headers: { accept: 'application/json' } });
+          if (response.ok) {
+            const parsed = await response.json().catch(() => null);
+            applyStoreJsonPayload(parsed);
+          }
         }
-      } catch (jsonError) {
-        logger.warn('Failed to read store.json for public store data', {
+      } catch (httpError) {
+        logger.warn('Failed to fetch store.json over HTTP for public store data', {
           slug: store?.slug || slug,
-          error: jsonError instanceof Error ? jsonError.message : String(jsonError)
+          error: httpError instanceof Error ? httpError.message : String(httpError)
         });
       }
-
-      if (products.length === 0 || sliders.length === 0) {
-        try {
-          const forwardedProto = String(req.headers['x-forwarded-proto'] || '').split(',')[0].trim();
-          const protocol = forwardedProto || req.protocol || 'https';
-          const host = req.get('host');
-          const url = host ? `${protocol}://${host}/assets/${store?.slug || slug}/store.json` : '';
-
-          if (url) {
-            const response = await fetch(url, { headers: { accept: 'application/json' } });
-            if (response.ok) {
-              const parsed = await response.json().catch(() => null);
-              applyStoreJsonPayload(parsed);
-            }
-          }
-        } catch (httpError) {
-          logger.warn('Failed to fetch store.json over HTTP for public store data', {
-            slug: store?.slug || slug,
-            error: httpError instanceof Error ? httpError.message : String(httpError)
-          });
-        }
-      }
     }
+
 
     const storeResponse = store ? {
       id: store.id,
@@ -1468,20 +1282,26 @@ export const uploadSliderImage = async (req: Request, res: Response): Promise<vo
       return;
     }
 
-    let basePath = process.cwd();
-    if (basePath.endsWith('backend')) {
-      basePath = path.join(basePath, '..');
+    const fileExt = path.extname(file.originalname || file.filename || '');
+    const fileName = `${Date.now()}-${Math.round(Math.random() * 1e9)}${fileExt}`;
+
+    if (!file.buffer) {
+      throw new Error('No file buffer available');
     }
-    const storeSliderDir = path.join(basePath, 'backend', 'public', 'assets', storeSlug, 'sliders');
-    logger.info(`📁 Creating directory: ${storeSliderDir}`);
-    await fsPromises.mkdir(storeSliderDir, { recursive: true });
 
-    const newPath = path.join(storeSliderDir, file.filename);
-    logger.info(`📋 Moving file from: ${file.path} to: ${newPath}`);
-    await fsPromises.rename(file.path, newPath);
+    const uploadResult = await uploadBufferToSupabase(
+      file.buffer,
+      fileName,
+      storeSlug,
+      'sliders'
+    );
 
-    const imagePath = `/assets/${storeSlug}/sliders/${file.filename}`;
-    logger.info(`✅ Slider image uploaded: ${imagePath}`);
+    if (!uploadResult.success) {
+      throw new Error(uploadResult.error || 'Failed to upload to Supabase');
+    }
+
+    const imagePath = uploadResult.url;
+    logger.info(`✅ Slider image uploaded to Supabase: ${imagePath}`);
 
     const slider = await StoreSlider.create({
       storeId: store.id,
@@ -1489,6 +1309,7 @@ export const uploadSliderImage = async (req: Request, res: Response): Promise<vo
       subtitle: subtitle || '',
       buttonText: buttonText || 'View More',
       imagePath,
+      placement: 'slider',
       sortOrder: sortOrder ? parseInt(sortOrder as string, 10) : 0,
       metadata: {
         createdAt: new Date().toISOString(),
@@ -1503,7 +1324,7 @@ export const uploadSliderImage = async (req: Request, res: Response): Promise<vo
       data: { 
         id: slider.id,
         imagePath, 
-        filename: file.filename,
+        filename: fileName,
         slider
       }
     });

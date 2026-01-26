@@ -4,6 +4,8 @@ import path from 'path';
 import fs from 'fs';
 import logger from '@utils/logger';
 
+const isCloudNative = Boolean(process.env.VERCEL) || process.env.CLOUD_NATIVE === 'true' || process.env.NODE_ENV === 'production';
+
 const execAsync = promisify(exec);
 
 interface BackupOptions {
@@ -51,6 +53,11 @@ class DatabaseBackup {
    * Create full database backup
    */
   async createBackup(): Promise<string> {
+    if (isCloudNative && !process.env.FORCE_LOCAL_BACKUP) {
+      const msg = '❌ Database backup via local IO is disabled in cloud-native mode. Use managed database backups.';
+      logger.warn(msg);
+      throw new Error(msg);
+    }
     try {
       this.ensureBackupDir();
 
@@ -79,6 +86,11 @@ class DatabaseBackup {
    * Restore database from backup file
    */
   async restoreBackup(backupFile: string): Promise<void> {
+    if (isCloudNative && !process.env.FORCE_LOCAL_RESTORE) {
+      const msg = '❌ Database restore via local IO is disabled in cloud-native mode.';
+      logger.warn(msg);
+      throw new Error(msg);
+    }
     try {
       if (!fs.existsSync(backupFile)) {
         throw new Error(`Backup file not found: ${backupFile}`);

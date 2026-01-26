@@ -35,18 +35,18 @@ export const computeDiscountPercent = (
 export const buildCategorySummaries = (
   products: StoreInventoryProduct[],
   categories: StoreInventoryCategory[]
-): Array<{ name: string; count: number; image?: string }> => {
-  const statsMap = new Map<string, { count: number; image?: string }>();
+): Array<{ name: string; count: number; image?: string | undefined }> => {
+  const statsMap = new Map<string, { count: number; image?: string | undefined }>();
 
   products.forEach((product) => {
     const key = product.category || 'غير مصنف';
-    const entry = statsMap.get(key) || { count: 0, image: undefined };
+    const entry = statsMap.get(key) || { count: 0 };
     entry.count++;
     statsMap.set(key, entry);
   });
 
   categories.forEach((cat) => {
-    const entry = statsMap.get(cat.name) || { count: 0, image: undefined };
+    const entry = statsMap.get(cat.name) || { count: 0 };
     entry.image = cat.image;
     statsMap.set(cat.name, entry);
   });
@@ -57,7 +57,7 @@ export const buildCategorySummaries = (
       : Array.from(statsMap.keys());
 
   return ordered.map((name) => {
-    const stat = statsMap.get(name) ?? { count: 0, image: undefined };
+    const stat = statsMap.get(name) ?? { count: 0 };
     return { name, ...stat };
   });
 };

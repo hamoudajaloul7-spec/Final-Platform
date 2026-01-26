@@ -9,6 +9,7 @@
     "dev:backend": "cd backend && npm run dev",
     "build": "vite build",
     "lint": "eslint .",
+    "typecheck": "tsc --noEmit && npm run typecheck --prefix backend",
     "preview": "vite preview",
     "maintenance": "node scripts/maintenance.js",
     "test:e2e": "playwright test"

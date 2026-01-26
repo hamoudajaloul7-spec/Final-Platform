@@ -14,6 +14,44 @@ interface AssetProxyRequest extends Request {
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://wbakbuqvdbmweujkbzxn.supabase.co';
 const SUPABASE_BUCKET = process.env.SUPABASE_STORAGE_BUCKET || 'ishro-assets';
 
+router.get('/proxy', async (req: Request, res: Response) => {
+  try {
+    const src = req.query.src as string;
+
+    if (!src) {
+      res.status(400).json({ error: 'Missing src parameter' });
+      return;
+    }
+
+    // Decode URL if needed
+    const imageUrl = src.startsWith('http') ? src : decodeURIComponent(src);
+
+    logger.info(`🔗 Proxying generic asset: ${imageUrl}`);
+
+    const response = await fetch(imageUrl);
+
+    if (!response.ok) {
+      logger.error(`❌ Failed to fetch asset: ${response.status}`);
+      res.status(404).json({ error: 'Asset not found' });
+      return;
+    }
+
+    const contentType = response.headers.get('content-type') || 'image/jpeg';
+    
+    // Set caching for 1 year for performance
+    res.setHeader('Content-Type', contentType);
+    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+
+    const buffer = await response.arrayBuffer();
+    res.send(Buffer.from(buffer));
+  } catch (error) {
+    logger.error('Error in generic proxy:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 router.options('/:storeSlug/:imageType/:fileName', (req: AssetProxyRequest, res: Response) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
@@ -54,7 +92,7 @@ router.get('/:storeSlug/:imageType/:fileName', async (req: AssetProxyRequest, re
     const contentLength = response.headers.get('content-length');
 
     res.setHeader('Content-Type', contentType);
-    res.setHeader('Cache-Control', 'public, max-age=86400');
+    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');

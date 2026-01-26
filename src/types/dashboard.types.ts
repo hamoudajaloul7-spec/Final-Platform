@@ -42,7 +42,7 @@ export type StoreMatrix = Record<string, Record<string, boolean>>;
 export interface FlattenedSection {
   id: string;
   name: string;
-  parent?: string;
+  parent?: string | undefined;
   required: boolean;
 }
 

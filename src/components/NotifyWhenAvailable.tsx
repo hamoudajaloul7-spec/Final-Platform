@@ -17,8 +17,8 @@ interface NotifyWhenAvailableProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit?: (data: NotificationRequest) => void;
-  storeSlug?: string;
-  storeName?: string;
+  storeSlug?: string | undefined;
+  storeName?: string | undefined;
 }
 
 export interface NotificationRequest {

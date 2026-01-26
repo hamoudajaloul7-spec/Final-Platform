@@ -124,10 +124,14 @@ export const buildPermissionMatrix = (
   const matrix: StoreMatrix = {};
 
   merchants.forEach((merchant) => {
-    matrix[merchant.id] = {};
-    sections.forEach((section) => {
-      matrix[merchant.id][section.id] = merchant.permissions?.[section.id] ?? false;
-    });
+    if (merchant && merchant.id) {
+      const merchantId = merchant.id;
+      const merchantMatrix: Record<string, boolean> = {};
+      matrix[merchantId] = merchantMatrix;
+      sections.forEach((section) => {
+        merchantMatrix[section.id] = merchant.permissions?.[section.id] ?? false;
+      });
+    }
   });
 
   return matrix;
@@ -159,8 +163,14 @@ export const importPermissions = (
   const permissions: Record<string, boolean> = {};
 
   lines.slice(1).forEach((line) => {
-    const [section, granted] = line.split(',');
-    permissions[section] = granted === 'true';
+    const parts = line.split(',');
+    if (parts.length >= 2) {
+      const section = parts[0];
+      const granted = parts[1];
+      if (section) {
+        permissions[section] = granted === 'true';
+      }
+    }
   });
 
   return permissions;
