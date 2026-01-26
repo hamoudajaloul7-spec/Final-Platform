@@ -21,6 +21,8 @@ import { allStoreProducts } from "@/data/allStoreProducts";
 import { enhancedSampleProducts } from "@/data/productCategories";
 import { getProxyImageUrl } from "@/utils/assetProxyUtil";
 
+import { getApiUrl } from "@/utils/apiConfig";
+
 interface ProductPageProps {
   productId: number;
   onBack: () => void;
@@ -44,9 +46,13 @@ const ProductPage: React.FC<ProductPageProps> = ({
   const [showSizeError, setShowSizeError] = useState(false);
   const [showColorError, setShowColorError] = useState(false);
   const [showAddToCartPopup, setShowAddToCartPopup] = useState(false);
+  const [fetchedProduct, setFetchedProduct] = useState<any>(null);
+  const [isFetching, setIsFetching] = useState(false);
   
   // البحث عن المنتج في جميع المصادر المتاحة
   const product = useMemo(() => {
+    if (fetchedProduct) return fetchedProduct;
+
     // 1. البحث في المنتجات الحالية المخزنة في localStorage (للمتاجر الديناميكية)
     const allStorageKeys = Object.keys(localStorage);
     const storeProductKeys = allStorageKeys.filter(key => key.startsWith('store_products_'));
@@ -74,8 +80,40 @@ const ProductPage: React.FC<ProductPageProps> = ({
 
     // 4. البحث في المنتجات التجريبية (كخيار أخير)
     return sampleProducts.find(p => String(p.id) === String(productId));
-  }, [productId]);
+  }, [productId, fetchedProduct]);
+
+  useEffect(() => {
+    // If product not found in local memory, try to fetch from API
+    if (!product && productId && !isFetching) {
+      setIsFetching(true);
+      const apiUrl = getApiUrl();
+      fetch(`${apiUrl}/products/${productId}`)
+        .then(res => res.json())
+        .then(result => {
+          if (result.success && result.data) {
+            setFetchedProduct(result.data);
+          }
+        })
+        .catch(() => {
+          // Silent error handling for production stability
+        })
+        .finally(() => {
+          setIsFetching(false);
+        });
+    }
+  }, [productId, product, isFetching]);
   
+  if (isFetching) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">جاري جلب تفاصيل المنتج...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!product) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">

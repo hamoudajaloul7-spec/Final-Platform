@@ -3017,11 +3017,9 @@ export default function Home() {
           if (!createdOnServer) {
             setTimeout(() => {
               try {
+                // Strictly Cloud-First: Post to API and skip local file creation
                 postStoreToApi(storeData, normalizedStore).catch(() => {
-                  const isLocalhost = typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname);
-                  if (isLocalhost) {
-                    createStoreFiles(normalizedStore);
-                  }
+                  // Error handling without falling back to local files
                 });
               } catch (error) {
                 // Silent error handling for store creation
