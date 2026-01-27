@@ -205,7 +205,8 @@ export const getProducts = async (
     // تحديث الـ badges للمنتجات من قاعدة البيانات (إنديش)
     const productsWithUpdatedBadges = await Promise.all(
       products.map(async (product) => {
-        const productData = product.toJSON();
+        // ✅_FIX: Use type assertion to access included productImages
+        const productData = (product as any).toJSON();
         
         // تحديث الـ badge إذا لزم الأمر
         await updateProductBadge(product);
@@ -417,4 +418,5 @@ export const deleteProduct = async (
     next(error);
   }
 };
+
 
