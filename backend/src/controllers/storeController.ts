@@ -766,7 +766,7 @@ export const createStoreWithImages = async (
                 tags: Array.isArray(p.tags) ? p.tags : [],
                 quantity,
                 inStock: resolvedInStock,
-                isAvailable: true,
+                // Note: isAvailable column doesn't exist in DB, using inStock only
                 rating: p.rating ?? null,
                 reviewCount: p.reviews ?? p.reviewCount ?? 0
               },

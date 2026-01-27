@@ -497,6 +497,193 @@ const createTablesSQLite = async (): Promise<void> => {
   `);
 };
 
+// Add missing columns to existing tables
+const addMissingColumns = async (): Promise<void> => {
+  try {
+    logger.info('🔄 Checking for missing columns...');
+    
+    // Add is_available column to products table if it doesn't exist
+    try {
+      if (dialect === 'mysql') {
+        await sequelize.query(`
+          ALTER TABLE products
+          ADD COLUMN IF NOT EXISTS is_available BOOLEAN DEFAULT TRUE
+        `);
+      } else if (dialect === 'postgres') {
+        await sequelize.query(`
+          ALTER TABLE products
+          ADD COLUMN IF NOT EXISTS is_available BOOLEAN DEFAULT TRUE
+        `);
+      } else if (dialect === 'sqlite') {
+        // SQLite doesn't support IF NOT EXISTS for columns, we'll handle this differently
+        const [results]: any = await sequelize.query(
+          `PRAGMA table_info(products)`
+        );
+        const hasIsAvailable = results.some((col: any) => col.name === 'is_available');
+        if (!hasIsAvailable) {
+          await sequelize.query(`
+            ALTER TABLE products
+            ADD COLUMN is_available INTEGER DEFAULT 1
+          `);
+        }
+      }
+      logger.info('✅ is_available column added/verified in products table');
+    } catch (error) {
+      logger.warn('⚠️ Could not add is_available column (may already exist):', error);
+    }
+    
+    // Add images column to products table if it doesn't exist
+    try {
+      if (dialect === 'mysql') {
+        await sequelize.query(`
+          ALTER TABLE products
+          ADD COLUMN IF NOT EXISTS images JSON
+        `);
+      } else if (dialect === 'postgres') {
+        await sequelize.query(`
+          ALTER TABLE products
+          ADD COLUMN IF NOT EXISTS images JSONB
+        `);
+      } else if (dialect === 'sqlite') {
+        const [results]: any = await sequelize.query(
+          `PRAGMA table_info(products)`
+        );
+        const hasImages = results.some((col: any) => col.name === 'images');
+        if (!hasImages) {
+          await sequelize.query(`
+            ALTER TABLE products
+            ADD COLUMN images TEXT
+          `);
+        }
+      }
+      logger.info('✅ images column added/verified in products table');
+    } catch (error) {
+      logger.warn('⚠️ Could not add images column (may already exist):', error);
+    }
+    
+    // Add colors column to products table if it doesn't exist
+    try {
+      if (dialect === 'mysql') {
+        await sequelize.query(`
+          ALTER TABLE products
+          ADD COLUMN IF NOT EXISTS colors JSON
+        `);
+      } else if (dialect === 'postgres') {
+        await sequelize.query(`
+          ALTER TABLE products
+          ADD COLUMN IF NOT EXISTS colors JSONB
+        `);
+      } else if (dialect === 'sqlite') {
+        const [results]: any = await sequelize.query(
+          `PRAGMA table_info(products)`
+        );
+        const hasColors = results.some((col: any) => col.name === 'colors');
+        if (!hasColors) {
+          await sequelize.query(`
+            ALTER TABLE products
+            ADD COLUMN colors TEXT
+          `);
+        }
+      }
+      logger.info('✅ colors column added/verified in products table');
+    } catch (error) {
+      logger.warn('⚠️ Could not add colors column (may already exist):', error);
+    }
+    
+    // Add sizes column to products table if it doesn't exist
+    try {
+      if (dialect === 'mysql') {
+        await sequelize.query(`
+          ALTER TABLE products
+          ADD COLUMN IF NOT EXISTS sizes JSON
+        `);
+      } else if (dialect === 'postgres') {
+        await sequelize.query(`
+          ALTER TABLE products
+          ADD COLUMN IF NOT EXISTS sizes JSONB
+        `);
+      } else if (dialect === 'sqlite') {
+        const [results]: any = await sequelize.query(
+          `PRAGMA table_info(products)`
+        );
+        const hasSizes = results.some((col: any) => col.name === 'sizes');
+        if (!hasSizes) {
+          await sequelize.query(`
+            ALTER TABLE products
+            ADD COLUMN sizes TEXT
+          `);
+        }
+      }
+      logger.info('✅ sizes column added/verified in products table');
+    } catch (error) {
+      logger.warn('⚠️ Could not add sizes column (may already exist):', error);
+    }
+    
+    // Add available_sizes column to products table if it doesn't exist
+    try {
+      if (dialect === 'mysql') {
+        await sequelize.query(`
+          ALTER TABLE products
+          ADD COLUMN IF NOT EXISTS available_sizes JSON
+        `);
+      } else if (dialect === 'postgres') {
+        await sequelize.query(`
+          ALTER TABLE products
+          ADD COLUMN IF NOT EXISTS available_sizes JSONB
+        `);
+      } else if (dialect === 'sqlite') {
+        const [results]: any = await sequelize.query(
+          `PRAGMA table_info(products)`
+        );
+        const hasAvailableSizes = results.some((col: any) => col.name === 'available_sizes');
+        if (!hasAvailableSizes) {
+          await sequelize.query(`
+            ALTER TABLE products
+            ADD COLUMN available_sizes TEXT
+          `);
+        }
+      }
+      logger.info('✅ available_sizes column added/verified in products table');
+    } catch (error) {
+      logger.warn('⚠️ Could not add available_sizes column (may already exist):', error);
+    }
+    
+    // Add tags column to products table if it doesn't exist
+    try {
+      if (dialect === 'mysql') {
+        await sequelize.query(`
+          ALTER TABLE products
+          ADD COLUMN IF NOT EXISTS tags JSON
+        `);
+      } else if (dialect === 'postgres') {
+        await sequelize.query(`
+          ALTER TABLE products
+          ADD COLUMN IF NOT EXISTS tags JSONB
+        `);
+      } else if (dialect === 'sqlite') {
+        const [results]: any = await sequelize.query(
+          `PRAGMA table_info(products)`
+        );
+        const hasTags = results.some((col: any) => col.name === 'tags');
+        if (!hasTags) {
+          await sequelize.query(`
+            ALTER TABLE products
+            ADD COLUMN tags TEXT
+          `);
+        }
+      }
+      logger.info('✅ tags column added/verified in products table');
+    } catch (error) {
+      logger.warn('⚠️ Could not add tags column (may already exist):', error);
+    }
+    
+    logger.info('✅ Missing columns check completed');
+  } catch (error) {
+    logger.error('❌ Error adding missing columns:', error);
+    // Don't throw - continue with migration
+  }
+};
+
 const runMigrations = async (): Promise<void> => {
   try {
     logger.info('🚀 Starting database migration...');
@@ -508,6 +695,7 @@ const runMigrations = async (): Promise<void> => {
     }
 
     await createTables();
+    await addMissingColumns();
 
     logger.info('✅ Database migration completed successfully');
   } catch (error) {
