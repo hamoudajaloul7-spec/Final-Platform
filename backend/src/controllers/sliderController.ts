@@ -105,7 +105,7 @@ export const createStoreSlider = async (req: Request, res: Response): Promise<vo
 export const updateStoreSlider = async (req: Request, res: Response): Promise<void> => {
   try {
     const { storeId, sliderId } = req.params;
-    const { title, subtitle, buttonText, imagePath, sortOrder, metadata } = req.body;
+    const { title, subtitle, buttonText, imagePath, placement, sortOrder, metadata } = req.body;
 
     const numericStoreId = Number(storeId);
 
@@ -141,6 +141,7 @@ export const updateStoreSlider = async (req: Request, res: Response): Promise<vo
       ...(subtitle !== undefined && { subtitle: subtitle ? subtitle.slice(0, 512) : null }),
       ...(buttonText !== undefined && { buttonText: buttonText ? buttonText.slice(0, 128) : null }),
       ...(imagePath && { imagePath: imagePath }),
+      ...(placement !== undefined && { placement }),
       ...(sortOrder !== undefined && { sortOrder }),
       ...(metadata !== undefined && { metadata }),
     });

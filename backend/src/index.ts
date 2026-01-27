@@ -7,6 +7,7 @@ import { populateSliders } from '@migrations/populateSliders';
 import { fixSliderPaths } from '@migrations/fixSliderPaths';
 import { addStoreAdColumns } from '@migrations/addStoreAdColumns';
 import { addProductOptionColumns } from '@migrations/addProductOptionColumns';
+import { addStoreSliderPlacement } from '@migrations/addStoreSliderPlacement';
 import runMigrations from '@database/migrate';
 import seedDatabase from '@database/seed';
 
@@ -79,6 +80,13 @@ const initializeDatabase = async (): Promise<void> => {
         await addProductOptionColumns();
       } catch (error) {
         logger.warn('⚠️ Product option columns migration failed, continuing:', error);
+      }
+
+      logger.info('📦 Adding store_sliders placement column...');
+      try {
+        await addStoreSliderPlacement();
+      } catch (error) {
+        logger.warn('⚠️ Store slider placement migration failed, continuing:', error);
       }
     }
   } catch (error) {
