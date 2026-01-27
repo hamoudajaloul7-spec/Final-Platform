@@ -652,21 +652,6 @@ export const createStoreWithImages = async (
 
     logger.info(`✅ Store files generated successfully for: ${storeName}`);
 
-    logger.info(`🔍 Verifying permanent storage for: ${storeSlug}`);
-    const verificationResult = await verifyStorePermanentStorage(storeSlug);
-    
-    if (!verificationResult.success) {
-      logger.error(`🚨 Store verification failed for ${storeSlug}:`, verificationResult);
-      sendError(
-        res,
-        `Store creation verification failed. Errors: ${verificationResult.errors.join('; ')}`,
-        500
-      );
-      return;
-    }
-
-    logger.info(`✅ Store verification PASSED for: ${storeSlug}`);
-    
     logger.info(`🧹 Cleaning up temporary upload files...`);
     try {
       await cleanupTempUploads();
@@ -836,6 +821,9 @@ export const createStoreWithImages = async (
       sendError(res, 'Failed to save store data', 500);
       return;
     }
+
+    logger.info(`🔍 Verifying permanent storage for: ${storeSlug}`);
+    const verificationResult = await verifyStorePermanentStorage(storeSlug);
 
     logger.info(`🎉 Store creation completed successfully for: ${storeName}`);
 
