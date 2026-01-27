@@ -22,7 +22,7 @@ interface ProductAttributes {
   availableSizes?: string[];
   storeId?: number;
   inStock: boolean;
-  isAvailable: boolean;
+  isAvailable?: boolean;
   quantity: number;
   sku?: string;
   productCode?: string;
@@ -66,7 +66,7 @@ class Product extends Model<ProductAttributes, ProductCreationAttributes> implem
   declare availableSizes?: string[];
   declare storeId?: number;
   declare inStock: boolean;
-  declare isAvailable: boolean;
+  declare isAvailable?: boolean;
   declare quantity: number;
   declare sku?: string;
   declare productCode?: string;
