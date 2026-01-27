@@ -49,11 +49,13 @@ const initializeDatabase = async (): Promise<void> => {
         return;
       }
 
-      logger.info('📦 Adding store_sliders placement column...');
+      logger.info('📦 Running schema migrations...');
       try {
         await addStoreSliderPlacement();
+        await addStoreAdColumns();
+        await addProductOptionColumns();
       } catch (error) {
-        logger.warn('⚠️ Store slider placement migration failed, continuing:', error);
+        logger.warn('⚠️ Schema migrations failed, continuing:', error);
       }
 
       logger.info('🌱 Seeding database with initial data...');
@@ -67,26 +69,12 @@ const initializeDatabase = async (): Promise<void> => {
         logger.info('ℹ️ Skipping database seeding');
       }
 
-      logger.info('📦 Fixing slider paths and populating default sliders for existing stores...');
+      logger.info('📦 Running data migrations...');
       try {
         await fixSliderPaths();
         await populateSliders();
       } catch (error) {
-        logger.warn('⚠️ Slider migration failed, continuing:', error);
-      }
-
-      logger.info('📦 Adding missing store_ads table columns...');
-      try {
-        await addStoreAdColumns();
-      } catch (error) {
-        logger.warn('⚠️ Store ads columns migration failed, continuing:', error);
-      }
-
-      logger.info('📦 Adding product option columns (colors/sizes/availableSizes)...');
-      try {
-        await addProductOptionColumns();
-      } catch (error) {
-        logger.warn('⚠️ Product option columns migration failed, continuing:', error);
+        logger.warn('⚠️ Data migrations failed, continuing:', error);
       }
     }
   } catch (error) {

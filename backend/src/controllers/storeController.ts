@@ -391,25 +391,32 @@ export const createStoreWithImages = async (
 
     logger.info(`\n🔄 Uploading images to Supabase in parallel...\n`);
 
-    const uploadedProductUrls: Record<string, string> = {};
+    logger.info(`\n🔄 Preparing all product images for parallel upload...\n`);
+
+    const uploadedProductUrls = new Map<Express.Multer.File, string>();
     const productUploadPromises: Promise<any>[] = [];
 
-    // Map all product files to upload promises
-    Object.entries(productFilesMap).forEach(([productIdx, files]) => {
-      files.forEach(file => {
-        if (file.buffer) {
-          const promise = uploadBufferToSupabase(file.buffer, file.filename || file.originalname, storeSlug, 'products')
-            .then(result => {
-              if (result.success) {
-                uploadedProductUrls[file.filename || file.originalname] = result.url;
-                logger.info(`  ✅ Product image uploaded: ${file.originalname}`);
-              } else {
-                throw new Error(`Failed to upload product image: ${file.originalname}`);
-              }
-            });
-          productUploadPromises.push(promise);
-        }
-      });
+    // Collect all unique product files from both map and aggregated list
+    const allProductFiles = new Set<Express.Multer.File>();
+    Object.values(productFilesMap).forEach(files => files.forEach(f => allProductFiles.add(f)));
+    aggregatedProductFiles.forEach(f => allProductFiles.add(f));
+
+    logger.info(`  📦 Total unique product images to upload: ${allProductFiles.size}`);
+
+    allProductFiles.forEach(file => {
+      if (file.buffer) {
+        const fileKey = file.filename || file.originalname || `product_${Math.random().toString(36).substring(7)}`;
+        const promise = uploadBufferToSupabase(file.buffer, fileKey, storeSlug, 'products')
+          .then(result => {
+            if (result.success) {
+              uploadedProductUrls.set(file, result.url);
+              logger.info(`  ✅ Product image uploaded: ${file.originalname}`);
+            } else {
+              throw new Error(`Failed to upload product image: ${file.originalname}`);
+            }
+          });
+        productUploadPromises.push(promise);
+      }
     });
 
     // Execute product uploads in parallel
@@ -421,7 +428,6 @@ export const createStoreWithImages = async (
         return;
       }
     }
-
 
     if (aggregatedProductFiles.length > 0) {
       logger.info(`  🔄 Distributing ${aggregatedProductFiles.length} aggregated product image(s)`);
@@ -457,54 +463,45 @@ export const createStoreWithImages = async (
       }
     }
 
-    const pendingProductUploads: Express.Multer.File[] = [];
-    Object.values(productFilesMap).forEach((files) => {
-      files.forEach((file) => {
-        if (!uploadedProductUrls[file.filename]) {
-          pendingProductUploads.push(file);
-        }
-      });
-    });
+    // Safety check: ensure every file in productFilesMap is now in our uploaded map
+    const missingProductUploads = Object.values(productFilesMap).some((files) => 
+      files.some((file) => !uploadedProductUrls.has(file))
+    );
 
-    if (pendingProductUploads.length > 0) {
-      logger.info(`  🔄 Uploading ${pendingProductUploads.length} newly-assigned product image(s) to Supabase in parallel...`);
-      
-      const pendingPromises = pendingProductUploads.map(async (file) => {
-        if (file.buffer) {
-          const result = await uploadBufferToSupabase(file.buffer, file.filename || file.originalname, storeSlug, 'products');
-          if (result.success) {
-            uploadedProductUrls[file.filename || file.originalname] = result.url;
-            logger.info(`  ✅ Product image uploaded to Supabase: ${file.originalname}`);
-          } else {
-            throw new Error(`Failed to upload product image: ${file.originalname}`);
+    if (missingProductUploads) {
+      // One last attempt for any missed files (shouldn't happen with the Set logic above)
+      const missedFiles: Express.Multer.File[] = [];
+      Object.values(productFilesMap).forEach(files => {
+        files.forEach(file => {
+          if (!uploadedProductUrls.has(file)) missedFiles.push(file);
+        });
+      });
+
+      if (missedFiles.length > 0) {
+        logger.warn(`  ⚠️ Found ${missedFiles.length} missed product images, attempting final recovery upload...`);
+        const recoveryPromises = missedFiles.map(async (file) => {
+          if (file.buffer) {
+            const fileKey = file.filename || file.originalname || `product_rec_${Math.random().toString(36).substring(7)}`;
+            const result = await uploadBufferToSupabase(file.buffer, fileKey, storeSlug, 'products');
+            if (result.success) {
+              uploadedProductUrls.set(file, result.url);
+            }
           }
-        }
-      });
-
-      try {
-        await Promise.all(pendingPromises);
-      } catch (uploadError: any) {
-        sendError(res, uploadError.message || 'Failed to upload product images', 500);
-        return;
+        });
+        await Promise.all(recoveryPromises);
       }
     }
 
+    const finalMissingCheck = Object.values(productFilesMap).some((files) => 
+      files.some((file) => !uploadedProductUrls.has(file))
+    );
 
-    const missingProductUploads = Object.values(productFilesMap).some((files) => files.some((file) => !uploadedProductUrls[file.filename]));
-    if (missingProductUploads) {
-      sendError(res, 'Failed to upload all product images', 500);
+    if (finalMissingCheck) {
+      sendError(res, 'Failed to upload all product images after multiple attempts', 500);
       return;
     }
 
-    const allUploadedImages: string[] = [];
-    Object.values(productFilesMap).forEach(files => {
-      files.forEach(f => {
-        const imgPath = uploadedProductUrls[f.filename];
-        if (imgPath) {
-          allUploadedImages.push(imgPath);
-        }
-      });
-    });
+    const allUploadedImages: string[] = Array.from(uploadedProductUrls.values());
 
     logger.info(`  📊 Total unique images uploaded: ${allUploadedImages.length}`);
 
@@ -512,7 +509,7 @@ export const createStoreWithImages = async (
     parsedProducts = parsedProducts.map((product, idx) => {
       const filesForThisProduct = productFilesMap[idx] || [];
       
-      const images = filesForThisProduct.map((f) => uploadedProductUrls[f.filename]).filter(Boolean) as string[];
+      const images = filesForThisProduct.map((f) => uploadedProductUrls.get(f)).filter(Boolean) as string[];
       if (images.length === 0) {
         images.push(allUploadedImages[imageIndex % allUploadedImages.length]);
         imageIndex++;
@@ -546,14 +543,15 @@ export const createStoreWithImages = async (
     logger.info(`\n🔄 Uploading slider images to Supabase...\n`);
 
     const sliderUploadPromises: Promise<any>[] = [];
-    const uploadedSliderUrls: Record<string, string> = {};
+    const uploadedSliderUrls = new Map<Express.Multer.File, string>();
 
     sliderFiles.forEach(file => {
       if (file.buffer) {
-        const promise = uploadBufferToSupabase(file.buffer, file.filename || file.originalname, storeSlug, 'sliders')
+        const fileKey = file.filename || file.originalname || `slider_${Math.random().toString(36).substring(7)}`;
+        const promise = uploadBufferToSupabase(file.buffer, fileKey, storeSlug, 'sliders')
           .then(result => {
             if (result.success) {
-              uploadedSliderUrls[file.filename || file.originalname] = result.url;
+              uploadedSliderUrls.set(file, result.url);
               logger.info(`  ✅ Slider image uploaded: ${file.originalname}`);
             } else {
               throw new Error(`Failed to upload slider image: ${file.originalname}`);
@@ -573,7 +571,7 @@ export const createStoreWithImages = async (
     }
 
 
-    const missingSliderUploads = sliderFiles.some((file) => !uploadedSliderUrls[file.filename || file.originalname]);
+    const missingSliderUploads = sliderFiles.some((file) => !uploadedSliderUrls.has(file));
     if (missingSliderUploads) {
       sendError(res, 'Failed to upload all slider images', 500);
       return;
@@ -584,7 +582,8 @@ export const createStoreWithImages = async (
     let uploadedLogoUrl = '';
     if (logoFile) {
       if (logoFile.buffer) {
-        const logoResult = await uploadBufferToSupabase(logoFile.buffer, logoFile.filename || logoFile.originalname, storeSlug, 'logo');
+        const fileKey = logoFile.filename || logoFile.originalname || `logo_${Math.random().toString(36).substring(7)}`;
+        const logoResult = await uploadBufferToSupabase(logoFile.buffer, fileKey, storeSlug, 'logo');
         if (logoResult.success) {
           uploadedLogoUrl = logoResult.url;
           logger.info(`  ✅ Logo uploaded to Supabase: ${logoFile.originalname}`);
@@ -620,7 +619,7 @@ export const createStoreWithImages = async (
     
     const slidersWithImages: SliderImage[] = parsedSliders.map((slider, i) => {
       const file = sliderFiles[i];
-      const image = file ? uploadedSliderUrls[file.filename || file.originalname] : '';
+      const image = file ? uploadedSliderUrls.get(file) : '';
       
       logger.info(`  📸 Slider ${i} mapping: file=${file?.filename || file?.originalname}, image=${image}`);
 
