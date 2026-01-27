@@ -66,8 +66,11 @@ const PROTECTED_SLUGS = [
 ];
 
 function getDefaultProductImage(storeSlug: string): string {
-  return '/assets/default-product.png';
+  return '/assets/default-product.svg';
 }
+
+// Default product image to use when uploads fail
+const DEFAULT_PRODUCT_IMAGE = '/assets/default-product.svg';
 
 interface SliderImage {
   id: string;
@@ -600,6 +603,13 @@ export const createStoreWithImages = async (
       return;
     }
 
+    // Validate that we have product images
+    if (allUploadedImages.length === 0) {
+      logger.error('❌ No product images were uploaded successfully');
+      sendError(res, 'Failed to upload product images. Please try again.', 500);
+      return;
+    }
+
     const defaultSliderImages = [
       {
         id: 'banner1',
@@ -725,36 +735,47 @@ export const createStoreWithImages = async (
           const p: any = parsedProducts[i] || {};
 
           const images = Array.isArray(p.images) ? (p.images as any[]).filter(Boolean) : [];
-          const primaryImage = images[0] || '';
+          
+          // Ensure every product has at least one image - use default if empty
+          let primaryImage = images[0] || '';
+          if (!primaryImage || primaryImage.trim() === '') {
+            primaryImage = DEFAULT_PRODUCT_IMAGE;
+            logger.warn(`⚠️ Product ${i} (${p.name}) has no image, using default`);
+          }
+          
+          // Ensure images array is not empty
+          const finalImages = images.length > 0 ? images : [DEFAULT_PRODUCT_IMAGE];
+          
           const quantity = Number.isFinite(Number(p.quantity)) ? Number(p.quantity) : 0;
           const resolvedInStock = quantity > 0;
 
-          const created = await Product.create(
-            {
-              storeId: persistedStoreRecord!.id,
-              name: (p.name || `Product ${i + 1}`).toString(),
-              description: p.description ?? null,
-              price: p.price ?? 0,
-              originalPrice: p.originalPrice ?? null,
-              category: (p.category || primaryCategoryValue || 'general').toString(),
-              image: primaryImage,
-              images,
-              colors: Array.isArray(p.colors) ? p.colors : [],
-              sizes: Array.isArray(p.sizes) ? p.sizes : [],
-              availableSizes: Array.isArray(p.availableSizes) ? p.availableSizes : [],
-              tags: Array.isArray(p.tags) ? p.tags : [],
-              quantity,
-              inStock: resolvedInStock,
-              isAvailable: true,
-              rating: p.rating ?? null,
-              reviewCount: p.reviews ?? p.reviewCount ?? 0
-            },
-            { transaction }
-          );
+          try {
+            const created = await Product.create(
+              {
+                storeId: persistedStoreRecord!.id,
+                name: (p.name || `Product ${i + 1}`).toString(),
+                description: p.description ?? null,
+                price: p.price ?? 0,
+                originalPrice: p.originalPrice ?? null,
+                category: (p.category || primaryCategoryValue || 'general').toString(),
+                image: primaryImage,
+                images: finalImages,
+                colors: Array.isArray(p.colors) ? p.colors : [],
+                sizes: Array.isArray(p.sizes) ? p.sizes : [],
+                availableSizes: Array.isArray(p.availableSizes) ? p.availableSizes : [],
+                tags: Array.isArray(p.tags) ? p.tags : [],
+                quantity,
+                inStock: resolvedInStock,
+                isAvailable: true,
+                rating: p.rating ?? null,
+                reviewCount: p.reviews ?? p.reviewCount ?? 0
+              },
+              { transaction }
+            );
 
-          if (images.length > 0) {
-            for (let idx = 0; idx < images.length; idx++) {
-              const imageUrl = images[idx];
+            // Create product images records
+            for (let idx = 0; idx < finalImages.length; idx++) {
+              const imageUrl = finalImages[idx];
               await ProductImage.create(
                 {
                   productId: created.id,
@@ -765,6 +786,9 @@ export const createStoreWithImages = async (
                 { transaction }
               );
             }
+          } catch (productError: any) {
+            logger.error(`❌ Failed to create product ${i} (${p.name}):`, productError);
+            throw new Error(`Failed to create product "${p.name}": ${productError.message}`);
           }
         }
         logger.info(`✅ ${parsedProducts.length} products persisted to database`);
@@ -772,13 +796,17 @@ export const createStoreWithImages = async (
         logger.info(`💾 Persisting ${slidersWithImages.length} sliders to database...`);
         for (let i = 0; i < slidersWithImages.length; i++) {
           const slider = slidersWithImages[i];
+          
+          // Ensure slider has an image path
+          const sliderImagePath = slider.image || DEFAULT_PRODUCT_IMAGE;
+          
           await StoreSlider.create(
             {
               storeId: persistedStoreRecord!.id,
               title: slider.title || `Slider ${i + 1}`,
               subtitle: slider.subtitle,
               buttonText: slider.buttonText,
-              imagePath: slider.image,
+              imagePath: sliderImagePath,
               placement: 'slider',
               sortOrder: i,
               metadata: {
@@ -814,13 +842,25 @@ export const createStoreWithImages = async (
           );
         }
         logger.info(`✅ Default ads created for store`);
-      });
-      logger.info(`✅ Merchant credentials, store, sliders, and ads stored for ${storeSlug}`);
-    } catch (dbError) {
-      logger.error('❌ Failed to persist store data:', dbError);
-      sendError(res, 'Failed to save store data', 500);
-      return;
-    }
+        });
+        logger.info(`✅ Merchant credentials, store, sliders, and ads stored for ${storeSlug}`);
+      } catch (dbError: any) {
+        logger.error('❌ Failed to persist store data:', dbError);
+        // Provide more specific error message based on the error type
+        let errorMessage = 'Failed to save store data';
+        
+        if (dbError.name === 'SequelizeValidationError') {
+          const validationErrors = dbError.errors?.map((e: any) => `${e.path}: ${e.message}`).join(', ');
+          errorMessage = `Validation error: ${validationErrors || dbError.message}`;
+        } else if (dbError.name === 'SequelizeUniqueConstraintError') {
+          errorMessage = 'A store with this name or slug already exists';
+        } else if (dbError.message) {
+          errorMessage = dbError.message;
+        }
+        
+        sendError(res, errorMessage, 500);
+        return;
+      }
 
     logger.info(`🔍 Verifying permanent storage for: ${storeSlug}`);
     const verificationResult = await verifyStorePermanentStorage(storeSlug);
