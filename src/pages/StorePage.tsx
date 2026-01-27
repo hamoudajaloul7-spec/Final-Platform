@@ -176,7 +176,9 @@ const StorePage: React.FC<StorePageProps> = ({ storeSlug, onBack, onProductClick
   }
 
   const filteredProducts = storeProducts.filter(product => {
-    const matchesSearch = (product.name || product.nameAr).toLowerCase().includes(searchTerm.toLowerCase());
+    // ✅_FIX: Handle undefined product properties
+    const productName = product.name || product.nameAr || '';
+    const matchesSearch = productName.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'الكل' || product.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
@@ -268,14 +270,14 @@ const StorePage: React.FC<StorePageProps> = ({ storeSlug, onBack, onProductClick
 
             <div className="flex items-center gap-2">
               <Button
-                variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                variant={viewMode === 'grid' ? "default" : "ghost"}
                 size="sm"
                 onClick={() => setViewMode('grid')}
               >
                 <Grid3X3 className="h-4 w-4" />
               </Button>
               <Button
-                variant={viewMode === 'list' ? 'default' : 'ghost'}
+                variant={viewMode === 'list' ? "default" : "ghost"}
                 size="sm"
                 onClick={() => setViewMode('list')}
               >
@@ -422,14 +424,39 @@ interface ProductCardProps {
   onClick: () => void;
 }
 
+// ✅_FIX: Unified helper functions at component level
+const getProductImages = (p: any): string[] => {
+  if (Array.isArray(p?.images) && p.images.length > 0) {
+    return p.images;
+  }
+  if (p?.image) {
+    return [p.image];
+  }
+  return [];
+};
+
+const getProductColors = (p: any): any[] => {
+  return Array.isArray(p?.colors) ? p.colors : [];
+};
+
+const getProductSizes = (p: any): string[] => {
+  return Array.isArray(p?.availableSizes) 
+    ? p.availableSizes 
+    : Array.isArray(p?.sizes) ? p.sizes : [];
+};
+
+const getProductBadge = (p: any): string | null => {
+  const badge = p.badge || calculateBadge(p);
+  return badge || null;
+};
+
 const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode, onClick }) => {
   const [isLiked, setIsLiked] = useState(false);
   
-  // Ensure product has a badge, if not calculate it
-  const getBadge = (product: any): string | null => {
-    const badge = product.badge || calculateBadge(product);
-    return badge || null;
-  };
+  // Use unified helper functions
+  const productImages = getProductImages(product);
+  const productColors = getProductColors(product);
+  const productSizes = getProductSizes(product);
   
   if (viewMode === 'list') {
     return (
@@ -437,13 +464,19 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode, onClick })
         <CardContent className="p-0">
           <div className="flex">
             <div className="w-32 h-32 relative bg-gray-100 flex-shrink-0 rounded-lg overflow-hidden">
-              <img
-                src={getProxyImageUrl(product.images[0])}
-                alt={product.name}
-                className="w-full h-full object-cover"
-              />
+              {productImages.length > 0 ? (
+                <img
+                  src={getProxyImageUrl(productImages[0] || '')}
+                  alt={product.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-gray-400">
+                  <Store className="h-8 w-8" />
+                </div>
+              )}
               {(() => {
-                const badge = getBadge(product);
+                const badge = getProductBadge(product);
                 if (badge) {
                   const { className, style } = getTagColor(badge);
                   return (
@@ -493,7 +526,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode, onClick })
                   </div>
                   
                   <div className="flex gap-1 mb-2">
-                    {product.availableSizes.map((size: string) => (
+                    {productSizes.map((size: string) => (
                       <Badge key={size} variant="outline" className="text-xs">
                         {size}
                       </Badge>
@@ -544,13 +577,13 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode, onClick })
       <CardContent className="p-0">
         <div className="relative aspect-square bg-gray-100">
           <img 
-            src={getProxyImageUrl(product.images[0])} 
+            src={getProxyImageUrl(productImages[0] || '')} 
             alt={product.name}
             className="w-full h-full object-cover"
           />
           
           {(() => {
-            const badge = getBadge(product);
+            const badge = getProductBadge(product);
             if (!badge) return null;
             const { className, style } = getTagColor(badge);
             return (
@@ -595,7 +628,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode, onClick })
           </div>
           
           <div className="flex gap-1 mb-3">
-            {product.colors.slice(0, 3).map((color: any, index: number) => (
+            {productColors.slice(0, 3).map((color: any, index: number) => (
               <div 
                 key={index}
                 className="w-4 h-4 rounded-full border-2 border-gray-200"
@@ -603,9 +636,9 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode, onClick })
                 title={color.name}
               />
             ))}
-            {product.colors.length > 3 && (
+            {productColors.length > 3 && (
               <div className="w-4 h-4 rounded-full bg-gray-200 flex items-center justify-center text-xs text-gray-500">
-                +{product.colors.length - 3}
+                +{productColors.length - 3}
               </div>
             )}
           </div>

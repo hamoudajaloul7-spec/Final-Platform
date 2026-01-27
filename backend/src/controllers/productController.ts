@@ -210,14 +210,28 @@ export const getProducts = async (
         // تحديث الـ badge إذا لزم الأمر
         await updateProductBadge(product);
         
-        // إضافة tags بناءً على الـ badge
-        const updatedProduct = product.toJSON();
-        updatedProduct.tags = updatedProduct.tags || [];
-        if (updatedProduct.badge && !updatedProduct.tags.includes(updatedProduct.badge)) {
-          updatedProduct.tags.push(updatedProduct.badge);
+        // ✅_FIX: تحويل productImages إلى images array للـ frontend
+        if (productData.productImages && Array.isArray(productData.productImages)) {
+          productData.images = productData.productImages
+            .sort((a: any, b: any) => (a?.sortOrder ?? 0) - (b?.sortOrder ?? 0))
+            .map((img: any) => img?.imageUrl)
+            .filter(Boolean);
+        } else {
+          productData.images = [];
         }
         
-        return updatedProduct;
+        // ✅_FIX: ضمان تعيين inStock و isAvailable
+        const quantity = Number.isFinite(Number(productData.quantity)) ? Number(productData.quantity) : 0;
+        productData.inStock = productData.inStock ?? (quantity > 0);
+        productData.isAvailable = productData.isAvailable !== false && quantity > 0;
+        
+        // إضافة tags بناءً على الـ badge
+        productData.tags = productData.tags || [];
+        if (productData.badge && !productData.tags.includes(productData.badge)) {
+          productData.tags.push(productData.badge);
+        }
+        
+        return productData;
       })
     );
 
@@ -403,3 +417,4 @@ export const deleteProduct = async (
     next(error);
   }
 };
+

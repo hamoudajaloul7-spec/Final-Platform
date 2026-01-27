@@ -21,7 +21,12 @@ export function calculateBadge(product: any, metrics?: BadgeMetrics): string {
   const price = metrics?.price ?? product.price ?? 0;
   const isNew = metrics?.isNew ?? product.isNew ?? false;
 
-  if (!product.inStock || product.isAvailable === false) {
+  // ✅_FIX: Handle undefined inStock and isAvailable correctly
+  // undefined/null should NOT be treated as false - treat as available if quantity > 0
+  const inStock = product.inStock ?? (quantity > 0);
+  const isAvailable = product.isAvailable !== false && quantity > 0;
+
+  if (!inStock || !isAvailable) {
     return 'غير متوفر';
   }
 
@@ -115,8 +120,9 @@ export function getTagColor(badge: string): { className: string; style: React.CS
 
 export function getStockStatus(product: any): 'available' | 'low' | 'unavailable' {
   const quantity = product.quantity ?? 0;
-  const inStock = product.inStock ?? true;
-  const isAvailable = product.isAvailable ?? true;
+  // ✅_FIX: Handle undefined inStock and isAvailable correctly
+  const inStock = product.inStock ?? (quantity > 0);
+  const isAvailable = product.isAvailable !== false && quantity > 0;
   
   if (quantity <= 0 || inStock === false || isAvailable === false) return 'unavailable';
   if (quantity < 5) return 'low';
