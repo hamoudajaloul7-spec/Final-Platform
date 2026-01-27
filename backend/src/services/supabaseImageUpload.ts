@@ -94,14 +94,9 @@ export const uploadMultipleImagesToSupabase = async (
   storeSlug: string,
   imageType: 'products' | 'sliders' | 'logo'
 ): Promise<UploadImageResult[]> => {
-  const results: UploadImageResult[] = [];
-
-  for (const file of files) {
-    const result = await uploadBufferToSupabase(file.buffer, file.filename, storeSlug, imageType);
-    results.push(result);
-  }
-
-  return results;
+  return Promise.all(
+    files.map(file => uploadBufferToSupabase(file.buffer, file.filename, storeSlug, imageType))
+  );
 };
 
 export const deleteImageFromSupabase = async (

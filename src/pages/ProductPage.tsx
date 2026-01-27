@@ -404,13 +404,13 @@ const ProductPage: React.FC<ProductPageProps> = ({
             <div>
               <div className="flex items-center gap-3 mb-3">
                 <h3 className="font-semibold text-gray-900">الكمية</h3>
-                {product.inStock && product.quantity && product.quantity > 0 ? (
+                {product.inStock && product.isAvailable !== false && (product.quantity || 0) > 0 ? (
                   <Badge className="bg-green-100 text-green-800">متوفر ({product.quantity} قطعة)</Badge>
                 ) : (
                   <Badge className="bg-red-100 text-red-800">غير متوفر</Badge>
                 )}
               </div>
-              {product.inStock && product.quantity && product.quantity > 0 ? (
+              {product.inStock && product.isAvailable !== false && (product.quantity || 0) > 0 ? (
                 <div className="flex items-center gap-4">
                   <div className="flex items-center border rounded-lg">
                     <Button
@@ -440,7 +440,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
 
             {/* الأزرار الرئيسية */}
             <div className="space-y-3">
-              {product.inStock && product.quantity && product.quantity > 0 ? (
+              {product.inStock && product.isAvailable !== false && (product.quantity || 0) > 0 ? (
                 <>
                   <Button
                     className="w-full bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white h-12 text-lg font-semibold transition-all duration-200"

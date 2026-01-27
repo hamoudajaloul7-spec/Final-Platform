@@ -53,6 +53,18 @@ async function runGeneration(data: any): Promise<void> {
 
 const supportedImageExtensions = ['png', 'jpg', 'jpeg', 'svg', 'webp', 'gif'];
 
+const PROTECTED_SLUGS = [
+  'nawaem', 
+  'sheirine', 
+  'pretty', 
+  'delta-store', 
+  'magna-beauty', 
+  'indeesh',
+  'eshro',
+  'admin',
+  'portal'
+];
+
 function getDefaultProductImage(storeSlug: string): string {
   return '/assets/default-product.png';
 }
@@ -170,6 +182,15 @@ export const createStoreWithImages = async (
 
     if (!storeSlug || !storeName || !storeId) {
       sendError(res, 'Missing required fields', 400);
+      return;
+    }
+
+    if (PROTECTED_SLUGS.includes(storeSlug.toLowerCase().trim())) {
+      sendError(
+        res,
+        `الرابط "${storeSlug}" محجوز للنظام ولا يمكن استخدامه لإنشاء متجر جديد.`,
+        403
+      );
       return;
     }
 
@@ -292,12 +313,17 @@ export const createStoreWithImages = async (
     if (primaryOwnerEmail) {
       const existingUser = await User.findOne({ where: { email: primaryOwnerEmail } });
       if (existingUser) {
-        sendError(
-          res,
-          `Email "${primaryOwnerEmail}" is already registered in the system`,
-          409
-        );
-        return;
+        // If the user exists but doesn't have a store yet, or it's the same store slug, we can proceed
+        // Otherwise, it's a conflict
+        if (existingUser.storeSlug && existingUser.storeSlug !== storeSlug) {
+          sendError(
+            res,
+            `البريد الإلكتروني "${primaryOwnerEmail}" مسجل بالفعل لمتجر آخر (${existingUser.storeSlug}).`,
+            409
+          );
+          return;
+        }
+        logger.info(`ℹ️ User ${primaryOwnerEmail} already exists, will update/re-use during transaction`);
       }
     }
 
@@ -356,22 +382,43 @@ export const createStoreWithImages = async (
       return;
     }
 
-    logger.info(`\n🔄 Uploading product images to Supabase...\n`);
+    logger.info(`\n🔄 Cleaning up any existing assets for slug: ${storeSlug} in Supabase...`);
+    try {
+      await purgeStoreFromSupabase(storeSlug);
+    } catch (purgeError) {
+      logger.warn(`⚠️ Non-critical: Failed to purge old assets: ${purgeError}`);
+    }
+
+    logger.info(`\n🔄 Uploading images to Supabase in parallel...\n`);
 
     const uploadedProductUrls: Record<string, string> = {};
+    const productUploadPromises: Promise<any>[] = [];
 
-    for (const [productIdx, files] of Object.entries(productFilesMap)) {
-      for (const file of files) {
+    // Map all product files to upload promises
+    Object.entries(productFilesMap).forEach(([productIdx, files]) => {
+      files.forEach(file => {
         if (file.buffer) {
-          const result = await uploadBufferToSupabase(file.buffer, file.filename || file.originalname, storeSlug, 'products');
-          if (result.success) {
-            uploadedProductUrls[file.filename || file.originalname] = result.url;
-            logger.info(`  ✅ Product image uploaded to Supabase: ${file.originalname}`);
-          } else {
-            sendError(res, `Failed to upload product image: ${file.originalname}`, 500);
-            return;
-          }
+          const promise = uploadBufferToSupabase(file.buffer, file.filename || file.originalname, storeSlug, 'products')
+            .then(result => {
+              if (result.success) {
+                uploadedProductUrls[file.filename || file.originalname] = result.url;
+                logger.info(`  ✅ Product image uploaded: ${file.originalname}`);
+              } else {
+                throw new Error(`Failed to upload product image: ${file.originalname}`);
+              }
+            });
+          productUploadPromises.push(promise);
         }
+      });
+    });
+
+    // Execute product uploads in parallel
+    if (productUploadPromises.length > 0) {
+      try {
+        await Promise.all(productUploadPromises);
+      } catch (uploadError: any) {
+        sendError(res, uploadError.message || 'Failed to upload product images', 500);
+        return;
       }
     }
 
@@ -420,18 +467,25 @@ export const createStoreWithImages = async (
     });
 
     if (pendingProductUploads.length > 0) {
-      logger.info(`  🔄 Uploading ${pendingProductUploads.length} newly-assigned product image(s) to Supabase...`);
-      for (const file of pendingProductUploads) {
+      logger.info(`  🔄 Uploading ${pendingProductUploads.length} newly-assigned product image(s) to Supabase in parallel...`);
+      
+      const pendingPromises = pendingProductUploads.map(async (file) => {
         if (file.buffer) {
           const result = await uploadBufferToSupabase(file.buffer, file.filename || file.originalname, storeSlug, 'products');
           if (result.success) {
             uploadedProductUrls[file.filename || file.originalname] = result.url;
             logger.info(`  ✅ Product image uploaded to Supabase: ${file.originalname}`);
           } else {
-            sendError(res, `Failed to upload product image: ${file.originalname}`, 500);
-            return;
+            throw new Error(`Failed to upload product image: ${file.originalname}`);
           }
         }
+      });
+
+      try {
+        await Promise.all(pendingPromises);
+      } catch (uploadError: any) {
+        sendError(res, uploadError.message || 'Failed to upload product images', 500);
+        return;
       }
     }
 
@@ -491,17 +545,30 @@ export const createStoreWithImages = async (
 
     logger.info(`\n🔄 Uploading slider images to Supabase...\n`);
 
+    const sliderUploadPromises: Promise<any>[] = [];
     const uploadedSliderUrls: Record<string, string> = {};
-    for (const file of sliderFiles) {
+
+    sliderFiles.forEach(file => {
       if (file.buffer) {
-        const result = await uploadBufferToSupabase(file.buffer, file.filename || file.originalname, storeSlug, 'sliders');
-        if (result.success) {
-          uploadedSliderUrls[file.filename || file.originalname] = result.url;
-          logger.info(`  ✅ Slider image uploaded to Supabase: ${file.originalname}`);
-        } else {
-          sendError(res, `Failed to upload slider image: ${file.originalname}`, 500);
-          return;
-        }
+        const promise = uploadBufferToSupabase(file.buffer, file.filename || file.originalname, storeSlug, 'sliders')
+          .then(result => {
+            if (result.success) {
+              uploadedSliderUrls[file.filename || file.originalname] = result.url;
+              logger.info(`  ✅ Slider image uploaded: ${file.originalname}`);
+            } else {
+              throw new Error(`Failed to upload slider image: ${file.originalname}`);
+            }
+          });
+        sliderUploadPromises.push(promise);
+      }
+    });
+
+    if (sliderUploadPromises.length > 0) {
+      try {
+        await Promise.all(sliderUploadPromises);
+      } catch (uploadError: any) {
+        sendError(res, uploadError.message || 'Failed to upload slider images', 500);
+        return;
       }
     }
 
@@ -618,8 +685,10 @@ export const createStoreWithImages = async (
     logger.info(`💾 Persisting merchant credentials, store, sliders, and ads for ${storeSlug}...`);
     try {
       await sequelize.transaction(async (transaction) => {
-        persistedMerchant = await User.create(
-          {
+        // Find existing user or create new one
+        const [merchantUser, created] = await User.findOrCreate({
+          where: { email: primaryOwnerEmail },
+          defaults: {
             email: primaryOwnerEmail,
             password: ownerPlainPassword,
             firstName: ownerFirstName,
@@ -633,8 +702,25 @@ export const createStoreWithImages = async (
             storeLogo: logoUrl,
             merchantVerified: true
           },
-          { transaction }
-        );
+          transaction
+        });
+
+        if (!created) {
+          logger.info(`ℹ️ Updating existing merchant user: ${primaryOwnerEmail}`);
+          await merchantUser.update({
+            firstName: ownerFirstName,
+            lastName: ownerLastName,
+            phone: primaryOwnerPhone || '000000000',
+            storeName,
+            storeSlug,
+            storeCategory: primaryCategoryValue,
+            storeDescription: description,
+            storeLogo: logoUrl,
+            merchantVerified: true
+          }, { transaction });
+        }
+
+        persistedMerchant = merchantUser;
 
         persistedStoreRecord = await Store.create(
           {
@@ -1066,6 +1152,14 @@ export const adminPurgeStores = async (
     const slugs = (Array.isArray(slugsRaw) ? slugsRaw : [slugsRaw])
       .map((s) => String(s || '').trim())
       .filter(Boolean);
+
+    // التحقق من الحماية لمنع حذف المتاجر الأساسية
+    const protectedSlugsFound = slugs.filter(s => PROTECTED_SLUGS.includes(s.toLowerCase()));
+    if (protectedSlugsFound.length > 0) {
+      logger.warn(`🔴 محاولة حذف متاجر محمية: ${protectedSlugsFound.join(', ')}`);
+      sendError(res, `لا يمكن حذف المتاجر التالية لأنها محمية من قبل النظام: ${protectedSlugsFound.join(', ')}`, 403);
+      return;
+    }
 
     const emailsRaw = (req.body?.emails || req.body?.email || []) as any;
     const emails = (Array.isArray(emailsRaw) ? emailsRaw : [emailsRaw])

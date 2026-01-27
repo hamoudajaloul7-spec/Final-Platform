@@ -550,7 +550,7 @@ const ProductCard: React.FC<{
                   )}
                 </div>
                 
-                {product.inStock && (product.quantity || 0) > 0 ? (
+                {product.inStock && product.isAvailable && (product.quantity || 0) > 0 ? (
                   <Button size="sm" onClick={(e) => { e.stopPropagation(); onAddToCart(); }}>
                     <ShoppingCart className="h-4 w-4 mr-1" />
                     أضف للسلة
@@ -705,7 +705,7 @@ const ProductCard: React.FC<{
             </div>
           </div>
           
-          {product.inStock && (product.quantity || 0) > 0 ? (
+          {product.inStock && product.isAvailable && (product.quantity || 0) > 0 ? (
             <div className="grid grid-cols-2 gap-2">
               <Button 
                 size="sm" 

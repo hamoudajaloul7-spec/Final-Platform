@@ -514,7 +514,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode, onClick })
                     )}
                   </div>
                   {(() => {
-                    const config = getButtonConfig(product.quantity || 0);
+                    const config = getButtonConfig(product);
                     return (
                       <Button 
                         size="sm" 
@@ -624,7 +624,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode, onClick })
             </div>
             
             {(() => {
-              const config = getButtonConfig(product.quantity || 0);
+              const config = getButtonConfig(product);
               return (
                 <Button 
                   size="sm" 

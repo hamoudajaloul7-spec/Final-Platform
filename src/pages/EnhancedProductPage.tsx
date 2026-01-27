@@ -593,8 +593,8 @@ const EnhancedProductPage: React.FC<EnhancedProductPageProps> = ({
             <div className="space-y-3">
               {(() => {
                 const quantity = product.quantity ?? 0;
-                const isOutOfStock = quantity <= 0;
-                const isLowStock = quantity > 0 && quantity < 5;
+                const isOutOfStock = quantity <= 0 || product.inStock === false || product.isAvailable === false;
+                const isLowStock = !isOutOfStock && quantity > 0 && quantity < 5;
                 
                 if (isOutOfStock) {
                   return (

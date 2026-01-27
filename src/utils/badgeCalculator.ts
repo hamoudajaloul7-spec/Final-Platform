@@ -113,14 +113,18 @@ export function getTagColor(badge: string): { className: string; style: React.CS
   };
 }
 
-export function getStockStatus(quantity: number, threshold: number = 5): 'available' | 'low' | 'unavailable' {
-  if (quantity <= 0) return 'unavailable';
-  if (quantity < threshold) return 'low';
+export function getStockStatus(product: any): 'available' | 'low' | 'unavailable' {
+  const quantity = product.quantity ?? 0;
+  const inStock = product.inStock ?? true;
+  const isAvailable = product.isAvailable ?? true;
+  
+  if (quantity <= 0 || inStock === false || isAvailable === false) return 'unavailable';
+  if (quantity < 5) return 'low';
   return 'available';
 }
 
-export function getButtonConfig(quantity: number) {
-  const status = getStockStatus(quantity);
+export function getButtonConfig(product: any) {
+  const status = getStockStatus(product);
   
   if (status === 'unavailable') {
     return {

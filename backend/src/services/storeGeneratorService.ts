@@ -102,8 +102,16 @@ export class StoreGeneratorService {
   }
 
   async generateStoreFiles(data: StoreGeneratorData): Promise<void> {
+    const isCloud = process.env.VERCEL === 'true' || process.env.RENDER === 'true';
+    
     try {
       logger.info(`\n🚀 Starting store file generation for: ${data.storeName} (slug: ${data.storeSlug})`);
+      
+      if (isCloud) {
+        logger.info(`  ☁️ Cloud environment detected. Skipping disk-based file generation.`);
+        logger.info(`  ✅ Store will be managed entirely via database and cloud storage.`);
+        return;
+      }
 
       // Clear any existing cache for this store to prevent data corruption
       await this.clearStoreCache(data.storeSlug);
