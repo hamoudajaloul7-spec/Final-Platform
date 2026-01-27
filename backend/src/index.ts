@@ -49,6 +49,13 @@ const initializeDatabase = async (): Promise<void> => {
         return;
       }
 
+      logger.info('📦 Adding store_sliders placement column...');
+      try {
+        await addStoreSliderPlacement();
+      } catch (error) {
+        logger.warn('⚠️ Store slider placement migration failed, continuing:', error);
+      }
+
       logger.info('🌱 Seeding database with initial data...');
       if (config.environment === 'development' || process.env.SEED_DB === 'true') {
         try {
@@ -80,13 +87,6 @@ const initializeDatabase = async (): Promise<void> => {
         await addProductOptionColumns();
       } catch (error) {
         logger.warn('⚠️ Product option columns migration failed, continuing:', error);
-      }
-
-      logger.info('📦 Adding store_sliders placement column...');
-      try {
-        await addStoreSliderPlacement();
-      } catch (error) {
-        logger.warn('⚠️ Store slider placement migration failed, continuing:', error);
       }
     }
   } catch (error) {
