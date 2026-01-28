@@ -127,14 +127,14 @@ export const nawaemProducts: any[] = [
   },
   {
     id: 1015, storeId: 1, name: "حقيبة سلسلة ذهبية", description: "حقيبة أنيقة بسلسلة ذهبية وتصميم عصري، مناسبة للسهرات والمناسبات",
-    price: 0, originalPrice: 0, images: ["/assets/nawaem/bag5.jpg", "/assets/nawaem/bag5-green.jpg", "/assets/nawaem/bag5-black.jpg"],
+    price: 165, originalPrice: 235, images: ["/assets/nawaem/bag5.jpg", "/assets/nawaem/bag5-green.jpg", "/assets/nawaem/bag5-black.jpg"],
     sizes: ["صغير"], availableSizes: ["صغير"],
     colors: [
       {name: "أخضر", value: "#16A34A"},
       {name: "أسود", value: "#000000"}
     ],
     rating: 4.3, reviews: 15, views: 112, likes: 45, orders: 11, category: "حقائب سهرة",
-    inStock: false, isAvailable: false, tags: ["غير متوفر"], badge: "غير متوفر"
+    quantity: 0, inStock: false, isAvailable: false, tags: ["غير متوفر"], badge: "غير متوفر"
   },
 
   // المنتجات الجديدة (7 منتجات)
@@ -188,11 +188,11 @@ export const nawaemProducts: any[] = [
   },
   {
     id: 1022, storeId: 1, name: "فستان طفلة فاخر", description: "فستان فاخر للطفلات بتطريز يدوي وتصميم راقي للمناسبات الخاصة",
-    price: 0, originalPrice: 0, images: ["/assets/nawaem/kids5.jpg"],
+    price: 185, originalPrice: 225, images: ["/assets/nawaem/kids5.jpg"],
     sizes: ["2-3", "4-5", "6-7"], availableSizes: ["2-3", "4-5", "6-7"],
     colors: [{name: "أخضر فاتح", value: "#86EFAC"}, {name: "كريمي", value: "#FEF3C7"}],
     rating: 4.8, reviews: 14, views: 134, likes: 89, orders: 12, category: "فساتين فاخرة",
-    inStock: false, isAvailable: false, tags: ["جديد", "غير متوفر"], badge: "غير متوفر"
+    quantity: 0, inStock: false, isAvailable: false, tags: ["جديد", "غير متوفر"], badge: "غير متوفر"
   },
   {
     id: 1023, storeId: 1, name: "حذاء نسائي أنيق", description: "حذاء نسائي أنيق",
