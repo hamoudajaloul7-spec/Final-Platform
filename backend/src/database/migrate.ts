@@ -119,21 +119,45 @@ const createTablesMySQL = async (): Promise<void> => {
       name VARCHAR(255) NOT NULL,
       description TEXT,
       price DECIMAL(10, 3) NOT NULL,
+      original_price DECIMAL(10, 3),
+      discount_percent DECIMAL(5, 2),
+      discount_type ENUM('season_end', 'eid_al_fitr', 'summer', 'spring', 'new_year', 'store_clearance', 'custom'),
+      discount_start TIMESTAMP NULL,
+      discount_end TIMESTAMP NULL,
       category VARCHAR(100) NOT NULL,
+      category_id INT,
       brand VARCHAR(100),
       image VARCHAR(500),
       thumbnail VARCHAR(500),
+      images JSON,
+      colors JSON,
+      sizes JSON,
+      available_sizes JSON,
       store_id INT,
       in_stock BOOLEAN DEFAULT TRUE,
+      is_available BOOLEAN DEFAULT TRUE,
       quantity INT DEFAULT 0,
-      sku VARCHAR(100),
+      sku VARCHAR(100) UNIQUE,
+      product_code VARCHAR(50),
+      barcode VARCHAR(100),
       rating DECIMAL(3, 1),
       review_count INT DEFAULT 0,
+      views INT DEFAULT 0,
+      likes INT DEFAULT 0,
+      orders INT DEFAULT 0,
+      badge VARCHAR(50) DEFAULT 'جديد',
+      tags JSON,
+      last_badge_update TIMESTAMP NULL,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
       CONSTRAINT fk_products_store FOREIGN KEY (store_id) REFERENCES stores(id) ON DELETE SET NULL,
       KEY idx_category (category),
+      KEY idx_category_id (category_id),
       KEY idx_store_id (store_id),
+      KEY idx_discount_type (discount_type),
+      KEY idx_discount_dates (discount_start, discount_end),
+      KEY idx_product_code (product_code),
+      KEY idx_barcode (barcode),
       KEY idx_created_at (created_at),
       KEY idx_in_stock (in_stock),
       FULLTEXT idx_name_description (name, description)
@@ -364,16 +388,35 @@ const createTablesSQLite = async (): Promise<void> => {
       name VARCHAR(255) NOT NULL,
       description TEXT,
       price DECIMAL(10, 3) NOT NULL,
+      original_price DECIMAL(10, 3),
+      discount_percent DECIMAL(5, 2),
+      discount_type TEXT,
+      discount_start DATETIME NULL,
+      discount_end DATETIME NULL,
       category VARCHAR(100) NOT NULL,
+      category_id INT,
       brand VARCHAR(100),
       image VARCHAR(500),
       thumbnail VARCHAR(500),
+      images TEXT,
+      colors TEXT,
+      sizes TEXT,
+      available_sizes TEXT,
       store_id INT,
       in_stock INTEGER DEFAULT 1,
+      is_available INTEGER DEFAULT 1,
       quantity INT DEFAULT 0,
-      sku VARCHAR(100),
+      sku VARCHAR(100) UNIQUE,
+      product_code VARCHAR(50),
+      barcode VARCHAR(100),
       rating DECIMAL(3, 1),
       review_count INT DEFAULT 0,
+      views INT DEFAULT 0,
+      likes INT DEFAULT 0,
+      orders INT DEFAULT 0,
+      badge VARCHAR(50) DEFAULT 'جديد',
+      tags TEXT,
+      last_badge_update DATETIME NULL,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
@@ -502,34 +545,296 @@ const addMissingColumns = async (): Promise<void> => {
   try {
     logger.info('🔄 Checking for missing columns...');
     
+    // Check which columns exist in products table
+    const checkColumnExists = async (columnName: string): Promise<boolean> => {
+      try {
+        if (dialect === 'postgres') {
+          const [results]: any = await sequelize.query(`
+            SELECT column_name 
+            FROM information_schema.columns 
+            WHERE table_name = 'products' AND column_name = '${columnName}'
+          `);
+          return results.length > 0;
+        } else if (dialect === 'mysql') {
+          const [results]: any = await sequelize.query(`
+            SHOW COLUMNS FROM products LIKE '${columnName}'
+          `);
+          return results.length > 0;
+        } else if (dialect === 'sqlite') {
+          const [results]: any = await sequelize.query(`PRAGMA table_info(products)`);
+          return results.some((col: any) => col.name === columnName);
+        }
+        return false;
+      } catch (error) {
+        return false;
+      }
+    };
+
     // Add is_available column to products table if it doesn't exist
     try {
-      if (dialect === 'mysql') {
-        await sequelize.query(`
-          ALTER TABLE products
-          ADD COLUMN IF NOT EXISTS is_available BOOLEAN DEFAULT TRUE
-        `);
-      } else if (dialect === 'postgres') {
-        await sequelize.query(`
-          ALTER TABLE products
-          ADD COLUMN IF NOT EXISTS is_available BOOLEAN DEFAULT TRUE
-        `);
-      } else if (dialect === 'sqlite') {
-        // SQLite doesn't support IF NOT EXISTS for columns, we'll handle this differently
-        const [results]: any = await sequelize.query(
-          `PRAGMA table_info(products)`
-        );
-        const hasIsAvailable = results.some((col: any) => col.name === 'is_available');
-        if (!hasIsAvailable) {
+      const hasIsAvailable = await checkColumnExists('is_available');
+      if (!hasIsAvailable) {
+        if (dialect === 'mysql') {
+          await sequelize.query(`
+            ALTER TABLE products
+            ADD COLUMN is_available BOOLEAN DEFAULT TRUE AFTER in_stock
+          `);
+        } else if (dialect === 'postgres') {
+          await sequelize.query(`
+            ALTER TABLE products
+            ADD COLUMN is_available BOOLEAN DEFAULT TRUE
+          `);
+        } else if (dialect === 'sqlite') {
           await sequelize.query(`
             ALTER TABLE products
             ADD COLUMN is_available INTEGER DEFAULT 1
           `);
         }
+        logger.info('✅ is_available column added to products table');
+      } else {
+        logger.info('✅ is_available column already exists in products table');
       }
-      logger.info('✅ is_available column added/verified in products table');
     } catch (error) {
-      logger.warn('⚠️ Could not add is_available column (may already exist):', error);
+      logger.warn('⚠️ Could not add is_available column:', error);
+    }
+
+    // Add original_price column
+    try {
+      const hasOriginalPrice = await checkColumnExists('original_price');
+      if (!hasOriginalPrice) {
+        if (dialect === 'mysql') {
+          await sequelize.query(`
+            ALTER TABLE products
+            ADD COLUMN original_price DECIMAL(10, 3) AFTER price
+          `);
+        } else if (dialect === 'postgres') {
+          await sequelize.query(`
+            ALTER TABLE products
+            ADD COLUMN original_price DECIMAL(10, 3)
+          `);
+        } else if (dialect === 'sqlite') {
+          await sequelize.query(`
+            ALTER TABLE products
+            ADD COLUMN original_price DECIMAL(10, 3)
+          `);
+        }
+        logger.info('✅ original_price column added to products table');
+      }
+    } catch (error) {
+      logger.warn('⚠️ Could not add original_price column:', error);
+    }
+
+    // Add discount_percent column
+    try {
+      const hasDiscountPercent = await checkColumnExists('discount_percent');
+      if (!hasDiscountPercent) {
+        if (dialect === 'mysql') {
+          await sequelize.query(`
+            ALTER TABLE products
+            ADD COLUMN discount_percent DECIMAL(5, 2)
+          `);
+        } else if (dialect === 'postgres') {
+          await sequelize.query(`
+            ALTER TABLE products
+            ADD COLUMN discount_percent DECIMAL(5, 2)
+          `);
+        } else if (dialect === 'sqlite') {
+          await sequelize.query(`
+            ALTER TABLE products
+            ADD COLUMN discount_percent DECIMAL(5, 2)
+          `);
+        }
+        logger.info('✅ discount_percent column added to products table');
+      }
+    } catch (error) {
+      logger.warn('⚠️ Could not add discount_percent column:', error);
+    }
+
+    // Add discount_type column
+    try {
+      const hasDiscountType = await checkColumnExists('discount_type');
+      if (!hasDiscountType) {
+        if (dialect === 'mysql') {
+          await sequelize.query(`
+            ALTER TABLE products
+            ADD COLUMN discount_type ENUM('season_end', 'eid_al_fitr', 'summer', 'spring', 'new_year', 'store_clearance', 'custom')
+          `);
+        } else if (dialect === 'postgres') {
+          await sequelize.query(`
+            ALTER TABLE products
+            ADD COLUMN discount_type VARCHAR(50)
+          `);
+        } else if (dialect === 'sqlite') {
+          await sequelize.query(`
+            ALTER TABLE products
+            ADD COLUMN discount_type TEXT
+          `);
+        }
+        logger.info('✅ discount_type column added to products table');
+      }
+    } catch (error) {
+      logger.warn('⚠️ Could not add discount_type column:', error);
+    }
+
+    // Add discount_start column
+    try {
+      const hasDiscountStart = await checkColumnExists('discount_start');
+      if (!hasDiscountStart) {
+        if (dialect === 'mysql' || dialect === 'postgres') {
+          await sequelize.query(`
+            ALTER TABLE products
+            ADD COLUMN discount_start TIMESTAMP NULL
+          `);
+        } else if (dialect === 'sqlite') {
+          await sequelize.query(`
+            ALTER TABLE products
+            ADD COLUMN discount_start DATETIME NULL
+          `);
+        }
+        logger.info('✅ discount_start column added to products table');
+      }
+    } catch (error) {
+      logger.warn('⚠️ Could not add discount_start column:', error);
+    }
+
+    // Add discount_end column
+    try {
+      const hasDiscountEnd = await checkColumnExists('discount_end');
+      if (!hasDiscountEnd) {
+        if (dialect === 'mysql' || dialect === 'postgres') {
+          await sequelize.query(`
+            ALTER TABLE products
+            ADD COLUMN discount_end TIMESTAMP NULL
+          `);
+        } else if (dialect === 'sqlite') {
+          await sequelize.query(`
+            ALTER TABLE products
+            ADD COLUMN discount_end DATETIME NULL
+          `);
+        }
+        logger.info('✅ discount_end column added to products table');
+      }
+    } catch (error) {
+      logger.warn('⚠️ Could not add discount_end column:', error);
+    }
+
+    // Add category_id column
+    try {
+      const hasCategoryId = await checkColumnExists('category_id');
+      if (!hasCategoryId) {
+        await sequelize.query(`
+          ALTER TABLE products
+          ADD COLUMN category_id INT
+        `);
+        logger.info('✅ category_id column added to products table');
+      }
+    } catch (error) {
+      logger.warn('⚠️ Could not add category_id column:', error);
+    }
+
+    // Add product_code column
+    try {
+      const hasProductCode = await checkColumnExists('product_code');
+      if (!hasProductCode) {
+        await sequelize.query(`
+          ALTER TABLE products
+          ADD COLUMN product_code VARCHAR(50)
+        `);
+        logger.info('✅ product_code column added to products table');
+      }
+    } catch (error) {
+      logger.warn('⚠️ Could not add product_code column:', error);
+    }
+
+    // Add barcode column
+    try {
+      const hasBarcode = await checkColumnExists('barcode');
+      if (!hasBarcode) {
+        await sequelize.query(`
+          ALTER TABLE products
+          ADD COLUMN barcode VARCHAR(100)
+        `);
+        logger.info('✅ barcode column added to products table');
+      }
+    } catch (error) {
+      logger.warn('⚠️ Could not add barcode column:', error);
+    }
+
+    // Add views column
+    try {
+      const hasViews = await checkColumnExists('views');
+      if (!hasViews) {
+        await sequelize.query(`
+          ALTER TABLE products
+          ADD COLUMN views INT DEFAULT 0
+        `);
+        logger.info('✅ views column added to products table');
+      }
+    } catch (error) {
+      logger.warn('⚠️ Could not add views column:', error);
+    }
+
+    // Add likes column
+    try {
+      const hasLikes = await checkColumnExists('likes');
+      if (!hasLikes) {
+        await sequelize.query(`
+          ALTER TABLE products
+          ADD COLUMN likes INT DEFAULT 0
+        `);
+        logger.info('✅ likes column added to products table');
+      }
+    } catch (error) {
+      logger.warn('⚠️ Could not add likes column:', error);
+    }
+
+    // Add orders column
+    try {
+      const hasOrders = await checkColumnExists('orders');
+      if (!hasOrders) {
+        await sequelize.query(`
+          ALTER TABLE products
+          ADD COLUMN orders INT DEFAULT 0
+        `);
+        logger.info('✅ orders column added to products table');
+      }
+    } catch (error) {
+      logger.warn('⚠️ Could not add orders column:', error);
+    }
+
+    // Add badge column
+    try {
+      const hasBadge = await checkColumnExists('badge');
+      if (!hasBadge) {
+        await sequelize.query(`
+          ALTER TABLE products
+          ADD COLUMN badge VARCHAR(50) DEFAULT 'جديد'
+        `);
+        logger.info('✅ badge column added to products table');
+      }
+    } catch (error) {
+      logger.warn('⚠️ Could not add badge column:', error);
+    }
+
+    // Add last_badge_update column
+    try {
+      const hasLastBadgeUpdate = await checkColumnExists('last_badge_update');
+      if (!hasLastBadgeUpdate) {
+        if (dialect === 'mysql' || dialect === 'postgres') {
+          await sequelize.query(`
+            ALTER TABLE products
+            ADD COLUMN last_badge_update TIMESTAMP NULL
+          `);
+        } else if (dialect === 'sqlite') {
+          await sequelize.query(`
+            ALTER TABLE products
+            ADD COLUMN last_badge_update DATETIME NULL
+          `);
+        }
+        logger.info('✅ last_badge_update column added to products table');
+      }
+    } catch (error) {
+      logger.warn('⚠️ Could not add last_badge_update column:', error);
     }
     
     // Add images column to products table if it doesn't exist

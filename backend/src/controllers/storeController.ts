@@ -37,6 +37,8 @@ interface ProductData {
   reviews: number;
   category: string;
   inStock: boolean;
+  quantity: number;
+  isAvailable: boolean;
   tags: string[];
 }
 
@@ -530,14 +532,19 @@ export const createStoreWithImages = async (
         ? product.availableSizes
         : sizes;
       
+      // Determine quantity and stock status
+      const quantity = Number.isFinite(Number(product.quantity)) ? Number(product.quantity) : 0;
+      const inStock = quantity > 0;
+      
       return {
         ...product,
         images,
         sizes,
         availableSizes,
         colors,
-        inStock: product.inStock !== undefined ? product.inStock : true,
-        isAvailable: product.inStock !== undefined ? product.inStock : true
+        quantity,
+        inStock,
+        isAvailable: inStock
       };
     });
 
@@ -748,6 +755,7 @@ export const createStoreWithImages = async (
           
           const quantity = Number.isFinite(Number(p.quantity)) ? Number(p.quantity) : 0;
           const resolvedInStock = quantity > 0;
+          const resolvedIsAvailable = resolvedInStock;
 
           try {
             const created = await Product.create(
@@ -766,7 +774,7 @@ export const createStoreWithImages = async (
                 tags: Array.isArray(p.tags) ? p.tags : [],
                 quantity,
                 inStock: resolvedInStock,
-                // Note: isAvailable column doesn't exist in DB, using inStock only
+                isAvailable: resolvedIsAvailable,
                 rating: p.rating ?? null,
                 reviewCount: p.reviews ?? p.reviewCount ?? 0
               },
