@@ -146,7 +146,7 @@ export function getButtonConfig(product: any) {
     return {
       status,
       buttonText: '🔔 نبهني عند التوفر',
-      buttonClassName: 'bg-orange-700 hover:bg-orange-800 text-white font-semibold px-4 py-2 rounded-lg',
+      buttonClassName: 'bg-[#FF6347] hover:bg-[#E5533D] text-white font-bold px-4 py-2 rounded-lg transition-all duration-300',
       isDisabled: false,
       emoji: '🔔',
       productState: 'out_of_stock'

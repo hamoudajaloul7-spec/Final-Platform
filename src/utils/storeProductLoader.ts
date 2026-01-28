@@ -1,4 +1,4 @@
-import { nawaemProducts } from '@/data/stores/nawaem/nawamProducts';
+import { nawaemProducts } from '@/data/stores/nawaem/products';
 import { sheirineProducts } from '@/data/stores/sheirine/products';
 import { prettyProducts } from '@/data/stores/pretty/products';
 import { deltaProducts } from '@/data/stores/delta-store/products';

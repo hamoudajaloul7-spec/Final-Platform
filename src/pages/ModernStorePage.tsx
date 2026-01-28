@@ -1221,17 +1221,28 @@ const ProductCard: React.FC<{
 
           {/* السعر */}
           <div className="flex items-center gap-2 mb-3">
-            <span className="text-lg font-bold text-primary">{product.price} د.ل</span>
-            {product.originalPrice > product.price && (
-              <>
-                <span className="text-sm text-gray-500 line-through">
-                  {product.originalPrice} د.ل
-                </span>
-                <Badge className="bg-red-500 text-white text-xs">
-                  -{Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}%
-                </Badge>
-              </>
-            )}
+            {(() => {
+              const quantity = product.quantity ?? 0;
+              const isOutOfStock = quantity <= 0 || product.inStock === false || product.isAvailable === false;
+              if (isOutOfStock) {
+                return <span className="text-sm font-bold text-[#FF6347]">غير متوفر حالياً</span>;
+              }
+              return (
+                <>
+                  <span className="text-lg font-bold text-primary">{product.price} د.ل</span>
+                  {product.originalPrice > product.price && (
+                    <>
+                      <span className="text-sm text-gray-500 line-through">
+                        {product.originalPrice} د.ل
+                      </span>
+                      <Badge className="bg-red-500 text-white text-xs">
+                        -{Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}%
+                      </Badge>
+                    </>
+                  )}
+                </>
+              );
+            })()}
           </div>
 
           {/* الإحصائيات */}
@@ -1264,7 +1275,7 @@ const ProductCard: React.FC<{
                     onNotifyWhenAvailable();
                   }}
                   size="sm"
-                  className="w-full bg-orange-700 hover:bg-orange-800 text-white"
+                  className="w-full bg-[#FF6347] hover:bg-[#E5533D] text-white font-bold"
                 >
                   <Bell className="h-4 w-4 mr-1" />
                   نبهني عند التوفر

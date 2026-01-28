@@ -1553,6 +1553,8 @@ const CreateStorePage: React.FC<CreateStorePageProps> = ({
                                   price: currentProduct.price,
                                   originalPrice: currentProduct.originalPrice || currentProduct.price,
                                   quantity: currentProduct.quantity || 0,
+                                  inStock: (currentProduct.quantity || 0) > 0,
+                                  isAvailable: (currentProduct.quantity || 0) > 0,
                                   images: currentProduct.images || [getDefaultProductImageSync(formData.subdomain)],
                                   size: currentProduct.size?.startsWith('custom:') ? currentProduct.size.replace('custom:', '') : currentProduct.size,
                                   category: currentProduct.category || formData.categories[0] || 'عام',

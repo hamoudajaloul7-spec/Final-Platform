@@ -86,8 +86,9 @@ const EnhancedProductPage: React.FC<EnhancedProductPageProps> = ({
   const safeProduct = {
     ...product,
     availableSizes: product.availableSizes || product.sizes || [],
-    inStock: product.inStock !== undefined ? product.inStock : true,
-    isAvailable: product.isAvailable !== undefined ? product.isAvailable : true
+    quantity: product.quantity ?? 0,
+    inStock: (product.inStock !== false) && (product.quantity === undefined || (product.quantity ?? 0) > 0),
+    isAvailable: (product.isAvailable !== false) && (product.quantity === undefined || (product.quantity ?? 0) > 0)
   };
 
  
@@ -477,14 +478,11 @@ const EnhancedProductPage: React.FC<EnhancedProductPageProps> = ({
             {/* الأسعار */}
             <div className="flex items-center gap-3">
               {(() => {
-                const quantity = product.quantity ?? 0;
-                const inStock = product.inStock !== false;
-                const isAvailable = product.isAvailable !== false;
-                const isInStock = quantity > 0 && inStock && isAvailable;
+                const isInStock = safeProduct.inStock && safeProduct.isAvailable;
                 
                 if (!isInStock) {
                   return (
-                    <span className="text-2xl font-bold text-red-600">
+                    <span className="text-2xl font-bold text-[#FF6347]">
                       غير متوفرة الآن
                     </span>
                   );
@@ -603,25 +601,18 @@ const EnhancedProductPage: React.FC<EnhancedProductPageProps> = ({
             {/* أزرار الإضافة للسلة والشراء */}
             <div className="space-y-3">
               {(() => {
-                // ✅ FIX: فحص دقيق للحالة - يجب أن يكون المنتج متوفر في كل الحالات
-                const quantity = product.quantity ?? 0;
-                const inStock = product.inStock !== false; // افتراضياً true إلا إذا كان false بشكل صريح
-                const isAvailable = product.isAvailable !== false; // افتراضياً true إلا إذا كان false بشكل صريح
-                
-                // المنتج غير متوفر إذا كان أي من التالي:
-                // 1. الكمية = 0
-                // 2. inStock = false
-                // 3. isAvailable = false
-                const isOutOfStock = quantity <= 0 || !inStock || !isAvailable;
+                // ✅ FIX: فحص دقيق للحالة باستخدام safeProduct
+                const isOutOfStock = !safeProduct.inStock || !safeProduct.isAvailable;
+                const quantity = safeProduct.quantity;
                 const isLowStock = !isOutOfStock && quantity > 0 && quantity < 5;
                 
                 if (isOutOfStock) {
                   return (
                     <Button
                       onClick={handleNotifyWhenAvailable}
-                      className="w-full bg-orange-700 hover:bg-orange-800 text-white py-3 text-lg font-semibold rounded-xl"
+                      className="w-full bg-[#FF6347] hover:bg-[#E5533D] text-white py-4 text-xl font-bold rounded-xl shadow-lg transition-all duration-300 transform hover:scale-[1.02]"
                     >
-                      <Bell className="h-5 w-5 mr-2" />
+                      <Bell className="h-6 w-6 mr-2" />
                       نبهني عند التوفر
                     </Button>
                   );
@@ -710,10 +701,7 @@ const EnhancedProductPage: React.FC<EnhancedProductPageProps> = ({
                   <span className="text-gray-600">الحالة:</span>
                   <div className="flex items-center gap-2">
                     {(() => {
-                      const quantity = product.quantity ?? 0;
-                      const inStock = product.inStock !== false;
-                      const isAvailable = product.isAvailable !== false;
-                      const isInStock = quantity > 0 && inStock && isAvailable;
+                      const isInStock = safeProduct.inStock && safeProduct.isAvailable;
                       
                       return (
                         <>
@@ -731,25 +719,22 @@ const EnhancedProductPage: React.FC<EnhancedProductPageProps> = ({
 
             {/* قسم التنبيه للمنتجات غير المتوفرة - يظهر فقط للمنتجات غير المتوفرة */}
             {(() => {
-              const quantity = product.quantity ?? 0;
-              const inStock = product.inStock !== false;
-              const isAvailable = product.isAvailable !== false;
-              const isOutOfStock = quantity <= 0 || !inStock || !isAvailable;
+              const isOutOfStock = !safeProduct.inStock || !safeProduct.isAvailable;
               
               if (!isOutOfStock) return null;
               
               return (
-                <Card className="bg-orange-50 border border-orange-200">
-                  <CardContent className="p-4 text-center">
-                    <AlertTriangle className="h-8 w-8 text-orange-600 mx-auto mb-2" />
-                    <p className="text-orange-800 font-medium mb-3">
+                <Card className="bg-orange-50 border border-[#FF6347]/20">
+                  <CardContent className="p-6 text-center">
+                    <AlertTriangle className="h-10 w-10 text-[#FF6347] mx-auto mb-3" />
+                    <p className="text-orange-900 text-lg font-bold mb-4">
                       هذا المنتج غير متوفر حالياً
                     </p>
                     <Button
                       onClick={handleNotifyWhenAvailable}
-                      className="bg-orange-600 hover:bg-orange-700 text-white"
+                      className="bg-[#FF6347] hover:bg-[#E5533D] text-white px-8 py-6 text-lg font-bold rounded-xl shadow-md"
                     >
-                      <Bell className="h-4 w-4 mr-2" />
+                      <Bell className="h-5 w-5 mr-2" />
                       نبهني عند التوفر
                     </Button>
                   </CardContent>

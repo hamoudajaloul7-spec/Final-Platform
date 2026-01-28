@@ -384,7 +384,9 @@ const NotifyWhenAvailable: React.FC<NotifyWhenAvailableProps> = ({
       />
       <div className="text-right flex-1">
         <h3 className="font-bold text-gray-800 text-lg">{product?.name || 'منتج غير معروف'}</h3>
-        <p className="text-sm text-gray-600 mt-1">قيمة المنتج: {product?.price || 0} د.ل</p>
+        <p className="text-sm text-gray-600 mt-1">
+          {product?.quantity === 0 || !product?.inStock ? 'غير متوفر حالياً' : `قيمة المنتج: ${product?.price || 0} د.ل`}
+        </p>
       </div>
     </div>
   );
@@ -440,7 +442,7 @@ const NotifyWhenAvailable: React.FC<NotifyWhenAvailableProps> = ({
             {globalError && (
               <p className="text-sm text-red-600 text-right">{globalError}</p>
             )}
-            <Button type="submit" className="w-full bg-gradient-to-r from-purple-600 to-pink-500 text-white py-4 text-lg font-bold rounded-xl shadow-lg">
+            <Button type="submit" className="w-full bg-[#FF6347] hover:bg-[#E5533D] text-white py-4 text-lg font-bold rounded-xl shadow-lg transition-all duration-300">
               تسجيل الاشتراك
             </Button>
             <Button type="button" variant="outline" onClick={handleClose} className="w-full py-3 text-lg font-bold rounded-xl">
@@ -471,7 +473,7 @@ const NotifyWhenAvailable: React.FC<NotifyWhenAvailableProps> = ({
               className="text-center text-2xl tracking-widest"
             />
             {otpError && <p className="text-sm text-red-600 text-center">{otpError}</p>}
-            <Button type="submit" className="w-full bg-primary text-white py-3 text-lg font-bold rounded-xl">
+            <Button type="submit" className="w-full bg-[#FF6347] hover:bg-[#E5533D] text-white py-3 text-lg font-bold rounded-xl transition-all duration-300">
               تفعيل الاشتراك
             </Button>
             <Button type="button" variant="outline" onClick={handleClose} className="w-full py-3 text-lg font-bold rounded-xl">
@@ -569,7 +571,7 @@ const NotifyWhenAvailable: React.FC<NotifyWhenAvailableProps> = ({
               <p className="text-sm text-red-600 text-right">{globalError}</p>
             )}
             <div className="pt-6 space-y-3">
-              <Button type="submit" disabled={isSubmitting} className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 font-bold text-lg rounded-xl shadow-lg">
+              <Button type="submit" disabled={isSubmitting} className="w-full bg-[#FF6347] hover:bg-[#E5533D] text-white py-4 font-bold text-lg rounded-xl shadow-lg transition-all duration-300">
                 {isSubmitting ? (
                   <div className="flex items-center gap-2 justify-center">
                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -622,7 +624,7 @@ const NotifyWhenAvailable: React.FC<NotifyWhenAvailableProps> = ({
             </p>
           </div>
           <div className="space-y-3">
-            <Button onClick={handleClose} className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 text-lg font-bold rounded-xl shadow-lg">
+            <Button onClick={handleClose} className="w-full bg-[#FF6347] hover:bg-[#E5533D] text-white py-4 text-lg font-bold rounded-xl shadow-lg transition-all duration-300">
               تأكيد الطلب
             </Button>
             <Button onClick={handleClose} variant="outline" className="w-full border-2 border-gray-300 text-gray-700 hover:bg-gray-50 py-3 text-lg font-bold rounded-xl">

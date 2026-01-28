@@ -1,5 +1,2 @@
-// Nawaem Store - متجر نواعم
-export { nawaemProducts, nawaemStoreConfig } from './nawamProducts';
-export { nawaemProducts as products } from './products';
-export { nawaemStoreConfig as config } from './config';
-export * from './Slider';
+export { nawaemProducts } from './products';
+export { nawaemStoreConfig } from './config';
