@@ -19,7 +19,6 @@ export interface Product {
   orders: number;
   category: string;
   inStock: boolean;
-  isAvailable: boolean;
   tags: string[];
   badge?: string;
   quantity: number;

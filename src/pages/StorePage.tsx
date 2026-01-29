@@ -500,7 +500,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode, onClick })
                 
                 <div className="text-right">
                   <div className="flex items-center gap-2 mb-3">
-                    {product.inStock && product.isAvailable ? (
+                    {product.inStock ? (
                       <>
                         <span className="text-lg font-bold text-primary">{product.price} د.ل</span>
                         {product.originalPrice > product.price && (
@@ -615,7 +615,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode, onClick })
           
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              {product.inStock && product.isAvailable ? (
+              {product.inStock ? (
                 <>
                   <span className="text-lg font-bold text-primary">{product.price} د.ل</span>
                   {product.originalPrice > product.price && (

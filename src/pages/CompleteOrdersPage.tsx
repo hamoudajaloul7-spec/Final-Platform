@@ -46,7 +46,6 @@ interface Product {
   reviews: number;
   category: string;
   inStock: boolean;
-  isAvailable: boolean;
   tags: string[];
   badge?: string;
 }

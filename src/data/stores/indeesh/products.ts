@@ -18,7 +18,7 @@ export const indeeshProducts: Product[] = [
     availableSizes: ["واحد"],
     colors: [{ name: "أسود", value: "#000000" }],
     rating: 4.5, reviews: 0, views: 0, likes: 0, orders: 0,
-    category: "cleaning", inStock: true, isAvailable: true,
+    category: "cleaning", inStock: true,
     tags: ["جديد"], badge: "جديد", quantity: 40,
     expiryDate: "", endDate: ""
   },
@@ -42,7 +42,7 @@ export const indeeshProducts: Product[] = [
     availableSizes: ["واحد"],
     colors: [{ name: "أسود", value: "#000000" }],
     rating: 4.5, reviews: 0, views: 0, likes: 0, orders: 0,
-    category: "cleaning", inStock: true, isAvailable: true,
+    category: "cleaning", inStock: true,
     tags: ["جديد"], badge: "جديد", quantity: 40,
     expiryDate: "", endDate: ""
   },
@@ -63,7 +63,7 @@ export const indeeshProducts: Product[] = [
     availableSizes: ["واحد"],
     colors: [{ name: "أسود", value: "#000000" }],
     rating: 4.5, reviews: 0, views: 0, likes: 0, orders: 0,
-    category: "cleaning", inStock: true, isAvailable: true,
+    category: "cleaning", inStock: true,
     tags: ["جديد"], badge: "جديد", quantity: 30,
     expiryDate: "", endDate: ""
   },
@@ -87,7 +87,7 @@ export const indeeshProducts: Product[] = [
     availableSizes: ["واحد"],
     colors: [{ name: "أسود", value: "#000000" }],
     rating: 4.5, reviews: 0, views: 0, likes: 0, orders: 0,
-    category: "cleaning", inStock: true, isAvailable: true,
+    category: "cleaning", inStock: true,
     tags: ["جديد"], badge: "جديد", quantity: 30,
     expiryDate: "", endDate: ""
   },
@@ -109,7 +109,7 @@ export const indeeshProducts: Product[] = [
     availableSizes: ["واحد"],
     colors: [{ name: "أسود", value: "#000000" }],
     rating: 4.5, reviews: 0, views: 0, likes: 0, orders: 0,
-    category: "cleaning", inStock: true, isAvailable: true,
+    category: "cleaning", inStock: true,
     tags: ["جديد"], badge: "جديد", quantity: 20,
     expiryDate: "", endDate: ""
   },
@@ -130,7 +130,7 @@ export const indeeshProducts: Product[] = [
     availableSizes: ["واحد"],
     colors: [{ name: "أسود", value: "#000000" }],
     rating: 4.5, reviews: 0, views: 0, likes: 0, orders: 0,
-    category: "cleaning", inStock: true, isAvailable: true,
+    category: "cleaning", inStock: true,
     tags: ["جديد"], badge: "جديد", quantity: 20,
     expiryDate: "", endDate: ""
   },
@@ -153,7 +153,7 @@ export const indeeshProducts: Product[] = [
     availableSizes: ["واحد"],
     colors: [{ name: "أسود", value: "#000000" }],
     rating: 4.5, reviews: 0, views: 0, likes: 0, orders: 0,
-    category: "cleaning", inStock: true, isAvailable: true,
+    category: "cleaning", inStock: true,
     tags: ["جديد"], badge: "جديد", quantity: 30,
     expiryDate: "", endDate: ""
   },
@@ -176,7 +176,7 @@ export const indeeshProducts: Product[] = [
     availableSizes: ["واحد"],
     colors: [{ name: "أسود", value: "#000000" }],
     rating: 4.5, reviews: 0, views: 0, likes: 0, orders: 0,
-    category: "cleaning", inStock: true, isAvailable: true,
+    category: "cleaning", inStock: true,
     tags: ["جديد"], badge: "جديد", quantity: 30,
     expiryDate: "", endDate: ""
   },
@@ -200,7 +200,7 @@ export const indeeshProducts: Product[] = [
     availableSizes: ["واحد"],
     colors: [{ name: "أسود", value: "#000000" }],
     rating: 4.5, reviews: 0, views: 0, likes: 0, orders: 0,
-    category: "cleaning", inStock: true, isAvailable: true,
+    category: "cleaning", inStock: true,
     tags: ["جديد"], badge: "جديد", quantity: 30,
     expiryDate: "", endDate: ""
   },
@@ -223,7 +223,7 @@ export const indeeshProducts: Product[] = [
     availableSizes: ["واحد"],
     colors: [{ name: "أسود", value: "#000000" }],
     rating: 4.5, reviews: 0, views: 0, likes: 0, orders: 0,
-    category: "cleaning", inStock: true, isAvailable: true,
+    category: "cleaning", inStock: true,
     tags: ["جديد"], badge: "جديد", quantity: 30,
     expiryDate: "", endDate: ""
   },
@@ -247,7 +247,7 @@ export const indeeshProducts: Product[] = [
     availableSizes: ["واحد"],
     colors: [{ name: "أسود", value: "#000000" }],
     rating: 4.5, reviews: 0, views: 0, likes: 0, orders: 0,
-    category: "cleaning", inStock: true, isAvailable: true,
+    category: "cleaning", inStock: true,
     tags: ["جديد"], badge: "جديد", quantity: 20,
     expiryDate: "", endDate: ""
   },
@@ -271,7 +271,7 @@ export const indeeshProducts: Product[] = [
     availableSizes: ["واحد"],
     colors: [{ name: "أسود", value: "#000000" }],
     rating: 4.5, reviews: 0, views: 0, likes: 0, orders: 0,
-    category: "cleaning", inStock: true, isAvailable: true,
+    category: "cleaning", inStock: true,
     tags: ["جديد"], badge: "جديد", quantity: 15,
     expiryDate: "", endDate: ""
   },
@@ -293,7 +293,7 @@ export const indeeshProducts: Product[] = [
     availableSizes: ["واحد"],
     colors: [{ name: "أسود", value: "#000000" }],
     rating: 4.5, reviews: 0, views: 0, likes: 0, orders: 0,
-    category: "cleaning", inStock: true, isAvailable: true,
+    category: "cleaning", inStock: true,
     tags: ["جديد"], badge: "جديد", quantity: 30,
     expiryDate: "", endDate: ""
   },
@@ -314,7 +314,7 @@ export const indeeshProducts: Product[] = [
     availableSizes: ["واحد"],
     colors: [{ name: "أسود", value: "#000000" }],
     rating: 4.5, reviews: 0, views: 0, likes: 0, orders: 0,
-    category: "cleaning", inStock: true, isAvailable: true,
+    category: "cleaning", inStock: true,
     tags: ["جديد"], badge: "جديد", quantity: 10,
     expiryDate: "", endDate: ""
   },
@@ -335,7 +335,7 @@ export const indeeshProducts: Product[] = [
     availableSizes: ["واحد"],
     colors: [{ name: "أسود", value: "#000000" }],
     rating: 4.5, reviews: 0, views: 0, likes: 0, orders: 0,
-    category: "cleaning", inStock: false, isAvailable: false,
+    category: "cleaning", inStock: false,
     tags: ["جديد"], badge: "جديد", quantity: -1,
     expiryDate: "", endDate: ""
   },
@@ -357,7 +357,7 @@ export const indeeshProducts: Product[] = [
     availableSizes: ["واحد"],
     colors: [{ name: "أسود", value: "#000000" }],
     rating: 4.5, reviews: 0, views: 0, likes: 0, orders: 0,
-    category: "cleaning", inStock: true, isAvailable: true,
+    category: "cleaning", inStock: true,
     tags: ["جديد"], badge: "جديد", quantity: 10,
     expiryDate: "", endDate: ""
   },
@@ -380,7 +380,7 @@ export const indeeshProducts: Product[] = [
     availableSizes: ["واحد"],
     colors: [{ name: "أسود", value: "#000000" }],
     rating: 4.5, reviews: 0, views: 0, likes: 0, orders: 0,
-    category: "cleaning", inStock: true, isAvailable: true,
+    category: "cleaning", inStock: true,
     tags: ["جديد"], badge: "جديد", quantity: 20,
     expiryDate: "", endDate: ""
   },
@@ -405,7 +405,7 @@ export const indeeshProducts: Product[] = [
     availableSizes: ["واحد"],
     colors: [{ name: "أسود", value: "#000000" }],
     rating: 4.5, reviews: 0, views: 0, likes: 0, orders: 0,
-    category: "cleaning", inStock: true, isAvailable: true,
+    category: "cleaning", inStock: true,
     tags: ["جديد"], badge: "جديد", quantity: 25,
     expiryDate: "", endDate: ""
   },
@@ -428,7 +428,7 @@ export const indeeshProducts: Product[] = [
     availableSizes: ["واحد"],
     colors: [{ name: "أسود", value: "#000000" }],
     rating: 4.5, reviews: 0, views: 0, likes: 0, orders: 0,
-    category: "cleaning", inStock: true, isAvailable: true,
+    category: "cleaning", inStock: true,
     tags: ["جديد"], badge: "جديد", quantity: 30,
     expiryDate: "", endDate: ""
   },
@@ -452,7 +452,7 @@ export const indeeshProducts: Product[] = [
     availableSizes: ["واحد"],
     colors: [{ name: "أسود", value: "#000000" }],
     rating: 4.5, reviews: 0, views: 0, likes: 0, orders: 0,
-    category: "cleaning", inStock: true, isAvailable: true,
+    category: "cleaning", inStock: true,
     tags: ["جديد"], badge: "جديد", quantity: 30,
     expiryDate: "", endDate: ""
   }

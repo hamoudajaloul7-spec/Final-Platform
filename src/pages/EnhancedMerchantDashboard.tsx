@@ -1255,7 +1255,7 @@ const EnhancedMerchantDashboard: React.FC<{ currentMerchant?: any; onLogout?: ()
           images,
           price,
           originalPrice,
-          inStock: typeof product?.inStock === 'boolean' ? product.inStock : product?.isAvailable !== false
+          inStock: typeof product?.inStock === 'boolean' ? product.inStock : true
         } satisfies StoreInventoryProduct;
       });
       
@@ -1287,7 +1287,7 @@ const EnhancedMerchantDashboard: React.FC<{ currentMerchant?: any; onLogout?: ()
             images,
             price,
             originalPrice,
-            inStock: typeof product?.inStock === 'boolean' ? product.inStock : product?.isAvailable !== false
+            inStock: typeof product?.inStock === 'boolean' ? product.inStock : true
           } satisfies StoreInventoryProduct;
         });
         const categorySummaries = buildCategorySummaries(normalizedProducts, payload?.categories, slug);
@@ -5879,7 +5879,6 @@ useEffect(() => {
                                 orders: 0,
                                 category: productCategory,
                                 inStock: true,
-                                isAvailable: true,
                                 quantity: parseInt(productQuantity) || 0,
                                 tags: [],
                                 badge: null

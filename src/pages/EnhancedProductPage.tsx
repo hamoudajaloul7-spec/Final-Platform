@@ -87,8 +87,7 @@ const EnhancedProductPage: React.FC<EnhancedProductPageProps> = ({
     ...product,
     availableSizes: product.availableSizes || product.sizes || [],
     quantity: product.quantity ?? 0,
-    inStock: (product.inStock !== false) && (product.quantity === undefined || (product.quantity ?? 0) > 0),
-    isAvailable: (product.isAvailable !== false) && (product.quantity === undefined || (product.quantity ?? 0) > 0)
+    inStock: (product.inStock !== false) && (product.quantity === undefined || (product.quantity ?? 0) > 0)
   };
 
  
@@ -140,7 +139,7 @@ const EnhancedProductPage: React.FC<EnhancedProductPageProps> = ({
   };
 
   const handleAddToCart = () => {
-    if (!safeProduct.inStock || !safeProduct.isAvailable) {
+    if (!safeProduct.inStock) {
       // ✅ FIX: فتح Modal محلياً بدلاً من استدعاء الـ prop
       handleNotifyWhenAvailable();
       return;
@@ -171,7 +170,7 @@ const EnhancedProductPage: React.FC<EnhancedProductPageProps> = ({
   };
 
   const handleBuyNow = () => {
-    if (!product.inStock || !product.isAvailable) {
+    if (!product.inStock) {
       // ✅ FIX: فتح Modal محلياً بدلاً من استدعاء الـ prop
       handleNotifyWhenAvailable();
       return;
@@ -478,7 +477,7 @@ const EnhancedProductPage: React.FC<EnhancedProductPageProps> = ({
             {/* الأسعار */}
             <div className="flex items-center gap-3">
               {(() => {
-                const isInStock = safeProduct.inStock && safeProduct.isAvailable;
+                const isInStock = safeProduct.inStock;
                 
                 if (!isInStock) {
                   return (
@@ -602,7 +601,7 @@ const EnhancedProductPage: React.FC<EnhancedProductPageProps> = ({
             <div className="space-y-3">
               {(() => {
                 // ✅ FIX: فحص دقيق للحالة باستخدام safeProduct
-                const isOutOfStock = !safeProduct.inStock || !safeProduct.isAvailable;
+                const isOutOfStock = !safeProduct.inStock;
                 const quantity = safeProduct.quantity;
                 const isLowStock = !isOutOfStock && quantity > 0 && quantity < 5;
                 
@@ -701,7 +700,7 @@ const EnhancedProductPage: React.FC<EnhancedProductPageProps> = ({
                   <span className="text-gray-600">الحالة:</span>
                   <div className="flex items-center gap-2">
                     {(() => {
-                      const isInStock = safeProduct.inStock && safeProduct.isAvailable;
+                      const isInStock = safeProduct.inStock;
                       
                       return (
                         <>
@@ -719,7 +718,7 @@ const EnhancedProductPage: React.FC<EnhancedProductPageProps> = ({
 
             {/* قسم التنبيه للمنتجات غير المتوفرة - يظهر فقط للمنتجات غير المتوفرة */}
             {(() => {
-              const isOutOfStock = !safeProduct.inStock || !safeProduct.isAvailable;
+              const isOutOfStock = !safeProduct.inStock;
               
               if (!isOutOfStock) return null;
               

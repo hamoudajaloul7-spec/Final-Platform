@@ -108,7 +108,6 @@ const createStoreFiles = async (storeData: any) => {
     orders: ${product.orders || 0},
     category: "${product.category || ''}",
     inStock: ${isAvailable},
-    isAvailable: ${isAvailable},
     tags: ${JSON.stringify(product.tags || [])},
     badge: "${product.badge || ''}",
     quantity: ${quantity},

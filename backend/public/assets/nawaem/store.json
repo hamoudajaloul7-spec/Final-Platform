@@ -56,7 +56,6 @@
       ],
       "category": "فساتين سهرة",
       "inStock": true,
-      "isAvailable": true,
       "images": [
         "/assets/nawaem/dress1.jpg"
       ],
@@ -103,7 +102,6 @@
       ],
       "category": "فساتين يومية",
       "inStock": true,
-      "isAvailable": true,
       "images": [
         "/assets/nawaem/dress2.jpg"
       ],
@@ -141,7 +139,6 @@
       ],
       "category": "فساتين رسمية",
       "inStock": true,
-      "isAvailable": true,
       "images": [
         "/assets/nawaem/dress3.jpg"
       ],
@@ -188,7 +185,6 @@
       ],
       "category": "فساتين صيفية",
       "inStock": true,
-      "isAvailable": true,
       "images": [
         "/assets/nawaem/dress4.jpg"
       ],
@@ -229,7 +225,6 @@
       ],
       "category": "فساتين مناسبات",
       "inStock": true,
-      "isAvailable": true,
       "images": [
         "/assets/nawaem/dress5.jpg"
       ],
@@ -277,7 +272,6 @@
       ],
       "category": "عبايات فاخرة",
       "inStock": true,
-      "isAvailable": true,
       "images": [
         "/assets/nawaem/abaya1.jpg"
       ],
@@ -324,7 +318,6 @@
       ],
       "category": "عبايات أصلية",
       "inStock": true,
-      "isAvailable": true,
       "images": [
         "/assets/nawaem/abaya2.jpg"
       ],
@@ -366,7 +359,6 @@
       ],
       "category": "عبايات حريرية",
       "inStock": true,
-      "isAvailable": true,
       "images": [
         "/assets/nawaem/abaya3.jpg"
       ],
@@ -408,7 +400,6 @@
       ],
       "category": "حجاب حريري",
       "inStock": true,
-      "isAvailable": true,
       "images": [
         "/assets/nawaem/hijab1.jpg"
       ],
@@ -450,7 +441,6 @@
       ],
       "category": "حجاب شيفون",
       "inStock": true,
-      "isAvailable": true,
       "images": [
         "/assets/nawaem/hijab2.jpg"
       ],
@@ -492,7 +482,6 @@
       ],
       "category": "حقائب جلدية",
       "inStock": true,
-      "isAvailable": true,
       "images": [
         "/assets/nawaem/bag1.jpg"
       ],
@@ -530,7 +519,6 @@
       ],
       "category": "حقائب كتف",
       "inStock": true,
-      "isAvailable": true,
       "images": [
         "/assets/nawaem/bag2.jpg"
       ],
@@ -568,7 +556,6 @@
       ],
       "category": "حقائب كلاسيكية",
       "inStock": true,
-      "isAvailable": true,
       "images": [
         "/assets/nawaem/bag3.jpg",
         "/assets/nawaem/bag3-green.jpg",
@@ -608,7 +595,6 @@
       ],
       "category": "حقائب مبطنة",
       "inStock": true,
-      "isAvailable": true,
       "images": [
         "/assets/nawaem/bag4.jpg"
       ],
@@ -646,7 +632,6 @@
       ],
       "category": "حقائب سهرة",
       "inStock": false,
-      "isAvailable": false,
       "images": [
         "/assets/nawaem/bag5.jpg",
         "/assets/nawaem/bag5-green.jpg",
@@ -692,7 +677,6 @@
       ],
       "category": "ملابس أطفال",
       "inStock": true,
-      "isAvailable": true,
       "images": [
         "/assets/nawaem/kids1.jpg"
       ],
@@ -736,7 +720,6 @@
       ],
       "category": "عبايات أطفال",
       "inStock": true,
-      "isAvailable": true,
       "images": [
         "/assets/nawaem/kids2.jpg"
       ],
@@ -778,7 +761,6 @@
       ],
       "category": "ملابس عيد",
       "inStock": true,
-      "isAvailable": true,
       "images": [
         "/assets/nawaem/kids3.jpg"
       ],
@@ -822,7 +804,6 @@
       ],
       "category": "ملابس كاجوال",
       "inStock": true,
-      "isAvailable": true,
       "images": [
         "/assets/nawaem/kids4.jpg"
       ],
@@ -864,7 +845,6 @@
       ],
       "category": "فساتين أطفال",
       "inStock": true,
-      "isAvailable": true,
       "images": [
         "/assets/nawaem/kids5.jpg"
       ],
@@ -912,7 +892,6 @@
       ],
       "category": "حجاب أطفال",
       "inStock": true,
-      "isAvailable": true,
       "images": [
         "/assets/nawaem/kids6.jpg"
       ],
@@ -954,7 +933,6 @@
       ],
       "category": "فساتين فاخرة",
       "inStock": false,
-      "isAvailable": false,
       "images": [
         "/assets/nawaem/kids5.jpg"
       ],
@@ -998,7 +976,6 @@
       ],
       "category": "أحذية نسائية",
       "inStock": true,
-      "isAvailable": true,
       "images": [
         "/assets/nawaem/heels-pink-1.jpg",
         "/assets/nawaem/heels-elegant-1.jpg"
@@ -1043,7 +1020,6 @@
       ],
       "category": "بدلة تريكو أنيقة",
       "inStock": true,
-      "isAvailable": true,
       "images": [
         "/assets/nawaem/triko1.webp",
         "/assets/nawaem/triko2.webp",

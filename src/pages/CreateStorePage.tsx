@@ -81,7 +81,6 @@ interface Product {
   orders: number;
   category: string;
   inStock: boolean;
-  isAvailable: boolean;
   tags: string[];
   imageFiles?: File[];
   expiryDate?: string;
@@ -551,8 +550,7 @@ const CreateStorePage: React.FC<CreateStorePageProps> = ({
           ...productData,
           id: storeId * 1000 + idx + 1,
           images: finalImages,
-          inStock: isInStock,
-          isAvailable: isInStock
+          inStock: isInStock
         };
       });
 
@@ -1554,7 +1552,6 @@ const CreateStorePage: React.FC<CreateStorePageProps> = ({
                                   originalPrice: currentProduct.originalPrice || currentProduct.price,
                                   quantity: currentProduct.quantity || 0,
                                   inStock: (currentProduct.quantity || 0) > 0,
-                                  isAvailable: (currentProduct.quantity || 0) > 0,
                                   images: currentProduct.images || [getDefaultProductImageSync(formData.subdomain)],
                                   size: currentProduct.size?.startsWith('custom:') ? currentProduct.size.replace('custom:', '') : currentProduct.size,
                                   category: currentProduct.category || formData.categories[0] || 'عام',
@@ -1592,7 +1589,6 @@ const CreateStorePage: React.FC<CreateStorePageProps> = ({
                             likes: 0,
                             orders: 0,
                             inStock: (currentProduct.quantity || 0) > 0,
-                            isAvailable: (currentProduct.quantity || 0) > 0,
                             tags: ['جديد'],
                             imageFiles: currentProduct.imageFiles || []
                           };

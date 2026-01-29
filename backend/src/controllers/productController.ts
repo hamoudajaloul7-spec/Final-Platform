@@ -91,7 +91,6 @@ export const createProduct = async (
       quantity,
       stock,
       inStock,
-      isAvailable,
       category,
       sku,
       images = [],
@@ -112,7 +111,6 @@ export const createProduct = async (
 
     const resolvedQuantity = quantity ?? stock ?? 0;
     const resolvedInStock = inStock ?? resolvedQuantity > 0;
-    const resolvedIsAvailable = isAvailable ?? true;
 
     const product = await Product.create({
       storeId,
@@ -121,7 +119,6 @@ export const createProduct = async (
       price,
       quantity: resolvedQuantity,
       inStock: resolvedInStock,
-      isAvailable: resolvedIsAvailable,
       category,
       sku,
       image: Array.isArray(images) && images.length > 0 ? images[0] : '',
@@ -221,10 +218,9 @@ export const getProducts = async (
           productData.images = [];
         }
         
-        // ✅_FIX: ضمان تعيين inStock و isAvailable
+        // ✅_FIX: ضمان تعيين inStock بناءً على الكمية
         const quantity = Number.isFinite(Number(productData.quantity)) ? Number(productData.quantity) : 0;
         productData.inStock = productData.inStock ?? (quantity > 0);
-        productData.isAvailable = productData.isAvailable !== false && quantity > 0;
         
         // إضافة tags بناءً على الـ badge
         productData.tags = productData.tags || [];
@@ -302,7 +298,6 @@ export const updateProduct = async (
       quantity,
       stock,
       inStock,
-      isAvailable,
       category,
       images = [],
       brand,
@@ -339,7 +334,6 @@ export const updateProduct = async (
     if (category !== undefined) updates.category = category;
     if (brand !== undefined) updates.brand = brand;
     if (thumbnail !== undefined) updates.thumbnail = thumbnail;
-    if (isAvailable !== undefined) updates.isAvailable = isAvailable;
 
     if (resolvedQuantity !== undefined) {
       updates.quantity = resolvedQuantity;

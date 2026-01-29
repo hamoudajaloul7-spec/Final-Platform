@@ -69,7 +69,6 @@ export const generateProductsFile = (data: StoreGenerationData): string => {
     likes: ${product.likes || 0},
     orders: ${product.orders || 0},
     inStock: ${product.inStock !== false},
-    isAvailable: ${product.isAvailable !== false},
     tags: ${JSON.stringify(product.tags || [])},
     badge: "${product.badge || ''}"
   }`;

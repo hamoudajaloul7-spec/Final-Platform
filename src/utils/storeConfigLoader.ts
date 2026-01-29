@@ -24,7 +24,7 @@ export function convertConfigProductToProduct(configProduct: StoreConfigProduct)
 }
 
 export function normalizeApiProduct(apiProduct: any): Product {
-  // Final stock logic: quantity has priority; fall back to explicit inStock/isAvailable/availability/status
+  // Final stock logic: quantity has priority; fall back to explicit inStock/availability/status
   let inStock = true;
   let quantity = 1;
 
@@ -44,8 +44,6 @@ export function normalizeApiProduct(apiProduct: any): Product {
   // 3) explicit flags override only if present
   if (apiProduct.inStock !== undefined && apiProduct.inStock !== null) {
     inStock = !!apiProduct.inStock;
-  } else if (apiProduct.isAvailable !== undefined && apiProduct.isAvailable !== null) {
-    inStock = !!apiProduct.isAvailable;
   } else if (apiProduct.availability !== undefined && apiProduct.availability !== null) {
     inStock = !!apiProduct.availability;
   } else if (apiProduct.status !== undefined && typeof apiProduct.status === 'string') {
@@ -77,7 +75,6 @@ export function normalizeApiProduct(apiProduct: any): Product {
     orders: apiProduct.orders ?? 0,
     category: apiProduct.category || '',
     inStock: inStock,
-    isAvailable: inStock,
     tags: Array.isArray(apiProduct.tags) ? apiProduct.tags : [],
     quantity: Math.max(0, quantity),
     badge: apiProduct.badge,

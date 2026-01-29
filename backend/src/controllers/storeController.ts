@@ -38,7 +38,6 @@ interface ProductData {
   category: string;
   inStock: boolean;
   quantity: number;
-  isAvailable: boolean;
   tags: string[];
 }
 
@@ -543,8 +542,7 @@ export const createStoreWithImages = async (
         availableSizes,
         colors,
         quantity,
-        inStock,
-        isAvailable: inStock
+        inStock
       };
     });
 
@@ -755,7 +753,6 @@ export const createStoreWithImages = async (
           
           const quantity = Number.isFinite(Number(p.quantity)) ? Number(p.quantity) : 0;
           const resolvedInStock = quantity > 0;
-          const resolvedIsAvailable = resolvedInStock;
 
           try {
             const created = await Product.create(
@@ -774,7 +771,6 @@ export const createStoreWithImages = async (
                 tags: Array.isArray(p.tags) ? p.tags : [],
                 quantity,
                 inStock: resolvedInStock,
-                isAvailable: resolvedIsAvailable,
                 rating: p.rating ?? null,
                 reviewCount: p.reviews ?? p.reviewCount ?? 0
               },
@@ -1001,8 +997,7 @@ export const getStorePublicData = async (
         availableSizes: Array.isArray(rest?.availableSizes) ? rest.availableSizes : [],
         tags: Array.isArray(rest?.tags) ? rest.tags : [],
         quantity,
-        inStock: quantity > 0,
-        isAvailable: quantity > 0
+        inStock: quantity > 0
       };
     });
 

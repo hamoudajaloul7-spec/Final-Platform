@@ -21,7 +21,6 @@ export const prettyProducts: Product[] = [
     quantity: 12,
     category: "عطور",
     inStock: true,
-    isAvailable: true,
     tags: ["تخفيضات"],
     badge: "تخفيضات"
   },
@@ -44,7 +43,6 @@ export const prettyProducts: Product[] = [
     quantity: 8,
     category: "عطور رجالية",
     inStock: true,
-    isAvailable: true,
     tags: ["مميزة"],
     badge: "مميزة"
   },
@@ -67,7 +65,6 @@ export const prettyProducts: Product[] = [
     quantity: 15,
     category: "عطور رجالية",
     inStock: true,
-    isAvailable: true,
     tags: ["تخفيضات"],
     badge: "تخفيضات"
   },
@@ -90,7 +87,6 @@ export const prettyProducts: Product[] = [
     quantity: 20,
     category: "عطور رجالية",
     inStock: true,
-    isAvailable: true,
     tags: ["تخفيضات"],
     badge: "تخفيضات"
   },
@@ -113,7 +109,6 @@ export const prettyProducts: Product[] = [
     quantity: 5,
     category: "عطور نسائية",
     inStock: true,
-    isAvailable: true,
     tags: ["جديد"],
     badge: "جديد"
   },
@@ -136,7 +131,6 @@ export const prettyProducts: Product[] = [
     quantity: 10,
     category: "عطور نسائية",
     inStock: true,
-    isAvailable: true,
     tags: ["مميزة"],
     badge: "مميزة"
   },
@@ -159,7 +153,6 @@ export const prettyProducts: Product[] = [
     quantity: 7,
     category: "عطور نسائية",
     inStock: true,
-    isAvailable: true,
     tags: ["متوفر"],
     badge: "متوفر"
   },
@@ -182,7 +175,6 @@ export const prettyProducts: Product[] = [
     quantity: 9,
     category: "عطور رجالية",
     inStock: true,
-    isAvailable: true,
     tags: ["أكثر مبيعاً"],
     badge: "أكثر مبيعاً"
   },
@@ -205,7 +197,6 @@ export const prettyProducts: Product[] = [
     quantity: 11,
     category: "عطور نسائية",
     inStock: true,
-    isAvailable: true,
     tags: ["مميزة"],
     badge: "مميزة"
   },
@@ -228,7 +219,6 @@ export const prettyProducts: Product[] = [
     quantity: 6,
     category: "عطور نسائية",
     inStock: true,
-    isAvailable: true,
     tags: ["أكثر إعجاباً"],
     badge: "أكثر إعجاباً"
   },
@@ -251,7 +241,6 @@ export const prettyProducts: Product[] = [
     quantity: 8,
     category: "عطور رجالية",
     inStock: true,
-    isAvailable: true,
     tags: ["أكثر مشاهدة"],
     badge: "أكثر مشاهدة"
   },
@@ -274,7 +263,6 @@ export const prettyProducts: Product[] = [
     quantity: 9,
     category: "عطور نسائية",
     inStock: true,
-    isAvailable: true,
     tags: ["جديد"],
     badge: "جديد"
   },
@@ -297,7 +285,6 @@ export const prettyProducts: Product[] = [
     quantity: 10,
     category: "عطور نسائية",
     inStock: true,
-    isAvailable: true,
     tags: ["أكثر طلباً"],
     badge: "أكثر طلباً"
   },
@@ -320,7 +307,6 @@ export const prettyProducts: Product[] = [
     quantity: 12,
     category: "عطور رجالية",
     inStock: true,
-    isAvailable: true,
     tags: ["أكثر مبيعاً"],
     badge: "أكثر مبيعاً"
   },
@@ -343,7 +329,6 @@ export const prettyProducts: Product[] = [
     quantity: 11,
     category: "عطور رجالية",
     inStock: true,
-    isAvailable: true,
     tags: ["متوفر"],
     badge: "متوفر"
   }

@@ -63,8 +63,7 @@ pretty_products = [
         "orders": 23,
         "quantity": 12,
         "category": "عطور",
-        "inStock": True,
-        "isAvailable": True
+        "inStock": True
     },
     {
         "id": 3002,
@@ -85,8 +84,7 @@ pretty_products = [
         "orders": 34,
         "quantity": 8,
         "category": "عطور رجالية",
-        "inStock": True,
-        "isAvailable": True
+        "inStock": True
     },
     {
         "id": 3003,
@@ -107,8 +105,7 @@ pretty_products = [
         "orders": 45,
         "quantity": 15,
         "category": "عطور رجالية",
-        "inStock": True,
-        "isAvailable": True
+        "inStock": True
     },
     {
         "id": 3004,
@@ -129,8 +126,7 @@ pretty_products = [
         "orders": 28,
         "quantity": 20,
         "category": "عطور رجالية",
-        "inStock": True,
-        "isAvailable": True
+        "inStock": True
     },
     {
         "id": 3005,
@@ -151,8 +147,7 @@ pretty_products = [
         "orders": 19,
         "quantity": 5,
         "category": "عطور نسائية",
-        "inStock": True,
-        "isAvailable": True
+        "inStock": True
     },
     {
         "id": 3006,
@@ -173,8 +168,7 @@ pretty_products = [
         "orders": 38,
         "quantity": 10,
         "category": "عطور نسائية",
-        "inStock": True,
-        "isAvailable": True
+        "inStock": True
     },
     {
         "id": 3007,
@@ -195,8 +189,7 @@ pretty_products = [
         "orders": 26,
         "quantity": 7,
         "category": "عطور نسائية",
-        "inStock": True,
-        "isAvailable": True
+        "inStock": True
     },
     {
         "id": 3008,
@@ -217,8 +210,7 @@ pretty_products = [
         "orders": 42,
         "quantity": 9,
         "category": "عطور رجالية",
-        "inStock": True,
-        "isAvailable": True
+        "inStock": True
     },
     {
         "id": 3009,
@@ -239,8 +231,7 @@ pretty_products = [
         "orders": 31,
         "quantity": 14,
         "category": "عطور نسائية",
-        "inStock": True,
-        "isAvailable": True
+        "inStock": True
     },
     {
         "id": 3010,
@@ -261,8 +252,7 @@ pretty_products = [
         "orders": 25,
         "quantity": 6,
         "category": "عطور نسائية",
-        "inStock": True,
-        "isAvailable": True
+        "inStock": True
     },
     {
         "id": 3011,
@@ -283,8 +273,7 @@ pretty_products = [
         "orders": 38,
         "quantity": 11,
         "category": "عطور رجالية",
-        "inStock": True,
-        "isAvailable": True
+        "inStock": True
     },
     {
         "id": 3012,
@@ -305,8 +294,7 @@ pretty_products = [
         "orders": 29,
         "quantity": 13,
         "category": "عطور رجالية",
-        "inStock": True,
-        "isAvailable": True
+        "inStock": True
     },
     {
         "id": 3013,
@@ -327,8 +315,7 @@ pretty_products = [
         "orders": 41,
         "quantity": 4,
         "category": "عطور رجالية",
-        "inStock": True,
-        "isAvailable": True
+        "inStock": True
     },
     {
         "id": 3014,
@@ -349,8 +336,7 @@ pretty_products = [
         "orders": 19,
         "quantity": 3,
         "category": "عطور رجالية",
-        "inStock": True,
-        "isAvailable": True
+        "inStock": True
     },
     {
         "id": 3015,
@@ -371,8 +357,7 @@ pretty_products = [
         "orders": 33,
         "quantity": 9,
         "category": "عطور نسائية",
-        "inStock": True,
-        "isAvailable": True
+        "inStock": True
     }
 ]
 

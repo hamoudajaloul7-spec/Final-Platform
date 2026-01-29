@@ -23,7 +23,7 @@ for (const file of files) {
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
-    if (line.includes('inStock:') && line.includes('isAvailable:')) {
+    if (line.includes('inStock:')) {
       if (!line.includes('quantity:') && !lines[i - 1].includes('quantity:')) {
         const match = line.match(/^(\s*)(.*)inStock:/);
         if (match) {

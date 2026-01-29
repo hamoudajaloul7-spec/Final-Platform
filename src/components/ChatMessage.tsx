@@ -16,7 +16,7 @@ interface Product {
   rating?: number;
   reviews?: number;
   discount?: number;
-  isAvailable: boolean;
+  inStock: boolean;
   description?: string;
 }
 
@@ -107,7 +107,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({
               -{productData.discount}%
             </Badge>
           )}
-          {!productData.isAvailable && (
+          {!productData.inStock && (
             <div className="absolute inset-0 bg-black bg-opacity-50 rounded-t-lg flex items-center justify-center">
               <span className="text-white font-semibold">غير متوفر</span>
             </div>
@@ -171,7 +171,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({
                   e.stopPropagation();
                   onAddToCart?.(productData);
                 }}
-                disabled={!productData.isAvailable}
+                disabled={!productData.inStock}
               >
                 <ShoppingCart className="w-3 h-3 ml-1" />
                 إضافة للسلة

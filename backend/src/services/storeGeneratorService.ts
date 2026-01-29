@@ -506,7 +506,6 @@ ${data.products
     orders: 0,
     category: "${product.category}",
     inStock: ${product.inStock !== undefined ? product.inStock : true},
-    isAvailable: ${product.inStock !== undefined ? product.inStock : true},
     quantity: 12,
     tags: [${(product.tags || ['جديد']).map(tag => `"${tag}"`).join(', ')}],
     badge: "${(product.tags && product.tags[0]) ? product.tags[0] : 'جديد'}"
@@ -905,8 +904,7 @@ ${data.sliderImages
         sizes,
         availableSizes,
         colors,
-        inStock: product.inStock !== undefined ? product.inStock : true,
-        isAvailable: product.inStock !== undefined ? product.inStock : true
+        inStock: product.inStock !== undefined ? product.inStock : true
       };
     });
 

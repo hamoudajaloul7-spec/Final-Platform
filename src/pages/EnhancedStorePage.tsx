@@ -368,7 +368,7 @@ const EnhancedStorePage: React.FC<EnhancedStorePageProps> = ({
                 viewMode={viewMode}
                 isFavorite={favorites.includes(product.id)}
                 onProductClick={() => {
-                  if (product.inStock && product.isAvailable) {
+                  if (product.inStock) {
                     onProductClick(product.id);
                   } else {
                     handleNotifyWhenAvailable(product);
@@ -536,7 +536,7 @@ const ProductCard: React.FC<{
               
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  {product.inStock && product.isAvailable ? (
+                  {product.inStock ? (
                     <>
                       <span className="text-xl font-bold text-primary">{product.price} د.ل</span>
                       {product.originalPrice > product.price && (
@@ -550,7 +550,7 @@ const ProductCard: React.FC<{
                   )}
                 </div>
                 
-                {product.inStock && product.isAvailable && (product.quantity || 0) > 0 ? (
+                {product.inStock && (product.quantity || 0) > 0 ? (
                   <Button size="sm" onClick={(e) => { e.stopPropagation(); onAddToCart(); }}>
                     <ShoppingCart className="h-4 w-4 mr-1" />
                     أضف للسلة
@@ -685,7 +685,7 @@ const ProductCard: React.FC<{
           
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              {product.inStock && product.isAvailable ? (
+              {product.inStock ? (
                 <>
                   <span className="text-lg font-bold text-primary">{product.price} د.ل</span>
                   {product.originalPrice > product.price && (
@@ -705,7 +705,7 @@ const ProductCard: React.FC<{
             </div>
           </div>
           
-          {product.inStock && product.isAvailable && (product.quantity || 0) > 0 ? (
+          {product.inStock && (product.quantity || 0) > 0 ? (
             <div className="grid grid-cols-2 gap-2">
               <Button 
                 size="sm" 

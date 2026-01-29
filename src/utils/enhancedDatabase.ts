@@ -50,7 +50,6 @@ interface ProductData {
     height: number;
   };
   isActive: boolean;
-  isAvailable: boolean;
   tags: string[];
   createdAt: string;
   updatedAt: string;
@@ -109,7 +108,6 @@ interface OrderItem {
   price: number;
   totalPrice: number;
   image?: string;
-  isAvailable: boolean;
 }
 
 interface OrderNotification {
@@ -334,7 +332,6 @@ class EnhancedDatabase {
         } else {
           // تحديث المخزون العام
           product.stock = newStock;
-          product.isAvailable = newStock > 0;
         }
         
         product.updatedAt = new Date().toISOString();

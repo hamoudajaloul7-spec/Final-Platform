@@ -18,8 +18,7 @@ const resolveQuantity = (product: any, metrics?: BadgeMetrics): number => {
     return Number(rawQuantity);
   }
   const inStock = product.inStock !== false;
-  const isAvailable = product.isAvailable !== false;
-  return inStock && isAvailable ? 1 : 0;
+  return inStock ? 1 : 0;
 };
 
 export function calculateBadge(product: any, metrics?: BadgeMetrics): string {
@@ -31,12 +30,11 @@ export function calculateBadge(product: any, metrics?: BadgeMetrics): string {
   const price = metrics?.price ?? product.price ?? 0;
   const isNew = metrics?.isNew ?? product.isNew ?? false;
 
-  // ✅_FIX: Handle undefined inStock and isAvailable correctly
+  // ✅_FIX: Handle undefined inStock correctly
   // undefined/null should NOT be treated as false - treat as available if quantity > 0
   const inStock = product.inStock !== false && quantity > 0;
-  const isAvailable = product.isAvailable !== false && quantity > 0;
 
-  if (!inStock || !isAvailable) {
+  if (!inStock) {
     return 'غير متوفر';
   }
 
@@ -130,11 +128,10 @@ export function getTagColor(badge: string): { className: string; style: React.CS
 
 export function getStockStatus(product: any): 'available' | 'low' | 'unavailable' {
   const quantity = resolveQuantity(product);
-  // ✅_FIX: Handle undefined inStock and isAvailable correctly
+  // ✅_FIX: Handle undefined inStock correctly
   const inStock = product.inStock !== false && quantity > 0;
-  const isAvailable = product.isAvailable !== false && quantity > 0;
   
-  if (quantity <= 0 || inStock === false || isAvailable === false) return 'unavailable';
+  if (quantity <= 0 || inStock === false) return 'unavailable';
   if (quantity < 5) return 'low';
   return 'available';
 }

@@ -189,7 +189,7 @@ const ModernStorePage: React.FC<ModernStorePageProps> = ({
     } else if (currentView === 'unavailable') {
       return storeProducts.filter(p => {
         const quantity = Number(p.quantity) || 0;
-        return quantity <= 0 || p.inStock === false || p.isAvailable === false || p.tags.includes('غير متوفر');
+        return quantity <= 0 || p.inStock === false || p.tags.includes('غير متوفر');
       });
     }
     return storeProducts;
@@ -1223,7 +1223,7 @@ const ProductCard: React.FC<{
           <div className="flex items-center gap-2 mb-3">
             {(() => {
               const quantity = product.quantity ?? 0;
-              const isOutOfStock = quantity <= 0 || product.inStock === false || product.isAvailable === false;
+              const isOutOfStock = quantity <= 0 || product.inStock === false;
               if (isOutOfStock) {
                 return <span className="text-sm font-bold text-[#FF6347]">غير متوفر حالياً</span>;
               }
@@ -1264,7 +1264,7 @@ const ProductCard: React.FC<{
           {/* الأزرار */}
           {(() => {
             const quantity = product.quantity ?? 0;
-            const isOutOfStock = quantity <= 0 || product.inStock === false || product.isAvailable === false;
+            const isOutOfStock = quantity <= 0 || product.inStock === false;
             const isLowStock = !isOutOfStock && quantity > 0 && quantity < 5;
             
             if (isOutOfStock) {
@@ -1422,7 +1422,7 @@ const ProductCard: React.FC<{
                 <div className="flex gap-3">
                   {(() => {
                     const quantity = product.quantity ?? 0;
-                    const isOutOfStock = quantity <= 0 || product.inStock === false || product.isAvailable === false;
+                    const isOutOfStock = quantity <= 0 || product.inStock === false;
                     
                     if (isOutOfStock) {
                       return (
