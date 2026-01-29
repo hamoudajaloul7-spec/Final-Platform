@@ -536,14 +536,20 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode, onClick })
                 
                 <div className="text-right">
                   <div className="flex items-center gap-2 mb-3">
-                    <span className="text-lg font-bold text-primary">{product.price} د.ل</span>
-                    {product.originalPrice > product.price && (
+                    {product.inStock && product.isAvailable ? (
                       <>
-                        <span className="text-sm text-gray-500 line-through">{product.originalPrice} د.ل</span>
-                        <Badge className="bg-red-500 text-white text-xs">
-                          -{Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}%
-                        </Badge>
+                        <span className="text-lg font-bold text-primary">{product.price} د.ل</span>
+                        {product.originalPrice > product.price && (
+                          <>
+                            <span className="text-sm text-gray-500 line-through">{product.originalPrice} د.ل</span>
+                            <Badge className="bg-red-500 text-white text-xs">
+                              -{Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}%
+                            </Badge>
+                          </>
+                        )}
                       </>
+                    ) : (
+                      <span className="text-lg font-bold text-red-600">غير متوفر</span>
                     )}
                   </div>
                   {(() => {
@@ -645,14 +651,20 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode, onClick })
           
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-lg font-bold text-primary">{product.price} د.ل</span>
-              {product.originalPrice > product.price && (
+              {product.inStock && product.isAvailable ? (
                 <>
-                  <span className="text-sm text-gray-500 line-through">{product.originalPrice} د.ل</span>
-                  <Badge className="bg-red-500 text-white text-xs">
-                    -{Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}%
-                  </Badge>
+                  <span className="text-lg font-bold text-primary">{product.price} د.ل</span>
+                  {product.originalPrice > product.price && (
+                    <>
+                      <span className="text-sm text-gray-500 line-through">{product.originalPrice} د.ل</span>
+                      <Badge className="bg-red-500 text-white text-xs">
+                        -{Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}%
+                      </Badge>
+                    </>
+                  )}
                 </>
+              ) : (
+                <span className="text-lg font-bold text-red-600">غير متوفر</span>
               )}
             </div>
             

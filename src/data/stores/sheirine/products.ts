@@ -107,7 +107,7 @@ export const sheirineProducts: Product[] = [
     sizes: [], availableSizes: [],
     colors: [],
     rating: 0, reviews: 0, views: 3, likes: 0, orders: 1, category: "أقراط",
-    quantity: 10, inStock: false, isAvailable: false, tags: []
+    quantity: 0, inStock: false, isAvailable: false, tags: ["غير متوفر"], badge: "غير متوفر"
   },
 
   // ملابس أحجام كبيرة (10 منتجات)
