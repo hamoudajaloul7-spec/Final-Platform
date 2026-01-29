@@ -20,16 +20,7 @@ import {
 } from "lucide-react";
 import { getProxyImageUrl } from '@/utils/assetProxyUtil';
 import { sampleProducts, storesData } from "@/data/ecommerceData";
-import { allStoreProducts } from '@/data/allStoreProducts';
-import { nawaemProducts } from '@/data/stores/nawaem/products';
-import { sheirineProducts } from '@/data/stores/sheirine/products';
-import { prettyProducts } from '@/data/stores/pretty/products';
-import { deltaProducts } from '@/data/stores/delta-store/products';
-import { magnaBeautyProducts } from '@/data/stores/magna-beauty/products';
-import { indeeshProducts } from '@/data/stores/indeesh/products';
-import { nawaemStoreConfig } from '@/data/stores/nawaem/config';
-import { sheirineStoreConfig } from '@/data/stores/sheirine/config';
-import { magnaStoreConfig } from '@/data/stores/magna-beauty/config';
+import { allStoreProducts, storeIcons, storeColors } from '@/data/allStoreProducts';
 import SheirineSlider from '@/data/stores/sheirine/Slider';
 import GenericStoreSlider from '@/components/GenericStoreSlider';
 import { getTagColor, calculateBadge, getButtonConfig, applyAutoBadges } from '@/utils/badgeCalculator';
@@ -49,6 +40,8 @@ const StorePage: React.FC<StorePageProps> = ({ storeSlug, onBack, onProductClick
   const [liveProducts, setLiveProducts] = useState<any[]>([]);
 
   const store = storesData.find(s => s.slug === storeSlug);
+  const storeIcon = store ? (storeIcons as any)[store.id] : null;
+  const storeColor = store ? (storeColors as any)[store.id] : null;
 
   const fetchAds = async () => {
     try {
@@ -118,56 +111,27 @@ const StorePage: React.FC<StorePageProps> = ({ storeSlug, onBack, onProductClick
     return `${baseClasses} ${positionMap[position || 'center']}`;
   };
 
-  const getStoreConfig = (slug: string) => {
-    switch (slug) {
-      case 'nawaem':
-        return nawaemStoreConfig;
-      case 'sheirine':
-        return sheirineStoreConfig;
-      case 'magna-beauty':
-        return magnaStoreConfig;
-      default:
-        return null;
-    }
-  };
-
-  const storeConfig = getStoreConfig(storeSlug);
   let storeProducts: any[] = [];
   
-  const storeProductMap: Record<string, any[]> = {
-    nawaem: nawaemProducts || [],
-    sheirine: sheirineProducts || [],
-    pretty: prettyProducts || [],
-    'delta-store': deltaProducts || [],
-    'magna-beauty': magnaBeautyProducts || [],
-    indeesh: indeeshProducts || [],
-  };
-  
   if (store) {
-    const preDefinedStores = ['nawaem', 'sheirine', 'pretty', 'delta-store', 'magna-beauty', 'indeesh'];
+    // 1. محاولة جلب المنتجات من القائمة الموحدة للمتاجر النمطية
+    const modularProducts = allStoreProducts.filter(p => p.storeId === store.id);
     
-    if (preDefinedStores.includes(store.slug)) {
-      const products = storeProductMap[store.slug] || [];
-      if (products && products.length > 0) {
-        storeProducts = applyAutoBadges(products);
-      } else {
-        const filteredProducts = liveProducts.filter(p => {
-          const pStoreId = p.storeId || p.store_id;
-          return pStoreId === store.id || (typeof pStoreId === 'string' && pStoreId === store.id.toString());
-        });
-        storeProducts = applyAutoBadges(filteredProducts.length > 0 ? filteredProducts : sampleProducts.filter(p => p.storeId === store.id));
-      }
-    } else {
-      if (liveProducts.length > 0) {
-        const filteredByStore = liveProducts.filter(p => {
-          const pStoreId = p.storeId || p.store_id;
-          return pStoreId === store.id || (typeof pStoreId === 'string' && pStoreId === store.id.toString());
-        });
-        storeProducts = applyAutoBadges(filteredByStore.length > 0 ? filteredByStore : []);
-      } else {
-        const filteredByStore = sampleProducts.filter(p => p.storeId === store.id);
-        storeProducts = applyAutoBadges(filteredByStore);
-      }
+    if (modularProducts.length > 0) {
+      storeProducts = applyAutoBadges(modularProducts);
+    } 
+    // 2. محاولة جلب المنتجات المباشرة (Live Products) من API
+    else if (liveProducts.length > 0) {
+      const filteredByStore = liveProducts.filter(p => {
+        const pStoreId = p.storeId || p.store_id;
+        return pStoreId === store.id || (typeof pStoreId === 'string' && pStoreId === store.id.toString());
+      });
+      storeProducts = applyAutoBadges(filteredByStore);
+    }
+    // 3. الخيار الأخير: استخدام المنتجات التجريبية (Sample Products)
+    else {
+      const filteredByStore = sampleProducts.filter(p => p.storeId === store.id);
+      storeProducts = applyAutoBadges(filteredByStore);
     }
   }
   
@@ -195,20 +159,20 @@ const StorePage: React.FC<StorePageProps> = ({ storeSlug, onBack, onProductClick
               </Button>
               
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-primary/20 to-primary/10 rounded-xl flex items-center justify-center overflow-hidden">
-                  {storeConfig?.logo ? (
+                <div className={`w-12 h-12 bg-gradient-to-br ${storeColor || 'from-primary/20 to-primary/10'} rounded-xl flex items-center justify-center overflow-hidden`}>
+                  {store.logo ? (
                     <img
-                      src={getProxyImageUrl(storeConfig.logo, storeSlug, 'logo')}
+                      src={getProxyImageUrl(store.logo, storeSlug, 'logo')}
                       alt={`${store.name} logo`}
                       className="w-full h-full object-cover"
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
                         target.style.display = 'none';
-                        target.parentElement!.innerHTML = `<div class="h-6 w-6 text-primary">${storeConfig.icon}</div>`;
+                        target.parentElement!.innerHTML = `<div class="text-2xl">${storeIcon || '🏪'}</div>`;
                       }}
                     />
                   ) : (
-                    <Store className="h-6 w-6 text-primary" />
+                    <div className="text-2xl">{storeIcon || '🏪'}</div>
                   )}
                 </div>
                 <div>

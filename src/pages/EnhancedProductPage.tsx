@@ -92,10 +92,10 @@ const EnhancedProductPage: React.FC<EnhancedProductPageProps> = ({
   };
 
  
-  // عدادات live (محاكاة) - تعيين القيم المحددة للمنتجات غير المتوفرة
-  const [liveViews, setLiveViews] = useState(3);
-  const [liveLikes, setLiveLikes] = useState(0);
-  const [liveOrders, setLiveOrders] = useState(1);
+  // عدادات live (محاكاة) - استخدام بيانات المنتج الحقيقية كبداية
+  const [liveViews, setLiveViews] = useState(product.views || 0);
+  const [liveLikes, setLiveLikes] = useState(product.likes || 0);
+  const [liveOrders, setLiveOrders] = useState(product.orders || 0);
 
   // محاكاة العدادات المباشرة
   useEffect(() => {

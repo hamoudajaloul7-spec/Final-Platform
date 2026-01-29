@@ -53,7 +53,11 @@ const ProductPage: React.FC<ProductPageProps> = ({
   const product = useMemo(() => {
     if (fetchedProduct) return fetchedProduct;
 
-    // 1. البحث في المنتجات الحالية المخزنة في localStorage (للمتاجر الديناميكية)
+    // 1. البحث في القائمة الموحدة للمنتجات (المصادر النمطية) - الأولوية القصوى
+    const fromAll = allStoreProducts.find(p => String(p.id) === String(productId));
+    if (fromAll) return fromAll;
+
+    // 2. البحث في المنتجات الحالية المخزنة في localStorage (للمتاجر الديناميكية والمحاكات)
     const allStorageKeys = Object.keys(localStorage);
     const storeProductKeys = allStorageKeys.filter(key => key.startsWith('store_products_'));
     
@@ -70,11 +74,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
       } catch (e) {}
     }
 
-    // 2. البحث في القائمة الموحدة للمنتجات
-    const fromAll = allStoreProducts.find(p => String(p.id) === String(productId));
-    if (fromAll) return fromAll;
-
-    // 3. البحث في المنتجات المحسنة
+    // 3. البحث في المنتجات المحسنة (Legacy Enhanced)
     const fromEnhanced = enhancedSampleProducts.find(p => String(p.id) === String(productId));
     if (fromEnhanced) return fromEnhanced;
 

@@ -108,7 +108,7 @@ export interface ProductTag {
 }
 
 // تحسين واجهة المنتج
-export interface Product {
+export interface EnhancedProduct {
   id: number;
   storeId: number;
   storeName?: string;
@@ -137,7 +137,7 @@ export interface Product {
 }
 
 // منتجات تجريبية محسنة
-export const enhancedSampleProducts: Product[] = [
+export const enhancedSampleProducts: EnhancedProduct[] = [
   {
     id: 1,
     storeId: 1,
@@ -342,7 +342,7 @@ export const enhancedSampleProducts: Product[] = [
 ];
 
 // دوال تصفية المنتجات
-export const getProductsByCategory = (products: Product[], categoryId: string): Product[] => {
+export const getProductsByCategory = (products: EnhancedProduct[], categoryId: string): EnhancedProduct[] => {
   switch (categoryId) {
     case 'featured':
       return products.filter(p => p.isFeatured);
@@ -362,16 +362,16 @@ export const getProductsByCategory = (products: Product[], categoryId: string): 
 };
 
 // دالة للحصول على المنتجات المشتراة (للاختبار)
-export const getPurchasedProducts = (): Product[] => {
+export const getPurchasedProducts = (): EnhancedProduct[] => {
   return enhancedSampleProducts.filter(p => p.orders > 0);
 };
 
 // دالة للحصول على المنتجات المفضلة (للاختبار)  
-export const getFavoriteProducts = (): Product[] => {
+export const getFavoriteProducts = (): EnhancedProduct[] => {
   return enhancedSampleProducts.filter(p => p.likes > 50);
 };
 
 // دالة للحصول على المنتجات غير المتوفرة
-export const getUnavailableProducts = (): Product[] => {
+export const getUnavailableProducts = (): EnhancedProduct[] => {
   return enhancedSampleProducts.filter(p => !p.inStock);
 };
