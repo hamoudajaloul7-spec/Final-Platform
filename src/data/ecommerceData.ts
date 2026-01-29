@@ -289,132 +289,12 @@ const baseStoresData = [
     },
     social: {},
     isActive: true
-  },
-  {
-    id: 6,
-    name: "مكانك",
-    slug: "mkanek",
-    description: "متجر مكانك للأثاث والديكور العصري",
-    logo: "/assets/stores/mkanek.webp",
-    categories: ["أثاث", "ديكور", "إضاءة"],
-    url: "/store/mkanek",
-    endpoints: { products: "", discounts: "" },
-    social: {},
-    isActive: true
-  },
-  {
-    id: 7,
-    name: "كومفي",
-    slug: "comfy",
-    description: "متجر كومفي للملابس الرياضية والمريحة",
-    logo: "/assets/stores/comfy.webp",
-    categories: ["رياضة", "ملابس مريحة", "أحذية"],
-    url: "/store/comfy",
-    endpoints: { products: "", discounts: "" },
-    social: {},
-    isActive: true
-  },
-  {
-    id: 8,
-    name: "مكنون",
-    slug: "maknoon",
-    description: "متجر مكنون للمجوهرات والقطع الفريدة",
-    logo: "/assets/stores/maknoon.webp",
-    categories: ["مجوهرات", "إكسسوارات"],
-    url: "/store/maknoon",
-    endpoints: { products: "", discounts: "" },
-    social: {},
-    isActive: true
-  },
-  {
-    id: 10,
-    name: "تحفة",
-    slug: "tohfa",
-    description: "متجر تحفة للهدايا والقطع التراثية",
-    logo: "/assets/stores/tohfa.webp",
-    categories: ["هدايا", "تراث", "ديكور"],
-    url: "/store/tohfa",
-    endpoints: { products: "", discounts: "" },
-    social: {},
-    isActive: true
-  },
-  {
-    id: 11,
-    name: "برشت بلو",
-    slug: "brushtblue",
-    description: "متجر برشت بلو للفنون والأدوات المكتبية",
-    logo: "/assets/stores/brushtblue.webp",
-    categories: ["فنون", "قرطاسية"],
-    url: "/store/brushtblue",
-    endpoints: { products: "", discounts: "" },
-    social: {},
-    isActive: true
-  },
-  {
-    id: 13,
-    name: "ان باسو",
-    slug: "unpasso",
-    description: "متجر ان باسو للأحذية الجلدية الفاخرة",
-    logo: "/assets/stores/unpasso.webp",
-    categories: ["أحذية نسائية", "أحذية رجالية"],
-    url: "/store/unpasso",
-    endpoints: { products: "", discounts: "" },
-    social: {},
-    isActive: true
-  },
-  {
-    id: 16,
-    name: "الوردة البيضاء",
-    slug: "alwardaalbayda",
-    description: "متجر الوردة البيضاء للعطور والزهور",
-    logo: "/assets/stores/alwardaalbayda.webp",
-    categories: ["عطور", "زهور"],
-    url: "/store/alwardaalbayda",
-    endpoints: { products: "", discounts: "" },
-    social: {},
-    isActive: true
-  },
-  {
-    id: 17,
-    name: "الركن الليبي",
-    slug: "tlcwatches",
-    description: "متجر الركن الليبي للساعات والإكسسوارات",
-    logo: "/assets/stores/tlcwatches.webp",
-    categories: ["ساعات", "إكسسوارات"],
-    url: "/store/tlcwatches",
-    endpoints: { products: "", discounts: "" },
-    social: {},
-    isActive: true
-  },
-  {
-    id: 18,
-    name: "أيلول",
-    slug: "eylul",
-    description: "متجر أيلول للأزياء التركية العصرية",
-    logo: "/assets/stores/eylul.webp",
-    categories: ["أزياء نسائية", "فساتين"],
-    url: "/store/eylul",
-    endpoints: { products: "", discounts: "" },
-    social: {},
-    isActive: true
-  },
-  {
-    id: 19,
-    name: "كوزيت بوتيك",
-    slug: "cozetboutique",
-    description: "متجر كوزيت بوتيك للحقائب الراقية",
-    logo: "/assets/stores/cozetboutique.webp",
-    categories: ["حقائب", "إكسسوارات"],
-    url: "/store/cozetboutique",
-    endpoints: { products: "", discounts: "" },
-    social: {},
-    isActive: true
-  },
+  }
 ];
 
 let cachedStoresData: any[] | null = null;
 
-const ALLOWED_STORES = ['nawaem', 'sheirine', 'pretty', 'delta-store', 'magna-beauty'];
+const ALLOWED_STORES = ['nawaem', 'sheirine', 'pretty', 'delta-store', 'magna-beauty', 'indeesh'];
 
 export function cleanupAnonymousStores() {
   if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
@@ -422,19 +302,29 @@ export function cleanupAnonymousStores() {
   }
 
   try {
-    // لا نحذف أي متجر مُسجل ما دام موجودًا في eshro_stores.
-    // نكتفي بتنظيف المفاتيح اليتيمة فقط.
     const registeredStores = JSON.parse(localStorage.getItem('eshro_stores') || '[]');
     if (!Array.isArray(registeredStores)) return;
 
-    // إعادة كتابة القائمة كما هي لضمان صحة التخزين فقط
-    localStorage.setItem('eshro_stores', JSON.stringify(registeredStores));
+    // Filter registered stores to keep only allowed core stores
+    const filteredStores = registeredStores.filter((s: any) => {
+      const slug = (s?.subdomain || s?.id?.toString() || '').toString().toLowerCase().trim().replace(/\s+/g, '-');
+      // Normalize slug for comparison
+      const normalizedSlug = (slug === 'sherine' || slug === 'sheirin') ? 'sheirine' :
+                             (slug === 'delta' || slug === 'details') ? 'delta-store' :
+                             (slug === 'megna' || slug === 'magna') ? 'magna-beauty' : slug;
+      
+      return ALLOWED_STORES.includes(normalizedSlug);
+    });
+
+    if (filteredStores.length !== registeredStores.length) {
+      localStorage.setItem('eshro_stores', JSON.stringify(filteredStores));
+    }
 
     // إزالة المفاتيح اليتيمة
     cleanupOrphanedStoreFiles();
     invalidateStoresCache();
   } catch (error) {
-
+    // Silent error
   }
 }
 
@@ -790,6 +680,6 @@ export const availableCoupons = [
 export const statsData = [
   { label: 'معدل الرضا', value: '98%' },
   { label: 'عميل راضي', value: '+25K' },
-  { label: 'منتج متاح', value: '+50K' },
-  { label: 'متجر نشط', value: '+150' }
+  { label: 'منتج متاح', value: '+5K' },
+  { label: 'متجر نشط', value: '6' }
 ];

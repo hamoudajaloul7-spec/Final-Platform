@@ -1301,60 +1301,10 @@ export default function Home() {
     }
   }, [currentPage, currentProduct, currentStoreProducts]);
 
-  // Emergency Cleanup for Center Hamoda
+  // Emergency Cleanup for non-core stores
   useEffect(() => {
-    try {
-      const storesKey = 'eshro_stores';
-      const stored = localStorage.getItem(storesKey);
-      if (stored) {
-        const stores = JSON.parse(stored);
-        const filtered = stores.filter((s: any) => {
-          const slug = (s.subdomain || s.slug || '').toLowerCase();
-          return !slug.includes('hamoda');
-        });
-        
-        if (filtered.length !== stores.length) {
-          localStorage.setItem(storesKey, JSON.stringify(filtered));
-          console.log('Removed Hamoda stores from eshro_stores');
-          // Force reload if we removed the current store
-          if (currentStore && currentStore.includes('hamoda')) {
-             window.location.href = '/';
-          }
-        }
-      }
-      
-      // Remove specific keys
-      const keysToRemove = [
-        'eshro_store_files_centerhamoda',
-        'store_products_centerhamoda', 
-        'store_sliders_centerhamoda',
-        'eshro_store_files_hamoda-center',
-        'store_products_hamoda-center', 
-        'store_sliders_hamoda-center',
-        'store_products_hamoda',
-        'store_sliders_hamoda'
-      ];
-      
-      keysToRemove.forEach(key => {
-        if (localStorage.getItem(key)) {
-          localStorage.removeItem(key);
-          console.log(`Removed ${key}`);
-        }
-      });
-      
-      // Search for any other keys
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && (key.includes('centerhamoda') || key.includes('hamoda'))) {
-           localStorage.removeItem(key);
-           console.log(`Removed wild key ${key}`);
-        }
-      }
-      
-    } catch (e) {
-      console.error('Error cleaning up hamoda', e);
-    }
-  }, [currentStore]);
+    cleanupAnonymousStores();
+  }, []);
 
 
 
