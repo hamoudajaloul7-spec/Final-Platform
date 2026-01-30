@@ -38,17 +38,26 @@ export const getProxyImageUrl = (
     // النمط: /assets/[slug]/[type]/[filename]
     const parts = imagePath.split('/').filter(Boolean);
     if (parts.length >= 4 && parts[0] === 'assets') {
-      const slug = parts[1];
-      const type = parts[2] as 'products' | 'sliders' | 'logo';
+      const slug = parts[1]!;
+      const type = (parts[2] || 'products') as 'products' | 'sliders' | 'logo';
       const filename = parts.slice(3).join('/');
       
       // إذا كان المتجر معروفاً كمتجر ديناميكي (أو تم تمرير storeSlug مطابق)
-      if (slug === storeSlug || (storeSlug === undefined && filename.includes('.'))) {
+      // أضفنا shekha هنا لضمان معالجة صور السلايدر الخاصة بها بشكل صحيح
+      const isKnownDynamicStore = ['shekha', 'indeesh'].includes(slug);
+      
+      if (slug === storeSlug || isKnownDynamicStore || (storeSlug === undefined && filename.includes('.'))) {
         const folder = type === 'products' ? 'products' : (type === 'sliders' ? 'sliders' : 'logo');
         return `${SUPABASE_PUBLIC_URL}/${folder}/stores/${slug}/${folder}/${filename}`;
       }
     }
     return imagePath;
+  }
+  
+  // معالجة إضافية لمسارات السلايدر التي قد تأتي بشكل غير كامل للمتاجر الديناميكية
+  if (imagePath.startsWith('/sliders/') && storeSlug === 'shekha') {
+    const filename = imagePath.replace('/sliders/', '');
+    return `${SUPABASE_PUBLIC_URL}/sliders/stores/shekha/sliders/${filename}`;
   }
 
   if (imagePath.startsWith('/AdsForms/') || 
@@ -60,16 +69,23 @@ export const getProxyImageUrl = (
   // 4. Performance: Direct Supabase URL for uploaded assets
   if (!imagePath.startsWith('/') && imagePath.includes('.')) {
     // إذا كان المسار يحتوي بالفعل على هيكل المجلدات الصحيح، نستخدمه مباشرة
-    if (imagePath.includes('stores/') && imagePath.includes('/sliders/')) {
+    if (imagePath.includes('stores/') && (imagePath.includes('/sliders/') || imagePath.includes('/products/') || imagePath.includes('/logo/'))) {
       return `${SUPABASE_PUBLIC_URL}/${imagePath}`;
     }
     
-    if (imagePath.includes('stores/') && imagePath.includes('/products/')) {
-      return `${SUPABASE_PUBLIC_URL}/${imagePath}`;
+    // إذا كان المسار يبدأ بالمجلد الأساسي (sliders/ أو products/ أو logo/) ولكن ينقصه الـ stores/
+    // وكان لدينا storeSlug، نقوم بتصحيح المسار
+    const baseFolders = ['sliders/', 'products/', 'logo/'];
+    const matchedFolder = baseFolders.find(f => imagePath.startsWith(f));
+    
+    if (matchedFolder && storeSlug) {
+      const fileName = imagePath.replace(matchedFolder, '');
+      const folder = matchedFolder.replace('/', '');
+      return `${SUPABASE_PUBLIC_URL}/${folder}/stores/${storeSlug}/${folder}/${fileName}`;
     }
 
-    // إذا كان المسار يبدأ بالمجلد الأساسي (sliders/ أو products/)
-    if (imagePath.startsWith('sliders/') || imagePath.startsWith('products/') || imagePath.startsWith('logo/')) {
+    // إذا كان المسار يبدأ بالمجلد الأساسي، نستخدمه كما هو (للملفات العامة)
+    if (matchedFolder) {
       return `${SUPABASE_PUBLIC_URL}/${imagePath}`;
     }
 

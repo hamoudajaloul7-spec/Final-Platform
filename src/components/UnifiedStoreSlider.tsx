@@ -90,7 +90,14 @@ const UnifiedStoreSlider: React.FC<UnifiedStoreSliderProps> = ({
     };
   }, [storeSlug, initialSliders]);
 
-  const normalizeImageUrl = (path: string) => stripApiBase(path);
+  const normalizeImageUrl = (path: string) => {
+    let cleanPath = stripApiBase(path);
+    // إذا كان المسار يبدأ بـ banner- ويخص متجر shekha، نقوم بتنظيفه
+    if (cleanPath.includes('banner-shekha')) {
+      cleanPath = cleanPath.replace('banner-shekha', 'banner');
+    }
+    return cleanPath;
+  };
 
   const loadSliders = async (skipCache: boolean = false) => {
     const storageKey = `eshro_sliders_${storeSlug}`;
@@ -327,6 +334,16 @@ const UnifiedStoreSlider: React.FC<UnifiedStoreSliderProps> = ({
                 loading={index === 0 ? 'eager' : 'lazy'}
                 decoding="async"
                 fetchPriority={index === 0 ? 'high' : 'auto'}
+                onError={(e) => {
+                  console.warn(`[UnifiedStoreSlider] Failed to load image for ${storeSlug}:`, slider.image);
+                  // Try fallback if the image path is just a filename
+                  if (slider.imagePath && !slider.imagePath.includes('http') && !slider.imagePath.startsWith('/')) {
+                     const fallback = getProxyImageUrl(slider.imagePath, storeSlug, 'sliders');
+                     if (fallback !== slider.image) {
+                        e.currentTarget.src = fallback;
+                     }
+                  }
+                }}
               />
               <div className="absolute inset-0 bg-black/20 flex flex-col items-center justify-center z-10">
                 <h2 className="text-white text-3xl md:text-5xl font-bold text-center mb-4 drop-shadow-lg">
