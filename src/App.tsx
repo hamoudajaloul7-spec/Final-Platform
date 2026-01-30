@@ -86,13 +86,21 @@ const createStoreFiles = async (storeData: any) => {
 
   // Generate products content with actual data
   const products = storeData.products || [];
-  const productsArray = products.map((product, index) => {
+  const productsWithIds = products.map((product, index) => {
     const productId = storeId * 1000 + index + 1;
+    return {
+      ...product,
+      id: productId,
+      storeId: storeId
+    };
+  });
+
+  const productsArray = productsWithIds.map((product, index) => {
     const quantity = product.quantity || 0;
     const isAvailable = quantity > 0;
     return `  {
-    id: ${productId},
-    storeId: ${storeId},
+    id: ${product.id},
+    storeId: ${product.storeId},
     name: "${product.name || ''}",
     description: "${product.description || ''}",
     price: ${product.price || 0},
@@ -197,16 +205,13 @@ const ${storeSlug.charAt(0).toUpperCase() + storeSlug.slice(1)}Slider: React.FC<
   const startX = useRef(0);
 
   // صور السلايدر حسب المتجر
-  const getSliderBanners = (store: string) => {
-    if (store === '${storeSlug}') {
-      return [
+  const getSliderBanners = () => {
+    return [
 ${slidesArray}
-      ];
-    }
-    return [];
+    ];
   };
 
-  const banners = getSliderBanners(storeSlug).map(b => ({
+  const banners = getSliderBanners().map(b => ({
     ...b,
     image: (b.image && !b.image.startsWith('http')) ? getApiBase() + b.image : b.image
   }));
@@ -320,17 +325,24 @@ export { default as ${storeSlug.charAt(0).toUpperCase() + storeSlug.slice(1)}Sli
     password: storeData.password || '',
     commercialRegister: storeData.commercialRegister || '',
     practiceLicense: storeData.practiceLicense || '',
-    products: storeData.products || [],
+    products: productsWithIds,
     sliderImages: storeData.sliderImages || [],
     createdAt: storeData.createdAt || new Date().toISOString(),
     status: storeData.status || 'active'
   };
 
   // Save products to localStorage in the format expected by ModernStorePage
-  localStorage.setItem(`store_products_${storeSlug}`, JSON.stringify(products));
+  localStorage.setItem(`store_products_${storeSlug}`, JSON.stringify(productsWithIds));
 
   // Save slider images to localStorage
   localStorage.setItem(`store_sliders_${storeSlug}`, JSON.stringify(sliderImages));
+  localStorage.setItem(`eshro_sliders_${storeSlug}`, JSON.stringify(sliderImages.map((s, i) => ({
+    id: s.id || `banner${i + 1}`,
+    imageUrl: s.image || s.imageUrl || s.imagePath || '',
+    title: s.title || '',
+    subtitle: s.subtitle || '',
+    buttonText: s.buttonText || 'تسوق الآن'
+  }))));
 
   // Also save to localStorage for backward compatibility
   const storeFiles = {
@@ -410,7 +422,7 @@ const postStoreToApi = async (rawStoreData: any, normalizedStore: any) => {
     subtitle: s.subtitle || '',
     buttonText: s.buttonText || 'تسوق الآن'
   }));
-  fd.append('sliderImages', JSON.stringify(sliders));
+  fd.append('sliders', JSON.stringify(sliders));
 
   const uploadFiles = rawStoreData.uploadFiles || {};
   const productImages: File[] = uploadFiles.productImages || [];
@@ -1403,7 +1415,19 @@ export default function Home() {
         // Load products for this store to ensure they are available for the product page
         try {
           const storeData = await loadStoreBySlug(store);
-          if (storeData?.products && storeData.products.length > 0) {
+          
+          // محاولة جلب المنتجات من الـ API لضمان الحصول على أحدث البيانات والمعرفات الحقيقية
+          if (storeData?.storeId || storeData?.id) {
+            const sid = storeData.storeId || storeData.id;
+            const apiUrl = getApiUrl();
+            const res = await fetch(`${apiUrl}/products?storeId=${sid}`);
+            const json = await res.json();
+            if (json.success && Array.isArray(json.data)) {
+              setCurrentStoreProducts(json.data);
+            } else if (storeData?.products && storeData.products.length > 0) {
+              setCurrentStoreProducts(storeData.products);
+            }
+          } else if (storeData?.products && storeData.products.length > 0) {
             setCurrentStoreProducts(storeData.products);
           } else {
             const fallbackProducts = allStoreProducts.filter(p => String(p.storeId) === String(storeData?.storeId));

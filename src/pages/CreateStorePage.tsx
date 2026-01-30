@@ -818,17 +818,23 @@ const CreateStorePage: React.FC<CreateStorePageProps> = ({
         filtered.push(newStoreEntry);
         localStorage.setItem('eshro_stores', JSON.stringify(filtered));
 
-        const productsForStorage = serverProducts.map((p: any) => ({
+        const productsForStorage = serverProducts.map((p: any, pIdx: number) => ({
           ...p,
+          id: p.id || (finalStoreData.storeId * 1000 + pIdx + 1),
           storeId: finalStoreData.storeId,
           category: p.category || 'عام',
           images: p.images || []
         }));
         localStorage.setItem(`store_products_${formData.subdomain}`, JSON.stringify(productsForStorage));
 
-        const slidersForStorage = serverSliders.map((s: any) => ({
-          id: s.id || `banner_${Date.now()}_${Math.random()}`,
-          image: s.image || '',
+        // Use sent sliders if server response has fewer sliders (sync delay protection)
+        const finalSlidersToStore = (Array.isArray(serverSliders) && serverSliders.length >= sliderImagesWithIds.length) 
+          ? serverSliders 
+          : sliderImagesWithIds;
+
+        const slidersForStorage = finalSlidersToStore.map((s: any, sIdx: number) => ({
+          id: s.id || `banner${sIdx + 1}`,
+          image: s.image || s.imageUrl || s.imagePath || '',
           title: s.title || '',
           subtitle: s.subtitle || '',
           buttonText: s.buttonText || 'تسوق الآن'

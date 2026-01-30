@@ -57,8 +57,23 @@ const ProductPage: React.FC<ProductPageProps> = ({
     const fromAll = allStoreProducts.find(p => String(p.id) === String(productId));
     if (fromAll) return fromAll;
 
-    // 2. البحث في المنتجات الحالية المخزنة في localStorage (للمتاجر الديناميكية والمحاكات)
+    // 2. البحث في الملفات المحفوظة للمتاجر الديناميكية (eshro_store_files_*)
     const allStorageKeys = Object.keys(localStorage);
+    const storeFileKeys = allStorageKeys.filter(key => key.startsWith('eshro_store_files_'));
+    
+    for (const key of storeFileKeys) {
+      try {
+        const stored = localStorage.getItem(key);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          const storeProducts = parsed.storeData?.products || [];
+          const found = storeProducts.find((p: any) => String(p.id) === String(productId));
+          if (found) return found;
+        }
+      } catch (e) {}
+    }
+
+    // 3. البحث في المنتجات الحالية المخزنة في localStorage (للمتاجر الديناميكية والمحاكات)
     const storeProductKeys = allStorageKeys.filter(key => key.startsWith('store_products_'));
     
     for (const key of storeProductKeys) {
