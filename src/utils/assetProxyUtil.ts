@@ -1,6 +1,6 @@
 import { getApiBase } from './apiConfig';
 
-const SUPABASE_PROJECT_ID = 'wbakbuqvdbmweujkbzxn';
+export const SUPABASE_PROJECT_ID = 'wbakbuqvdbmweujkbzxn';
 const BUCKET_NAME = 'ishro-assets';
 const SUPABASE_PUBLIC_URL = `https://${SUPABASE_PROJECT_ID}.supabase.co/storage/v1/object/public/${BUCKET_NAME}`;
 
@@ -55,9 +55,14 @@ export const getProxyImageUrl = (
   }
   
   // معالجة إضافية لمسارات السلايدر التي قد تأتي بشكل غير كامل للمتاجر الديناميكية
-  if (imagePath.startsWith('/sliders/') && storeSlug === 'shekha') {
-    const filename = imagePath.replace('/sliders/', '');
-    return `${SUPABASE_PUBLIC_URL}/sliders/stores/shekha/sliders/${filename}`;
+  if (imagePath.startsWith('/sliders/')) {
+    const knownDynamicStores = ['shekha', 'indeesh'];
+    const effectiveSlug = storeSlug || knownDynamicStores.find(s => imagePath.includes(s));
+    
+    if (effectiveSlug) {
+      const filename = imagePath.replace('/sliders/', '');
+      return `${SUPABASE_PUBLIC_URL}/sliders/stores/${effectiveSlug}/sliders/${filename}`;
+    }
   }
 
   if (imagePath.startsWith('/AdsForms/') || 

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { getStoreConfig } from '@/config/storeConfig';
 import { getApiBase, getApiUrl, stripApiBase } from '@/utils/apiConfig';
-import { getProxyImageUrl } from '@/utils/assetProxyUtil';
+import { getProxyImageUrl, SUPABASE_PROJECT_ID } from '@/utils/assetProxyUtil';
 
 interface SliderHeightConfig {
   mobile?: number;
@@ -92,10 +92,7 @@ const UnifiedStoreSlider: React.FC<UnifiedStoreSliderProps> = ({
 
   const normalizeImageUrl = (path: string) => {
     let cleanPath = stripApiBase(path);
-    // إذا كان المسار يبدأ بـ banner- ويخص متجر shekha، نقوم بتنظيفه
-    if (cleanPath.includes('banner-shekha')) {
-      cleanPath = cleanPath.replace('banner-shekha', 'banner');
-    }
+    // Remove aggressive replacement that might break versioned banners
     return cleanPath;
   };
 
@@ -336,12 +333,26 @@ const UnifiedStoreSlider: React.FC<UnifiedStoreSliderProps> = ({
                 fetchPriority={index === 0 ? 'high' : 'auto'}
                 onError={(e) => {
                   console.warn(`[UnifiedStoreSlider] Failed to load image for ${storeSlug}:`, slider.image);
-                  // Try fallback if the image path is just a filename
-                  if (slider.imagePath && !slider.imagePath.includes('http') && !slider.imagePath.startsWith('/')) {
-                     const fallback = getProxyImageUrl(slider.imagePath, storeSlug, 'sliders');
-                     if (fallback !== slider.image) {
-                        e.currentTarget.src = fallback;
-                     }
+                  
+                  const target = e.currentTarget;
+                  const currentSrc = target.src;
+                  
+                  // Try to fix common issues: missing extension or wrong path
+                  if (slider.imagePath) {
+                    // 1. If it's a simple filename, use getProxyImageUrl
+                    if (!slider.imagePath.includes('/') && !slider.imagePath.includes('http')) {
+                      const fallback = getProxyImageUrl(slider.imagePath, storeSlug, 'sliders');
+                      if (fallback !== slider.image) {
+                        target.src = fallback;
+                        return;
+                      }
+                    }
+                    
+                    // 2. Try adding .jpg if missing and we are on Supabase
+                    if (currentSrc.includes(SUPABASE_PROJECT_ID) && !currentSrc.toLowerCase().match(/\.(jpg|jpeg|png|webp|gif|svg)$/)) {
+                       target.src = currentSrc + '.jpg';
+                       return;
+                    }
                   }
                 }}
               />
