@@ -91,7 +91,8 @@ const createStoreFiles = async (storeData: any) => {
     return {
       ...product,
       id: productId,
-      storeId: storeId
+      storeId: storeId,
+      storeSlug: storeSlug
     };
   });
 
@@ -101,6 +102,7 @@ const createStoreFiles = async (storeData: any) => {
     return `  {
     id: ${product.id},
     storeId: ${product.storeId},
+    storeSlug: "${product.storeSlug || storeSlug}",
     name: "${product.name || ''}",
     description: "${product.description || ''}",
     price: ${product.price || 0},
@@ -180,6 +182,7 @@ import {
 } from 'lucide-react';
 import type { Product } from '../../storeProducts';
 import { getApiBase } from '@/utils/apiConfig';
+import { getProxyImageUrl } from '@/utils/assetProxyUtil';
 
 interface ${storeSlug.charAt(0).toUpperCase() + storeSlug.slice(1)}SliderProps {
   products: Product[];
@@ -211,10 +214,15 @@ ${slidesArray}
     ];
   };
 
-  const banners = getSliderBanners().map(b => ({
-    ...b,
-    image: (b.image && !b.image.startsWith('http')) ? getApiBase() + b.image : b.image
-  }));
+  const banners = getSliderBanners().map(b => {
+    const imageUrl = getProxyImageUrl(b.image, storeSlug, 'sliders');
+    return {
+      ...b,
+      image: imageUrl,
+      imageUrl: imageUrl,
+      imagePath: imageUrl
+    };
+  });
 
   useEffect(() => {
     if (!isAutoPlaying || banners.length === 0) return;

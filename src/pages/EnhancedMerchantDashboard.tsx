@@ -4929,7 +4929,8 @@ useEffect(() => {
                             <CardContent className="p-4 space-y-3">
                               <div className="relative h-44 rounded-xl overflow-hidden bg-gray-100">
                                 <img
-                                  src={primaryImage}
+                                  // @ts-ignore
+                                  src={getProxyImageUrl(primaryImage, (merchantStoreSlug || undefined) as any, 'products')}
                                   alt={product.name}
                                   className="w-full h-full object-cover"
                                   onError={(e) => handleImageError(e, merchantStoreSlug || undefined)}
@@ -5031,7 +5032,8 @@ useEffect(() => {
                           <CardContent className="p-4 space-y-3">
                             <div className="relative h-40 rounded-xl overflow-hidden bg-gray-100">
                               <img
-                                src={(() => {
+                                // @ts-ignore
+                                src={getProxyImageUrl((() => {
                                   if (category.image) return category.image;
                                   const imageKey = `category_image_${merchantStoreSlug}_${category.id}`;
                                   const uploadedImage = sessionStorage.getItem(imageKey);
@@ -5041,7 +5043,7 @@ useEffect(() => {
                                     ? productsInCategory[0].images[0]
                                     : productsToDisplay?.[0]?.images?.[0] || getDefaultProductImageSync(merchantStoreSlug || undefined);
                                   return firstProductImage;
-                                })()}
+                                })(), (merchantStoreSlug || undefined) as any, 'products')}
                                 alt={category.name}
                                 className="w-full h-full object-cover"
                                 onError={(e) => handleImageError(e, merchantStoreSlug || undefined)}

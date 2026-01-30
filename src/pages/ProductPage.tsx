@@ -246,7 +246,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
             {/* الصورة الرئيسية */}
             <div className="aspect-square bg-white rounded-2xl border overflow-hidden relative">
               <img 
-                src={getProxyImageUrl(product.images[selectedImageIndex])} 
+                src={getProxyImageUrl(product.images[selectedImageIndex], product.storeSlug)} 
                 alt={product.name}
                 className="w-full h-full object-contain"
               />
@@ -280,7 +280,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
                   onClick={() => setSelectedImageIndex(index)}
                 >
                   <img 
-                    src={getProxyImageUrl(image)} 
+                    src={getProxyImageUrl(image, product.storeSlug)} 
                     alt={`${product.name} ${index + 1}`}
                     className="w-full h-full object-contain"
                   />
@@ -513,7 +513,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
                 <CardContent className="p-0">
                   <div className="aspect-square bg-white overflow-hidden">
                     <img 
-                      src={getProxyImageUrl(relatedProduct.images[0] || '')} 
+                      src={getProxyImageUrl(relatedProduct.images[0] || '', (relatedProduct as any).storeSlug, 'products')} 
                       alt={relatedProduct.name}
                       className="w-full h-full object-cover"
                     />

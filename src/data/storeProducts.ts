@@ -21,6 +21,7 @@ export interface Product {
   inStock: boolean;
   tags: string[];
   badge?: string;
+  storeSlug?: string | undefined;
   quantity: number;
   expiryDate?: string;
   endDate?: string;

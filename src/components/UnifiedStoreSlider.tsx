@@ -62,11 +62,12 @@ const UnifiedStoreSlider: React.FC<UnifiedStoreSliderProps> = ({
     // Process initial sliders if provided
     if (initialSliders && initialSliders.length > 0) {
       const resolved = initialSliders.map((s: any) => {
-        const normalized = normalizeImageUrl(s.image || s.imagePath || '');
+        const normalized = normalizeImageUrl(s.image || s.imageUrl || s.imagePath || '');
         const fullUrl = getProxyImageUrl(normalized, storeSlug, 'sliders');
         return {
           ...s,
           image: fullUrl,
+          imageUrl: fullUrl,
           imagePath: fullUrl
         };
       });
@@ -103,11 +104,12 @@ const UnifiedStoreSlider: React.FC<UnifiedStoreSliderProps> = ({
         if (Array.isArray(parsed) && parsed.length > 0) {
           // Resolve URLs for rendering
           const rendered = parsed.map((s: any) => {
-            const normalized = normalizeImageUrl(s.image || s.imagePath || '');
+            const normalized = normalizeImageUrl(s.image || s.imageUrl || s.imagePath || '');
             const fullUrl = getProxyImageUrl(normalized, storeSlug, 'sliders');
             return {
               ...s,
               image: fullUrl,
+              imageUrl: fullUrl,
               imagePath: fullUrl
             };
           });
@@ -168,11 +170,12 @@ const UnifiedStoreSlider: React.FC<UnifiedStoreSliderProps> = ({
           
           // Resolve URLs for rendering
           const rendered = mappedForStorage.map((s: any) => {
-            const normalized = normalizeImageUrl(s.image || s.imagePath || '');
+            const normalized = normalizeImageUrl(s.image || s.imageUrl || s.imagePath || '');
             const fullUrl = getProxyImageUrl(normalized, storeSlug, 'sliders');
             return {
               ...s,
               image: fullUrl,
+              imageUrl: fullUrl,
               imagePath: fullUrl
             };
           });
@@ -210,11 +213,12 @@ const UnifiedStoreSlider: React.FC<UnifiedStoreSliderProps> = ({
               
               // Resolve URLs for rendering
               const rendered = mappedForStorage.map((s: any) => {
-                const normalized = normalizeImageUrl(s.image || s.imagePath || '');
+                const normalized = normalizeImageUrl(s.image || s.imageUrl || s.imagePath || '');
                 const fullUrl = getProxyImageUrl(normalized, storeSlug, 'sliders');
                 return {
                   ...s,
                   image: fullUrl,
+                  imageUrl: fullUrl,
                   imagePath: fullUrl
                 };
               });

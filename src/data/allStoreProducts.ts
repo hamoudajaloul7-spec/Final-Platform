@@ -28,6 +28,16 @@ export const storeColors = {
   1764003948994: "from-blue-300 to-blue-500", // انديش
 };
 
+// روابط المتاجر (slugs)
+export const storeSlugs: Record<number, string> = {
+  1: 'nawaem',
+  2: 'sheirine',
+  3: 'pretty',
+  4: 'delta-store',
+  5: 'magna-beauty',
+  1764003948994: 'indeesh'
+};
+
 const MAGNA_BEAUTY_STORE_ID = 5;
 
 // استخدام magnaBeautyProducts المستورد بدلاً من تعريفه محلياً
@@ -42,6 +52,7 @@ const applyAutoBadges = (products: Product[]): Product[] => {
     return {
       ...product,
       badge,
+      storeSlug: product.storeSlug || storeSlugs[product.storeId],
       tags: product.tags ? [...new Set([...product.tags, badge])] : [badge]
     };
   });

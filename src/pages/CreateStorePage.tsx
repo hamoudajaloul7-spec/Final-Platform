@@ -549,6 +549,8 @@ const CreateStorePage: React.FC<CreateStorePageProps> = ({
         return {
           ...productData,
           id: storeId * 1000 + idx + 1,
+          storeId: storeId,
+          storeSlug: formData.subdomain,
           images: finalImages,
           inStock: isInStock
         };

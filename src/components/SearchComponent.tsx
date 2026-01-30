@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Input } from './ui/input';
 import { Badge } from './ui/badge';
 import OpenAI from 'openai';
+import { getProxyImageUrl } from '@/utils/assetProxyUtil';
 import { allStoreProducts } from '@/data/allStoreProducts';
 import { storesData } from '@/data/ecommerceData';
 import type { Product } from '@/data/storeProducts';
@@ -309,7 +310,7 @@ const SearchComponent: React.FC = () => {
                 <div key={result.product.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
                   <div className="aspect-square mb-3">
                     <img
-                      src={result.product.images[0] ?? ''}
+                      src={getProxyImageUrl(result.product.images[0] ?? '', result.product.storeSlug, 'products')}
                       alt={result.product.name}
                       className="w-full h-full object-cover rounded-lg"
                     />

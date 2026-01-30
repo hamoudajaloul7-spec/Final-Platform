@@ -29,6 +29,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { getDefaultProductImageSync, handleImageError } from '@/utils/imageUtils';
+import { getProxyImageUrl } from '@/utils/assetProxyUtil';
 import { stripApiBase } from '@/utils/apiConfig';
 
 interface Product {
@@ -503,7 +504,7 @@ const MerchantProductManagement: React.FC<MerchantProductManagementProps> = ({
 
                               return (
                                 <img
-                                  src={currentImage || getDefaultProductImageSync(storeData?.subdomain)}
+                                  src={getProxyImageUrl(currentImage || getDefaultProductImageSync(storeData?.subdomain), storeData?.subdomain, 'products')}
                                   alt={product.nameAr}
                                   className="w-full h-full object-cover"
                                   onError={(e) => {

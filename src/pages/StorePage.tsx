@@ -349,6 +349,7 @@ const StorePage: React.FC<StorePageProps> = ({ storeSlug, onBack, onProductClick
                   product={product}
                   viewMode={viewMode}
                   onClick={() => onProductClick(product.id)}
+                  storeSlug={storeSlug}
                 />
               </React.Fragment>
             ))}
@@ -386,6 +387,7 @@ interface ProductCardProps {
   product: any;
   viewMode: 'grid' | 'list';
   onClick: () => void;
+  storeSlug?: string;
 }
 
 // ✅_FIX: Unified helper functions at component level
@@ -414,13 +416,16 @@ const getProductBadge = (p: any): string | null => {
   return badge || null;
 };
 
-const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode, onClick }) => {
+const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode, onClick, storeSlug }) => {
   const [isLiked, setIsLiked] = useState(false);
   
   // Use unified helper functions
   const productImages = getProductImages(product);
   const productColors = getProductColors(product);
   const productSizes = getProductSizes(product);
+  
+  // Get effective store slug
+  const effectiveStoreSlug = storeSlug || product.storeSlug;
   
   if (viewMode === 'list') {
     return (
@@ -430,7 +435,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode, onClick })
             <div className="w-32 h-32 relative bg-gray-100 flex-shrink-0 rounded-lg overflow-hidden">
               {productImages.length > 0 ? (
                 <img
-                  src={getProxyImageUrl(productImages[0] || '')}
+                  src={getProxyImageUrl(productImages[0] || '', effectiveStoreSlug, 'products')}
                   alt={product.name}
                   className="w-full h-full object-cover"
                 />
@@ -547,7 +552,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode, onClick })
       <CardContent className="p-0">
         <div className="relative aspect-square bg-gray-100">
           <img 
-            src={getProxyImageUrl(productImages[0] || '')} 
+            src={getProxyImageUrl(productImages[0] || '', effectiveStoreSlug, 'products')} 
             alt={product.name}
             className="w-full h-full object-cover"
           />

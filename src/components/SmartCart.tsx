@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { getProxyImageUrl } from '@/utils/assetProxyUtil';
 import { Input } from '@/components/ui/input';
 import {
   Heart,
@@ -39,6 +40,7 @@ interface SuggestedProduct {
   image: string;
   rating: number;
   category: string;
+  storeSlug?: string;
 }
 
 const SmartCart: React.FC<SmartCartProps> = ({
@@ -220,7 +222,7 @@ const SmartCart: React.FC<SmartCartProps> = ({
               {suggestedProducts.map(product => (
                 <div key={product.id} className="flex items-center gap-4 p-4 border rounded-lg">
                   <img
-                    src={product.image}
+                    src={getProxyImageUrl(product.image, product.storeSlug, 'products')}
                     alt={product.name}
                     className="w-16 h-16 object-cover rounded-lg"
                   />
@@ -268,7 +270,7 @@ const SmartCart: React.FC<SmartCartProps> = ({
               {savedForLater.map(item => (
                 <div key={item.id} className="flex items-center gap-4 p-3 border rounded-lg">
                   <img
-                    src={item.product.image}
+                    src={getProxyImageUrl(item.product.image, item.product.storeSlug, 'products')}
                     alt={item.product.name}
                     className="w-12 h-12 object-cover rounded"
                   />

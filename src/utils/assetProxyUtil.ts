@@ -6,7 +6,7 @@ const SUPABASE_PUBLIC_URL = `https://${SUPABASE_PROJECT_ID}.supabase.co/storage/
 
 export const getProxyImageUrl = (
   imagePath: string,
-  storeSlug?: string,
+  storeSlug?: string | undefined,
   imageType: 'products' | 'sliders' | 'logo' = 'products'
 ): string => {
   if (!imagePath) return '';
@@ -33,8 +33,25 @@ export const getProxyImageUrl = (
   }
 
   // 3. Handle known local asset paths
-  if (imagePath.startsWith('/assets/') || 
-      imagePath.startsWith('/AdsForms/') || 
+  if (imagePath.startsWith('/assets/')) {
+    // التحقق مما إذا كان هذا مساراً لمتجر ديناميكي يحتاج للتحويل إلى Supabase
+    // النمط: /assets/[slug]/[type]/[filename]
+    const parts = imagePath.split('/').filter(Boolean);
+    if (parts.length >= 4 && parts[0] === 'assets') {
+      const slug = parts[1];
+      const type = parts[2] as 'products' | 'sliders' | 'logo';
+      const filename = parts.slice(3).join('/');
+      
+      // إذا كان المتجر معروفاً كمتجر ديناميكي (أو تم تمرير storeSlug مطابق)
+      if (slug === storeSlug || (storeSlug === undefined && filename.includes('.'))) {
+        const folder = type === 'products' ? 'products' : (type === 'sliders' ? 'sliders' : 'logo');
+        return `${SUPABASE_PUBLIC_URL}/${folder}/stores/${slug}/${folder}/${filename}`;
+      }
+    }
+    return imagePath;
+  }
+
+  if (imagePath.startsWith('/AdsForms/') || 
       imagePath.startsWith('/data/') || 
       imagePath.startsWith('/logo-brands/')) {
     return imagePath;
@@ -77,7 +94,7 @@ export const getProxyImageUrl = (
 
 export const convertProductImages = (
   images: string[] | undefined,
-  storeSlug: string
+  storeSlug?: string | undefined
 ): string[] => {
   if (!images || images.length === 0) return [];
   

@@ -17,6 +17,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
+import { getProxyImageUrl } from '@/utils/assetProxyUtil';
 
 interface Product {
   id: string;
@@ -96,7 +97,7 @@ const AlertPopup: React.FC<AlertPopupProps> = ({ product, type, onClose, onNotif
           <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
             {product.image && (
               <img
-                src={product.image}
+                src={getProxyImageUrl(product.image, product.storeSlug, 'products')}
                 alt={product.name}
                 className="w-20 h-20 object-cover rounded-lg mx-auto mb-3"
               />
@@ -333,7 +334,7 @@ const InventoryAlertsSystem: React.FC<InventoryAlertsSystemProps> = ({
                       <div className="flex items-center gap-3">
                         {alert.product.image && (
                           <img
-                            src={alert.product.image}
+                            src={getProxyImageUrl(alert.product.image, alert.product.storeSlug, 'products')}
                             alt={alert.product.name}
                             className="w-12 h-12 object-cover rounded-lg"
                           />

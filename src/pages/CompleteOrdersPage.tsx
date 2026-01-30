@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import InvoiceGenerator from '@/components/InvoiceGenerator';
 import ShareMenu from '@/components/ShareMenu';
+import { getProxyImageUrl } from '@/utils/assetProxyUtil';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -783,7 +784,7 @@ const CompleteOrdersPage: React.FC<CompleteOrdersPageProps> = ({
             <CardContent className="p-6">
               <div className="text-center mb-6">
                 <img
-                  src={showNotifyModal.images[0]}
+                  src={getProxyImageUrl(showNotifyModal.images[0] || '', (showNotifyModal as any).storeSlug, 'products')}
                   alt={showNotifyModal.name}
                   className="w-24 h-24 object-cover rounded-lg mx-auto mb-4"
                 />

@@ -47,7 +47,7 @@ export interface OrderRecord {
   discountPercentage?: number;
   createdAt?: string;
   created_at?: string;
-  items?: Array<{ id?: number; name?: string; price?: number; quantity?: number; product?: any }>;
+  items?: Array<{ id?: number; name?: string; price?: number; quantity?: number; product?: any; storeSlug?: string }>;
   customer?: { name?: string; address?: string; phone?: string; firstName?: string; lastName?: string; email?: string; city?: string; area?: string };
   shipping?: { type?: string; cost?: number; estimatedTime?: string; company?: string; address?: string };
   payment?: { method?: string; type?: string };
@@ -959,7 +959,7 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                 <div key={product.id || product.name} className="flex items-center gap-4 rounded-2xl border border-gray-100 bg-white/70 p-4 shadow-sm">
                   <div className="h-16 w-16 overflow-hidden rounded-xl bg-gray-100">
                     {image ? (
-                      <img src={getProxyImageUrl(image)} alt={product.name || 'منتج'} className="h-full w-full object-cover" />
+                      <img src={getProxyImageUrl(image, product.storeSlug || (product as any).product?.storeSlug, 'products')} alt={product.name || 'منتج'} className="h-full w-full object-cover" />
                     ) : (
                       <div className="flex h-full w-full items-center justify-center text-sm text-gray-500">بدون صورة</div>
                     )}
@@ -985,7 +985,7 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
               return (
                 <div key={item.id || `${item.name}-${index}`} className="flex items-center gap-4 rounded-2xl border border-gray-100 bg-white/70 p-4 shadow-sm">
                   <div className="h-16 w-16 overflow-hidden rounded-xl bg-gray-100">
-                    {image ? <img src={getProxyImageUrl(image)} alt={item.name || 'منتج غير متوفر'} className="h-full w-full object-cover" /> : <div className="flex h-full w-full items-center justify-center text-sm text-gray-500">قريباً</div>}
+                    {image ? <img src={getProxyImageUrl(image, item.storeSlug || (item as any).product?.storeSlug, 'products')} alt={item.name || 'منتج غير متوفر'} className="h-full w-full object-cover" /> : <div className="flex h-full w-full items-center justify-center text-sm text-gray-500">قريباً</div>}
                   </div>
                   <div className="flex-1 text-right">
                     <p className="text-sm font-semibold text-gray-900">{item.name || item.product?.name || 'منتج غير متوفر'}</p>
@@ -1010,7 +1010,7 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
               return (
                 <div key={order.id} className="flex items-center gap-4 rounded-2xl border border-gray-100 bg-white/70 p-4 shadow-sm">
                   <div className="h-16 w-16 overflow-hidden rounded-xl bg-gray-100">
-                    {image ? <img src={getProxyImageUrl(image)} alt={firstItem?.name || 'منتج'} className="h-full w-full object-cover" /> : <div className="flex h-full w-full items-center justify-center text-sm text-gray-500">منتج</div>}
+                    {image ? <img src={getProxyImageUrl(image, firstItem?.storeSlug || firstItem?.product?.storeSlug, 'products')} alt={firstItem?.name || 'منتج'} className="h-full w-full object-cover" /> : <div className="flex h-full w-full items-center justify-center text-sm text-gray-500">منتج</div>}
                   </div>
                   <div className="flex-1 text-right">
                     <p className="text-sm font-semibold text-gray-900">طلب #{order.id}</p>

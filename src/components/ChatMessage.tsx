@@ -4,6 +4,7 @@ import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
 import { Badge } from './ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
+import { getProxyImageUrl } from '@/utils/assetProxyUtil';
 
 interface Product {
   id: number;
@@ -11,6 +12,7 @@ interface Product {
   price: number;
   originalPrice?: number;
   image: string;
+  storeSlug?: string;
   category: string;
   store: string;
   rating?: number;
@@ -98,7 +100,7 @@ const ChatMessage: React.FC<ChatMessageProps> = ({
             onClick={() => onProductClick?.(productData)}>
         <div className="relative">
           <img
-            src={productData.image}
+            src={getProxyImageUrl(productData.image, productData.storeSlug, 'products')}
             alt={productData.name}
             className="w-full h-32 object-cover rounded-t-lg"
           />

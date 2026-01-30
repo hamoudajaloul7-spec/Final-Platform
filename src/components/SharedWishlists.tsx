@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { getProxyImageUrl } from '../utils/assetProxyUtil';
 import {
   Users,
   Share2,
@@ -23,6 +24,7 @@ interface FavoriteProduct {
   originalPrice?: number;
   image?: string;
   images?: string[];
+  storeSlug?: string;
   addedDate?: string;
 }
 
@@ -124,13 +126,12 @@ const SharedWishlists: React.FC<SharedWishlistsProps> = ({ onAddToCart }) => {
   };
 
   const getProductImage = (product: FavoriteProduct) => {
-    if (product.images && product.images.length > 0) {
-      return product.images[0];
-    }
-    if (product.image) {
-      return product.image;
-    }
-    return '/assets/default-product.png';
+    const rawPath = (product.images && product.images.length > 0)
+      ? product.images[0]
+      : (product.image || '/assets/default-product.png');
+    
+    // @ts-ignore
+    return getProxyImageUrl(rawPath, product.storeSlug as any, 'products');
   };
 
   const formatDate = (dateString?: string) => {
@@ -377,7 +378,7 @@ const SharedWishlists: React.FC<SharedWishlistsProps> = ({ onAddToCart }) => {
                     {wishlist.items.map(item => (
                       <div key={item.id} className="flex items-center gap-4 p-4 border rounded-lg">
                         <img
-                          src={item.product.image}
+                          src={getProxyImageUrl(item.product.image, item.product.storeSlug, 'products')}
                           alt={item.product.name}
                           className="w-16 h-16 object-cover rounded-lg"
                         />
