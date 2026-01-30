@@ -1291,26 +1291,52 @@ export default function Home() {
 
   // تحميل المنتجات الديناميكية عند الحاجة
   useEffect(() => {
-    if (currentPage === 'product' && currentProduct) {
-      const isStatic = allStoreProducts.some(p => String(p.id) === String(currentProduct)) || 
-                       enhancedSampleProducts.some(p => String(p.id) === String(currentProduct)) ||
-                       currentStoreProducts.some(p => String(p.id) === String(currentProduct));
-      
-      if (!isStatic) {
-        setIsLoadingProducts(true);
-        getDynamicAllStoreProducts().then(allDynamic => {
-          const found = allDynamic.find(p => String(p.id) === String(currentProduct));
-          if (found) {
-            setDynamicProducts(prev => {
-              if (prev.some(p => String(p.id) === String(found.id))) return prev;
-              return [...prev, found];
-            });
+    const fetchProductFallback = async () => {
+      if (currentPage === 'product' && currentProduct && !isLoadingProducts) {
+        // البحث في كل المصادر المحلية المتوفرة حالياً
+        const localProduct = currentStoreProducts.find(p => String(p.id) === String(currentProduct)) ||
+                             dynamicProducts.find(p => String(p.id) === String(currentProduct)) ||
+                             allStoreProducts.find(p => String(p.id) === String(currentProduct)) ||
+                             enhancedSampleProducts.find(p => String(p.id) === String(currentProduct));
+
+        if (!localProduct) {
+          setIsLoadingProducts(true);
+          try {
+            // محاولة جلب المنتج من الـ API مباشرة
+            const apiUrl = getApiUrl();
+            const res = await fetch(`${apiUrl}/products/${currentProduct}`);
+            const json = await res.json();
+            
+            if (json.success && json.data) {
+              const fetched = json.data;
+              setDynamicProducts(prev => {
+                if (prev.some(p => String(p.id) === String(fetched.id))) return prev;
+                return [...prev, fetched];
+              });
+            } else {
+              // إذا فشل الجلب المباشر، جرب جلب كل منتجات المتجر كخيار أخير
+              if (currentStore) {
+                const allDynamic = await getDynamicAllStoreProducts();
+                const found = allDynamic.find(p => String(p.id) === String(currentProduct));
+                if (found) {
+                  setDynamicProducts(prev => {
+                    if (prev.some(p => String(p.id) === String(found.id))) return prev;
+                    return [...prev, found];
+                  });
+                }
+              }
+            }
+          } catch (error) {
+            console.error("Fallback fetch failed:", error);
+          } finally {
+            setIsLoadingProducts(false);
           }
-          setIsLoadingProducts(false);
-        }).catch(() => setIsLoadingProducts(false));
+        }
       }
-    }
-  }, [currentPage, currentProduct, currentStoreProducts]);
+    };
+
+    fetchProductFallback();
+  }, [currentPage, currentProduct, currentStoreProducts, currentStore]);
 
   // Emergency Cleanup for non-core stores
   useEffect(() => {

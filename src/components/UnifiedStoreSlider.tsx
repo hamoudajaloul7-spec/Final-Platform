@@ -177,14 +177,8 @@ const UnifiedStoreSlider: React.FC<UnifiedStoreSliderProps> = ({
             };
           });
           
-          // Only update if we got more sliders or if we don't have any yet
-          // This prevents overriding local state with partial API data during sync
-          setSliders(current => {
-            if (current.length > rendered.length && current.some(s => s.id.toString().startsWith('banner'))) {
-               return current;
-            }
-            return rendered;
-          });
+          // تحديث السلايدر دائماً إذا جاءت بيانات من الـ API لضمان مطابقة السحابي
+          setSliders(rendered);
           localStorage.setItem(storageKey, JSON.stringify(mappedForStorage));
         }
       } else {

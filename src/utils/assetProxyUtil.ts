@@ -42,7 +42,28 @@ export const getProxyImageUrl = (
 
   // 4. Performance: Direct Supabase URL for uploaded assets
   if (!imagePath.startsWith('/') && imagePath.includes('.')) {
-    return `${SUPABASE_PUBLIC_URL}/${imagePath}`;
+    // إذا كان المسار يحتوي بالفعل على هيكل المجلدات الصحيح، نستخدمه مباشرة
+    if (imagePath.includes('stores/') && imagePath.includes('/sliders/')) {
+      return `${SUPABASE_PUBLIC_URL}/${imagePath}`;
+    }
+    
+    if (imagePath.includes('stores/') && imagePath.includes('/products/')) {
+      return `${SUPABASE_PUBLIC_URL}/${imagePath}`;
+    }
+
+    // إذا كان المسار يبدأ بالمجلد الأساسي (sliders/ أو products/)
+    if (imagePath.startsWith('sliders/') || imagePath.startsWith('products/') || imagePath.startsWith('logo/')) {
+      return `${SUPABASE_PUBLIC_URL}/${imagePath}`;
+    }
+
+    // إذا كان مجرد اسم ملف بسيط، نقوم ببناء المسار الكامل بناءً على نوع الصورة والمتجر
+    const folder = imageType === 'products' ? 'products' : (imageType === 'sliders' ? 'sliders' : 'logo');
+    if (storeSlug) {
+      return `${SUPABASE_PUBLIC_URL}/${folder}/stores/${storeSlug}/${folder}/${imagePath}`;
+    }
+    
+    // كخيار أخير، نضعه في المجلد العام للنوع
+    return `${SUPABASE_PUBLIC_URL}/${folder}/${imagePath}`;
   }
 
   if (base) {
