@@ -156,11 +156,11 @@ const UnifiedStoreSlider: React.FC<UnifiedStoreSliderProps> = ({
         const slidersData = result.data || result.sliders || [];
         
         if (Array.isArray(slidersData) && slidersData.length > 0) {
-          const mappedForStorage = slidersData.map((slider: any) => {
+          const mappedForStorage = slidersData.map((slider: any, index: number) => {
             const imagePath = normalizeImageUrl(slider.imagePath || slider.imageUrl || slider.image || '');
             
             return {
-              id: slider.id || `slider_${Date.now()}_${Math.random()}`,
+              id: slider.id || `slider_${Date.now()}_${index}_${Math.random()}`,
               title: slider.title || '',
               subtitle: slider.subtitle || '',
               buttonText: slider.buttonText || '',
@@ -337,21 +337,33 @@ const UnifiedStoreSlider: React.FC<UnifiedStoreSliderProps> = ({
                   const target = e.currentTarget;
                   const currentSrc = target.src;
                   
-                  // Try to fix common issues: missing extension or wrong path
+                  // منع الدخول في حلقة لا نهائية من الأخطاء
+                  if (target.dataset.triedFallback === 'true') return;
+
                   if (slider.imagePath) {
-                    // 1. If it's a simple filename, use getProxyImageUrl
-                    if (!slider.imagePath.includes('/') && !slider.imagePath.includes('http')) {
-                      const fallback = getProxyImageUrl(slider.imagePath, storeSlug, 'sliders');
-                      if (fallback !== slider.image) {
-                        target.src = fallback;
+                    // تجربة 1: إضافة .jpg إذا كان مفقوداً
+                    if (currentSrc.includes(SUPABASE_PROJECT_ID) && !currentSrc.toLowerCase().match(/\.(jpg|jpeg|png|webp|gif|svg)$/)) {
+                       target.src = currentSrc + '.jpg';
+                       target.dataset.triedFallback = 'true';
+                       return;
+                    }
+
+                    // تجربة 2: محاولة المسار المبسط (بدون تكرار المجلد)
+                    if (currentSrc.includes('/sliders/stores/') && currentSrc.includes('/sliders/')) {
+                      const filename = slider.imagePath.split('/').pop();
+                      const simplerPath = `https://${SUPABASE_PROJECT_ID}.supabase.co/storage/v1/object/public/ishro-assets/sliders/stores/${storeSlug}/${filename}`;
+                      if (simplerPath !== currentSrc) {
+                        target.src = simplerPath;
+                        target.dataset.triedFallback = 'true';
                         return;
                       }
                     }
-                    
-                    // 2. Try adding .jpg if missing and we are on Supabase
-                    if (currentSrc.includes(SUPABASE_PROJECT_ID) && !currentSrc.toLowerCase().match(/\.(jpg|jpeg|png|webp|gif|svg)$/)) {
-                       target.src = currentSrc + '.jpg';
-                       return;
+
+                    // تجربة 3: استخدام المسار الخام كما هو في قاعدة البيانات إذا كان رابطاً كاملاً
+                    if (slider.imagePath.startsWith('http')) {
+                      target.src = slider.imagePath;
+                      target.dataset.triedFallback = 'true';
+                      return;
                     }
                   }
                 }}

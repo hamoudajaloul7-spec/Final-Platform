@@ -55,12 +55,13 @@ export const getProxyImageUrl = (
   }
   
   // معالجة إضافية لمسارات السلايدر التي قد تأتي بشكل غير كامل للمتاجر الديناميكية
-  if (imagePath.startsWith('/sliders/')) {
+  if (imagePath.startsWith('/sliders/') || imagePath.includes('banner-shekha')) {
     const knownDynamicStores = ['shekha', 'indeesh'];
-    const effectiveSlug = storeSlug || knownDynamicStores.find(s => imagePath.includes(s));
+    const effectiveSlug = storeSlug || knownDynamicStores.find(s => imagePath.includes(s)) || (imagePath.includes('shekha') ? 'shekha' : undefined);
     
     if (effectiveSlug) {
-      const filename = imagePath.replace('/sliders/', '');
+      const filename = imagePath.split('/').pop() || imagePath;
+      // محاولة المسار الأكثر دقة أولاً، وسيتم التعامل مع البدائل في onError إذا لزم الأمر
       return `${SUPABASE_PUBLIC_URL}/sliders/stores/${effectiveSlug}/sliders/${filename}`;
     }
   }
