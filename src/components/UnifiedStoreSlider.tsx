@@ -159,8 +159,13 @@ const UnifiedStoreSlider: React.FC<UnifiedStoreSliderProps> = ({
           const mappedForStorage = slidersData.map((slider: any, index: number) => {
             const imagePath = normalizeImageUrl(slider.imagePath || slider.imageUrl || slider.image || '');
             
+            // استخدام معرف ثابت وفريد يعتمد على مسار الصورة لتجنب مشاكل React Key
+            const stableId = slider.id && !slider.id.toString().includes('slider_') 
+              ? slider.id.toString() 
+              : `slider-${storeSlug}-${index}-${imagePath.split('/').pop()}`;
+
             return {
-              id: slider.id || `slider_${Date.now()}_${index}_${Math.random()}`,
+              id: stableId,
               title: slider.title || '',
               subtitle: slider.subtitle || '',
               buttonText: slider.buttonText || '',
@@ -278,19 +283,15 @@ const UnifiedStoreSlider: React.FC<UnifiedStoreSliderProps> = ({
   };
 
   useEffect(() => {
-    if (!isAutoPlaying || sliders.length === 0) return;
-
-    const interval = setInterval(() => {
-      setActiveSlide((prev) => (prev + 1) % sliders.length);
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, [isAutoPlaying, sliders.length]);
+    if (sliders.length > 0) {
+      console.log(`[UnifiedStoreSlider] ${storeSlug} sliders loaded:`, sliders.length, sliders.map(s => s.id));
+    }
+  }, [sliders, storeSlug]);
 
   if (sliders.length === 0) {
     return null;
   }
-
+  
   const nextSlide = () => {
     setActiveSlide((prev) => (prev + 1) % sliders.length);
     setIsAutoPlaying(false);
@@ -317,10 +318,11 @@ const UnifiedStoreSlider: React.FC<UnifiedStoreSliderProps> = ({
         {sliders.map((slider, index) => (
           <div
             key={slider.id}
-            className="absolute inset-0 transition-opacity duration-500 ease-in-out"
+            className="absolute inset-0 transition-opacity duration-1000 ease-in-out"
             style={{
               opacity: index === activeSlide ? 1 : 0,
               visibility: index === activeSlide ? 'visible' : 'hidden',
+              zIndex: index === activeSlide ? 20 : 0
             }}
           >
             <div className="w-full h-full relative overflow-hidden">
@@ -368,32 +370,34 @@ const UnifiedStoreSlider: React.FC<UnifiedStoreSliderProps> = ({
                   }
                 }}
               />
-              <div className="absolute inset-0 bg-black/20 flex flex-col items-center justify-center z-10">
-                <h2 className="text-white text-3xl md:text-5xl font-bold text-center mb-4 drop-shadow-lg">
+              <div className="absolute inset-0 bg-black/10 flex flex-col items-center justify-center z-10">
+                <h2 className="text-white text-3xl md:text-5xl font-bold text-center mb-4 drop-shadow-xl">
                   {slider.title}
                 </h2>
                 {slider.subtitle && (
-                  <p className="text-white text-lg md:text-2xl text-center mb-6 drop-shadow-lg">
+                  <p className="text-white text-lg md:text-2xl text-center mb-6 drop-shadow-xl">
                     {slider.subtitle}
                   </p>
                 )}
-                <button
-                  className="px-8 py-3 rounded-lg font-bold text-white transition-all duration-300"
-                  style={{
-                    backgroundColor: activeConfig.colors?.primary || '#000000',
-                    boxShadow: `0 0 20px ${activeConfig.colors?.primary || '#000000'}40`,
-                  }}
-                  onMouseEnter={(e) => {
-                    (e.target as HTMLElement).style.boxShadow = `0 0 30px ${activeConfig.colors?.primary || '#000000'}80`;
-                    (e.target as HTMLElement).style.transform = 'scale(1.05)';
-                  }}
-                  onMouseLeave={(e) => {
-                    (e.target as HTMLElement).style.boxShadow = `0 0 20px ${activeConfig.colors?.primary || '#000000'}40`;
-                    (e.target as HTMLElement).style.transform = 'scale(1)';
-                  }}
-                >
-                  {slider.buttonText}
-                </button>
+                {slider.buttonText && (
+                  <button
+                    className="px-8 py-3 rounded-lg font-bold text-white transition-all duration-300"
+                    style={{
+                      backgroundColor: activeConfig.colors?.primary || '#000000',
+                      boxShadow: `0 0 20px ${activeConfig.colors?.primary || '#000000'}40`,
+                    }}
+                    onMouseEnter={(e) => {
+                      (e.target as HTMLElement).style.boxShadow = `0 0 30px ${activeConfig.colors?.primary || '#000000'}80`;
+                      (e.target as HTMLElement).style.transform = 'scale(1.05)';
+                    }}
+                    onMouseLeave={(e) => {
+                      (e.target as HTMLElement).style.boxShadow = `0 0 20px ${activeConfig.colors?.primary || '#000000'}40`;
+                      (e.target as HTMLElement).style.transform = 'scale(1)';
+                    }}
+                  >
+                    {slider.buttonText}
+                  </button>
+                )}
               </div>
             </div>
           </div>
