@@ -8,7 +8,15 @@ import { prettyProducts } from '@/data/stores/pretty/products';
 import { deltaProducts } from '@/data/stores/delta-store/products';
 import { magnaBeautyProducts } from '@/data/stores/magna-beauty/products';
 import { indeeshProducts } from '@/data/stores/indeesh/products';
-import { allStoreProducts as staticAllProducts } from '@/data/allStoreProducts';
+import { allStoreProducts as staticAllProducts, storeSlugs as staticStoreSlugs } from '@/data/allStoreProducts';
+
+// Create a reverse mapping for store slugs to IDs
+const slugToIdMap: Record<string, number> = {};
+if (staticStoreSlugs) {
+  Object.entries(staticStoreSlugs).forEach(([id, slug]) => {
+    slugToIdMap[slug] = Number(id);
+  });
+}
 import { enhancedSampleProducts } from '@/data/productCategories';
 
 const storesProductsMap: Record<string, Product[]> = {
@@ -120,11 +128,14 @@ function loadStoreFromLocalStorage(slug: string): StoreData | null {
     const slidersData = localStorage.getItem(`store_sliders_${slug}`);
 
     const parsedProducts = productsData ? JSON.parse(productsData) : storeData.products || [];
-    const normalizedProducts = Array.isArray(parsedProducts) ? parsedProducts.map(normalizeApiProduct) : [];
+    const storeIdValue = storeData.id || storeData.storeId || 0;
+    const normalizedProducts = Array.isArray(parsedProducts) 
+      ? parsedProducts.map(p => ({ ...normalizeApiProduct(p), storeSlug: slug, storeId: storeIdValue })) 
+      : [];
 
     const finalStoreData: StoreData = {
-      id: storeData.id || storeData.storeId || 0,
-      storeId: storeData.storeId || storeData.id || 0,
+      id: storeIdValue,
+      storeId: storeIdValue,
       slug: slug,
       name: storeData.name || storeData.storeName || slug,
       nameAr: storeData.nameAr || storeData.storeName || slug,
@@ -168,9 +179,10 @@ export async function loadStoreBySlug(slug: string): Promise<StoreData | null> {
   const products = storesProductsMap[slug];
   
   if (products && Array.isArray(products)) {
+    const storeId = slugToIdMap[slug] || 0;
     const storeData: StoreData = {
-      id: 0,
-      storeId: 0,
+      id: storeId,
+      storeId: storeId,
       slug: slug,
       name: slug,
       nameAr: slug,
@@ -180,7 +192,7 @@ export async function loadStoreBySlug(slug: string): Promise<StoreData | null> {
       color: 'from-blue-400 to-blue-600',
       logo: '/assets/default-store.png',
       categories: [],
-      products: products.map(normalizeApiProduct),
+      products: products.map(p => ({ ...normalizeApiProduct(p), storeSlug: slug, storeId })),
       sliderImages: []
     };
     

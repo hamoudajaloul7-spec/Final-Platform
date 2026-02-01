@@ -286,6 +286,10 @@ const ModernStorePage: React.FC<ModernStorePageProps> = ({
       if (!currentSlug) return;
       
       setLoadingStore(true);
+      // Reset data to prevent overlap from previous store
+      setDynamicStoreData(null);
+      setEnhancedStore(null);
+      
       try {
         // 1. Try to fetch from Public API first
         const apiUrl = getApiUrl();

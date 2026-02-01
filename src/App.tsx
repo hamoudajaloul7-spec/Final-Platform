@@ -2031,18 +2031,20 @@ export default function Home() {
   const handleNavigation = (page: string) => {
     setCurrentPage(page);
     setCurrentStore(null);
+    setCurrentStoreProducts([]);
     setCurrentProduct(null);
   };
 
   const handleBackToHome = () => {
     setCurrentPage('home');
     setCurrentStore(null);
+    setCurrentStoreProducts([]);
     setCurrentProduct(null);
   };
 
   const handleStoreClick = async (storeSlug: string) => {
-    
     setCurrentStore(storeSlug);
+    setCurrentStoreProducts([]);
 
     try {
       const storeData = await loadStoreBySlug(storeSlug);
