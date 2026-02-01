@@ -2,7 +2,7 @@
 /*
   Cleanup duplicate assets for a store by content hash and update store.json references.
   Usage:
-    node cleanup-duplicate-assets.js shikha
+    node cleanup-duplicate-assets.js shekha
 
   What it does:
   - Scans public/assets/<slug>/{logo,sliders,products}

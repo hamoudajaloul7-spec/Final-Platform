@@ -370,27 +370,27 @@
             updateResult('🔍 جاري فحص البيانات...', 'loading');
             
             try {
-                const shikhaProducts = localStorage.getItem('store_products_shikha');
-                const shikhaSliders = localStorage.getItem('store_sliders_shikha');
-                const shikhaFiles = localStorage.getItem('eshro_store_files_shikha');
+                const shekhaProducts = localStorage.getItem('store_products_shekha');
+                const shekhaSliders = localStorage.getItem('store_sliders_shekha');
+                const shekhaFiles = localStorage.getItem('eshro_store_files_shekha');
                 
                 let message = '📋 نتائج الفحص:\\n\\n';
                 
-                if (shikhaProducts) {
-                    const products = JSON.parse(shikhaProducts);
+                if (shekhaProducts) {
+                    const products = JSON.parse(shekhaProducts);
                     message += `✅ منتجات المتجر: ${products.length} منتج\\n`;
                 } else {
                     message += '❌ لا توجد منتجات محفوظة\\n';
                 }
                 
-                if (shikhaSliders) {
-                    const sliders = JSON.parse(shikhaSliders);
+                if (shekhaSliders) {
+                    const sliders = JSON.parse(shekhaSliders);
                     message += `✅ صور السلايدر: ${sliders.length} صورة\\n`;
                 } else {
                     message += '❌ لا توجد صور سلايدر محفوظة\\n';
                 }
                 
-                if (shikhaFiles) {
+                if (shekhaFiles) {
                     message += '✅ ملفات المتجر موجودة\\n';
                 } else {
                     message += '❌ لا توجد ملفات متجر محفوظة\\n';
@@ -417,9 +417,9 @@
             try {
                 // حذف البيانات المتعلقة بمتجر شيخة
                 const keysToRemove = [
-                    'store_products_shikha',
-                    'store_sliders_shikha',
-                    'eshro_store_files_shikha'
+                    'store_products_shekha',
+                    'store_sliders_shekha',
+                    'eshro_store_files_shekha'
                 ];
                 
                 let deletedCount = 0;
@@ -473,14 +473,14 @@
                 fetch('http://localhost:4000/assets/stores/index.json')
                     .then(response => response.json())
                     .then(stores => {
-                        const shikhaStore = stores.find(store => store.slug === 'shikha');
+                        const shekhaStore = stores.find(store => store.slug === 'shekha');
                         
-                        if (shikhaStore) {
+                        if (shekhaStore) {
                             updateResult(
                                 `✅ تم العثور على متجر شيخة في النظام!\\n\\n` +
-                                `الاسم: ${shikhaStore.nameAr}\\n` +
-                                `عدد المنتجات: ${shikhaStore.productsCount}\\n` +
-                                `آخر تحديث: ${new Date(shikhaStore.lastUpdated).toLocaleString('ar')}\\n\\n` +
+                                `الاسم: ${shekhaStore.nameAr}\\n` +
+                                `عدد المنتجات: ${shekhaStore.productsCount}\\n` +
+                                `آخر تحديث: ${new Date(shekhaStore.lastUpdated).toLocaleString('ar')}\\n\\n` +
                                 `يمكنك الآن الذهاب للتطبيق وستجد متجر شيخة في قائمة المتاجر.`,
                                 'success'
                             );

@@ -141,15 +141,15 @@
                 const indexResponse = await fetch('http://localhost:4000/assets/stores/index.json');
                 if (indexResponse.ok) {
                     const stores = await indexResponse.json();
-                    const shikhaStore = stores.find(store => store.slug === 'shikha');
+                    const shekhaStore = stores.find(store => store.slug === 'shekha');
                     
-                    if (shikhaStore) {
+                    if (shekhaStore) {
                         resultDiv.innerHTML = `
                             <div class="success">
                                 ✅ تم العثور على متجر شيخة في فهرس المتاجر!<br>
-                                الاسم: ${shikhaStore.nameAr}<br>
-                                عدد المنتجات: ${shikhaStore.productsCount}<br>
-                                آخر تحديث: ${new Date(shikhaStore.lastUpdated).toLocaleString('ar')}
+                                الاسم: ${shekhaStore.nameAr}<br>
+                                عدد المنتجات: ${shekhaStore.productsCount}<br>
+                                آخر تحديث: ${new Date(shekhaStore.lastUpdated).toLocaleString('ar')}
                             </div>
                         `;
                     } else {
@@ -158,7 +158,7 @@
                 }
                 
                 // فحص بيانات المتجر
-                const storeResponse = await fetch('http://localhost:4000/assets/shikha/store.json');
+                const storeResponse = await fetch('http://localhost:4000/assets/shekha/store.json');
                 if (storeResponse.ok) {
                     const storeData = await storeResponse.json();
                     resultDiv.innerHTML += `

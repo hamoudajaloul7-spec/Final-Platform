@@ -55,7 +55,6 @@ const ModernStorePage: React.FC<ModernStorePageProps> = ({
   onSubmitNotification,
   favorites = []
 }) => {
-  const [activeSlide, setActiveSlide] = useState(0);
   const [currentView, setCurrentView] = useState<'all' | 'discounts' | 'new' | 'unavailable'>('all');
   const [showNotifyModal, setShowNotifyModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -208,14 +207,17 @@ const ModernStorePage: React.FC<ModernStorePageProps> = ({
       try {
         const newKey = `eshro_sliders_${storeSlug}`;
         const oldKey = `store_sliders_${storeSlug}`;
+        const legacyKey = `sliders${storeSlug}`; // e.g., slidershekha
         
         let customSliders = localStorage.getItem(newKey);
         
         if (!customSliders) {
-          const oldSliders = localStorage.getItem(oldKey);
-          if (oldSliders) {
-            try {
-              const oldData = JSON.parse(oldSliders);
+          const alternativeKey = [oldKey, legacyKey].find(key => localStorage.getItem(key));
+          if (alternativeKey) {
+            const oldSliders = localStorage.getItem(alternativeKey);
+            if (oldSliders) {
+              try {
+                const oldData = JSON.parse(oldSliders);
               const migrated = oldData.map((slide: any, idx: number) => ({
                 id: slide.id || `slider_${Date.now()}_${idx}`,
                 imageUrl: slide.image || slide.imageUrl || '',
@@ -227,13 +229,14 @@ const ModernStorePage: React.FC<ModernStorePageProps> = ({
               }));
               
               localStorage.setItem(newKey, JSON.stringify(migrated));
-              localStorage.removeItem(oldKey);
+              localStorage.removeItem(alternativeKey);
               customSliders = localStorage.getItem(newKey);
             } catch (err) {
               // Migration failed
             }
           }
         }
+      }
         
         if (customSliders) {
           const sliders = JSON.parse(customSliders);
@@ -454,14 +457,6 @@ const ModernStorePage: React.FC<ModernStorePageProps> = ({
     );
   }
 
-  const nextSlide = () => {
-    setActiveSlide((prev) => (prev + 1) % sliderImages.length);
-  };
-
-  const prevSlide = () => {
-    setActiveSlide((prev) => (prev - 1 + sliderImages.length) % sliderImages.length);
-  };
-
   const handleAddToCart = (product: Product) => {
     const defaultSize = product.availableSizes[0] || product.sizes[0] || 'واحد';
     const defaultColor = product.colors[0]?.name || 'افتراضي';
@@ -567,18 +562,19 @@ const ModernStorePage: React.FC<ModernStorePageProps> = ({
       </div>
 
       {/* السلايدر الموحد - يستخدم الإعدادات المركزية */}
-      {storeSlug === 'sheirine' && storeConfig ? (
+      {storeSlug === 'sheirine' ? (
         <SheirineSlider 
           products={storeProducts}
           storeSlug={storeSlug}
+          sliderImages={sliderImages}
           onProductClick={onProductClick}
           onAddToCart={(product) => onAddToCart(product, '', '', 1)}
           onToggleFavorite={onToggleFavorite}
           favorites={favorites}
         />
-      ) : storeConfig && store ? (
+      ) : (
         <UnifiedStoreSlider 
-          storeSlug={store.slug} 
+          storeSlug={storeSlug} 
           initialSliders={sliderImages.map(img => ({
             id: img.id,
             title: img.title || '',
@@ -588,161 +584,7 @@ const ModernStorePage: React.FC<ModernStorePageProps> = ({
             image: img.imageUrl || img.image || ''
           }))}
         />
-      ) : sliderImages.length > 0 ? (
-        /* السلايدر العادي للمتاجر الديناميكية بدون إعدادات مركزية */
-          <div
-            dir="ltr"
-            className="relative w-full overflow-hidden bg-gradient-to-r from-primary/10 to-primary/5"
-            style={{ height: 'clamp(420px, 65vh, 820px)' }}
-          >
-            <div
-              className="absolute inset-0 flex transition-transform duration-500 ease-in-out"
-              style={{ transform: `translateX(-${activeSlide * 100}%)` }}
-              role="region"
-              aria-label="محتوى السلايدر"
-            >
-              {sliderImages.map((item, index) => {
-                const isSliderBanner = item.imageUrl || (item.image && typeof item.image === 'string');
-                
-                if (isSliderBanner) {
-                  const imageUrl = getProxyImageUrl(item.imageUrl || item.image, storeSlug, 'sliders');
-                  return (
-                    <div key={item.id || index} className="w-full flex-shrink-0 relative h-full">
-                      <img
-                        src={imageUrl}
-                        alt={item.title || 'عرض'}
-                        className="w-full h-full object-cover"
-                        loading={index === 0 ? 'eager' : 'lazy'}
-                        decoding="async"
-                        fetchPriority={index === 0 ? 'high' : 'auto'}
-                      />
-                      {(item.title || item.subtitle || item.discount || item.buttonText) && (
-                        <div dir="rtl" className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent">
-                          <div className="absolute bottom-0 left-0 right-0 p-8 text-white">
-                            {item.discount && (
-                              <div className="mb-4">
-                                <span className="inline-block bg-red-600 text-white px-6 py-2 rounded-full text-2xl font-bold shadow-lg animate-pulse">
-                                  خصم {item.discount}%
-                                </span>
-                              </div>
-                            )}
-                            
-                            {item.title && (
-                              <h2 className="text-4xl md:text-5xl font-bold mb-3 drop-shadow-2xl">
-                                {item.title}
-                              </h2>
-                            )}
-                            
-                            {item.subtitle && (
-                              <p className="text-xl md:text-2xl mb-6 drop-shadow-lg opacity-90">
-                                {item.subtitle}
-                              </p>
-                            )}
-                            
-                            {item.buttonText && (
-                              <Button 
-                                size="lg" 
-                                className="px-8 py-3 bg-white text-gray-900 rounded-full font-bold text-lg shadow-xl hover:bg-gray-100"
-                              >
-                                {item.buttonText}
-                              </Button>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  );
-                }
-                
-                const product = item;
-                return (
-                  <div key={product.id} className="w-full flex-shrink-0 relative">
-                    <div className="container mx-auto px-4 h-full flex items-center">
-                      <div className="grid md:grid-cols-2 gap-8 items-center">
-                        <div className="space-y-4">
-                          <Badge className="bg-primary/20 text-primary">
-                            {store.categories?.[0] || 'منتجات'}
-                          </Badge>
-                          <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
-                            {product.name}
-                          </h2>
-                          <p className="text-lg text-gray-600 max-w-md">
-                            {product.description}
-                          </p>
-                          <div className="flex items-center gap-4">
-                            <div className="text-2xl font-bold text-primary">
-                              {product.price} د.ل
-                            </div>
-                            {product.originalPrice > product.price && (
-                              <div className="text-lg text-gray-500 line-through">
-                                {product.originalPrice} د.ل
-                              </div>
-                            )}
-                          </div>
-                          <Button 
-                            size="lg" 
-                            onClick={() => onProductClick(product.id)}
-                            className="bg-primary hover:bg-primary/90"
-                          >
-                            عرض المنتج
-                            <ArrowRight className="h-4 w-4 ml-2" />
-                          </Button>
-                        </div>
-                        <div className="relative flex justify-center">
-                          <img
-                            src={getProxyImageUrl(product.images?.[0] || product.image || getDefaultProductImageSync(store?.slug), store?.slug, 'products')}
-                            alt={product.name}
-                            className="w-64 h-64 object-cover rounded-2xl shadow-2xl"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* أزرار التنقل */}
-            {sliderImages.length > 1 && (
-              <>
-                <button
-                  onClick={prevSlide}
-                  className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white p-2 rounded-full shadow-lg transition-colors"
-                  aria-label="الصورة السابقة"
-                  title="الصورة السابقة"
-                >
-                  <ArrowLeft className="h-5 w-5" />
-                </button>
-                <button
-                  onClick={nextSlide}
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white p-2 rounded-full shadow-lg transition-colors"
-                  aria-label="الصورة التالية"
-                  title="الصورة التالية"
-                >
-                  <ArrowRight className="h-5 w-5" />
-                </button>
-              </>
-            )}
-
-            {/* نقاط التنقل */}
-            {sliderImages.length > 1 && (
-              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">
-                {sliderImages.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setActiveSlide(index)}
-                    className={`w-3 h-3 rounded-full transition-colors ${
-                      index === activeSlide ? 'bg-white' : 'bg-white/50'
-                    }`}
-                    aria-label={`انتقل إلى الشريحة ${index + 1}`}
-                    title={`الشريحة ${index + 1}`}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-        ) : null
-      }
+      )}
 
 
 

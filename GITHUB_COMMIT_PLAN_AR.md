@@ -7,7 +7,7 @@
 ```bash
 # ملفات HTML إدارية قديمة - يجب حذفها
 - delete-store-from-server.html
-- clear-shikha-store.html
+- clear-shekha-store.html
 - clear-local-stores.html
 - diagnose-storage.html
 - edit-stores.html
@@ -52,7 +52,7 @@
 ### 1. حذف الملفات القديمة
 ```bash
 git rm delete-store-from-server.html
-git rm clear-shikha-store.html
+git rm clear-shekha-store.html
 git rm clear-local-stores.html
 git rm diagnose-storage.html
 git rm edit-stores.html

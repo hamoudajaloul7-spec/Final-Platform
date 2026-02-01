@@ -41,7 +41,7 @@ const purge = await purgeStoreFromSupabase(slug);
 
 هناك ملفات HTML قديمة في المجلد الجذر:
 - `delete-store-from-server.html` - يحتوي على أزرار حذف
-- `clear-shikha-store.html` - لتنظيف متجر شيخة
+- `clear-shekha-store.html` - لتنظيف متجر شيخة
 - `diagnose-storage.html` - أداة تشخيص
 - `store-management-dashboard.html` - لوحة إدارة
 
@@ -59,10 +59,10 @@ const purge = await purgeStoreFromSupabase(slug);
 ```bash
 حذف الملفات التالية:
 - delete-store-from-server.html
-- clear-shikha-store.html
+- clear-shekha-store.html
 - diagnose-storage.html
 - store-management-dashboard.html
-- clear-shikha-store.html
+- clear-shekha-store.html
 ```
 
 ### 3. إضافة تسجيل أحداث (Audit Logging)

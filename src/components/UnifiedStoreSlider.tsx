@@ -91,17 +91,21 @@ const UnifiedStoreSlider: React.FC<UnifiedStoreSliderProps> = ({
   }, [storeSlug, initialSliders]);
 
   const normalizeImageUrl = (path: string) => {
-    let cleanPath = stripApiBase(path);
+    const cleanPath = stripApiBase(path);
     // Remove aggressive replacement that might break versioned banners
     return cleanPath;
   };
 
   const loadSliders = async (skipCache: boolean = false) => {
     const storageKey = `eshro_sliders_${storeSlug}`;
-    const apiBase = getApiBase();
+    const legacyKey = `sliders${storeSlug}`; // e.g., slidershekha
    
     // Only try localStorage if we don't already have sliders and not skipping cache
-    const savedSliders = localStorage.getItem(storageKey);
+    let savedSliders = localStorage.getItem(storageKey);
+    if (!savedSliders) {
+      savedSliders = localStorage.getItem(legacyKey);
+    }
+    
     if (savedSliders && !skipCache) {
       try {
         const parsed = JSON.parse(savedSliders);
@@ -118,6 +122,12 @@ const UnifiedStoreSlider: React.FC<UnifiedStoreSliderProps> = ({
             };
           });
           setSliders(rendered);
+          
+          // Migrate if needed
+          if (!localStorage.getItem(storageKey) && localStorage.getItem(legacyKey)) {
+            localStorage.setItem(storageKey, savedSliders);
+            localStorage.removeItem(legacyKey);
+          }
         }
       } catch {}
     }
@@ -283,9 +293,7 @@ const UnifiedStoreSlider: React.FC<UnifiedStoreSliderProps> = ({
   };
 
   useEffect(() => {
-    if (sliders.length > 0) {
-      console.log(`[UnifiedStoreSlider] ${storeSlug} sliders loaded:`, sliders.length, sliders.map(s => s.id));
-    }
+    // Sliders loaded
   }, [sliders, storeSlug]);
 
   if (sliders.length === 0) {
@@ -334,8 +342,6 @@ const UnifiedStoreSlider: React.FC<UnifiedStoreSliderProps> = ({
                 decoding="async"
                 fetchPriority={index === 0 ? 'high' : 'auto'}
                 onError={(e) => {
-                  console.warn(`[UnifiedStoreSlider] Failed to load image for ${storeSlug}:`, slider.image);
-                  
                   const target = e.currentTarget;
                   const currentSrc = target.src;
                   

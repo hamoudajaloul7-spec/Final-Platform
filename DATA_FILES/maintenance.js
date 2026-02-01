@@ -7,7 +7,7 @@
  * الاستخدام:
  * Usage:
  *   npm run maintenance
- *   npm run maintenance -- --store shikha
+ *   npm run maintenance -- --store shekha
  *   npm run maintenance -- --all
  *   npm run maintenance -- --help
  */
