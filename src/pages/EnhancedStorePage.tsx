@@ -198,7 +198,6 @@ const EnhancedStorePage: React.FC<EnhancedStorePageProps> = ({
   const handleNotifyWhenAvailable = (product: Product) => {
     setSelectedProduct(product);
     setShowNotifyModal(true);
-    onNotifyWhenAvailable(product.id);
   };
 
   const handleCloseNotifyModal = () => {

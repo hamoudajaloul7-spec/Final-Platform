@@ -49,7 +49,6 @@
       "quantity": 12,
       "category": "عطور",
       "inStock": true,
-      "isAvailable": true,
       "badge": "تخفيضات",
       "tags": [
         "تخفيضات"
@@ -88,7 +87,6 @@
       "quantity": 8,
       "category": "عطور رجالية",
       "inStock": true,
-      "isAvailable": true,
       "badge": "تخفيضات",
       "tags": [
         "تخفيضات"
@@ -127,7 +125,6 @@
       "quantity": 15,
       "category": "عطور رجالية",
       "inStock": true,
-      "isAvailable": true,
       "badge": "تخفيضات",
       "tags": [
         "تخفيضات"
@@ -166,7 +163,6 @@
       "quantity": 20,
       "category": "عطور رجالية",
       "inStock": true,
-      "isAvailable": true,
       "badge": "تخفيضات",
       "tags": [
         "تخفيضات"
@@ -204,7 +200,6 @@
       "quantity": 5,
       "category": "عطور نسائية",
       "inStock": true,
-      "isAvailable": true,
       "badge": "جديد",
       "tags": [
         "جديد"
@@ -243,7 +238,6 @@
       "quantity": 10,
       "category": "عطور نسائية",
       "inStock": true,
-      "isAvailable": true,
       "badge": "تخفيضات",
       "tags": [
         "تخفيضات"
@@ -282,7 +276,6 @@
       "quantity": 7,
       "category": "عطور نسائية",
       "inStock": true,
-      "isAvailable": true,
       "badge": "جديد",
       "tags": [
         "جديد"
@@ -321,7 +314,6 @@
       "quantity": 9,
       "category": "عطور رجالية",
       "inStock": true,
-      "isAvailable": true,
       "badge": "جديد",
       "tags": [
         "جديد"
@@ -360,7 +352,6 @@
       "quantity": 14,
       "category": "عطور نسائية",
       "inStock": true,
-      "isAvailable": true,
       "badge": "جديد",
       "tags": [
         "جديد"
@@ -399,7 +390,6 @@
       "quantity": 6,
       "category": "عطور نسائية",
       "inStock": true,
-      "isAvailable": true,
       "badge": "جديد",
       "tags": [
         "جديد"
@@ -438,7 +428,6 @@
       "quantity": 11,
       "category": "عطور رجالية",
       "inStock": true,
-      "isAvailable": true,
       "badge": "تخفيضات",
       "tags": [
         "تخفيضات"
@@ -477,7 +466,6 @@
       "quantity": 13,
       "category": "عطور رجالية",
       "inStock": true,
-      "isAvailable": true,
       "badge": "جديد",
       "tags": [
         "جديد"
@@ -516,7 +504,6 @@
       "quantity": 4,
       "category": "عطور رجالية",
       "inStock": true,
-      "isAvailable": true,
       "badge": "متوفر",
       "tags": [
         "متوفر"
@@ -555,7 +542,6 @@
       "quantity": 3,
       "category": "عطور رجالية",
       "inStock": true,
-      "isAvailable": true,
       "badge": "متوفر",
       "tags": [
         "متوفر"
@@ -594,7 +580,6 @@
       "quantity": 9,
       "category": "عطور نسائية",
       "inStock": true,
-      "isAvailable": true,
       "badge": "جديد",
       "tags": [
         "جديد"

@@ -40,7 +40,7 @@ interface ModernStorePageProps {
   onProductClick: (productId: number) => void;
   onAddToCart: (product: Product, size: string, color: string, quantity: number) => void;
   onToggleFavorite: (productId: number) => void;
-  onNotifyWhenAvailable: (productId: number) => void;
+  onNotifyWhenAvailable: (product: Product) => void;
   onSubmitNotification?: (product: Product, notificationData: any) => void;
   favorites: number[];
 }
@@ -59,6 +59,7 @@ const ModernStorePage: React.FC<ModernStorePageProps> = ({
   const [showNotifyModal, setShowNotifyModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [dynamicStoreData, setDynamicStoreData] = useState<any>(null);
+  const [activeSlide, setActiveSlide] = useState(0);
   const [loadingStore, setLoadingStore] = useState(false);
   const [storeAds, setStoreAds] = useState<any[]>([]);
   const [adCarouselSlide, setAdCarouselSlide] = useState(0);
@@ -468,8 +469,9 @@ const ModernStorePage: React.FC<ModernStorePageProps> = ({
   };
 
   const handleNotifyWhenAvailable = (product: Product) => {
-    // استدعاء دالة التنبيه من المكون الأب بدلاً من عرض الـ modal الخاص
-    onNotifyWhenAvailable(product.id);
+    // عرض المودال المحلي للمتجر لضمان عدم الخروج من الصفحة
+    setSelectedProduct(product);
+    setShowNotifyModal(true);
   };
 
   const handleCloseNotifyModal = () => {

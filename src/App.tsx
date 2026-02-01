@@ -3229,9 +3229,17 @@ export default function Home() {
             window.dispatchEvent(new Event('favoritesUpdated'));
           }
         }}
-        onNotifyWhenAvailable={(productId) => {
-          const product = allStoreProducts.find(p => String(p.id) === String(productId)) || currentStoreProducts.find(p => String(p.id) === String(productId));
-          setNotifyProduct(product || { id: productId, name: 'منتج غير معروف', storeSlug: currentStore });
+        onNotifyWhenAvailable={(productOrId) => {
+          // If productOrId is an object (Product), use it directly
+          if (productOrId && typeof productOrId === 'object' && (productOrId as any).id) {
+            setNotifyProduct(productOrId);
+          } else {
+            // Otherwise try to find it by ID
+            const productId = productOrId;
+            const product = allStoreProducts.find(p => String(p.id) === String(productId)) || 
+                          currentStoreProducts.find(p => String(p.id) === String(productId));
+            setNotifyProduct(product || { id: productId, name: 'منتج غير معروف', storeSlug: currentStore });
+          }
           setShowNotifyModal(true);
         }}
         onSubmitNotification={async (product, notificationData) => {
@@ -3385,9 +3393,17 @@ export default function Home() {
             }
           }
         }}
-        onNotifyWhenAvailable={(productId) => {
-          const product = allStoreProducts.find(p => String(p.id) === String(productId)) || currentStoreProducts.find(p => String(p.id) === String(productId));
-          setNotifyProduct(product || { id: productId, name: 'منتج غير معروف', storeSlug: currentStore });
+        onNotifyWhenAvailable={(productOrId) => {
+          // If productOrId is an object (Product), use it directly
+          if (productOrId && typeof productOrId === 'object' && (productOrId as any).id) {
+            setNotifyProduct(productOrId);
+          } else {
+            // Otherwise try to find it by ID
+            const productId = productOrId;
+            const product = allStoreProducts.find(p => String(p.id) === String(productId)) || 
+                          currentStoreProducts.find(p => String(p.id) === String(productId));
+            setNotifyProduct(product || { id: productId, name: 'منتج غير معروف', storeSlug: currentStore });
+          }
           setShowNotifyModal(true);
         }}
         storeSlug={currentStore || undefined}
