@@ -44,7 +44,7 @@ export const getProxyImageUrl = (
       const type = isTypedPath ? parts[2] as 'products' | 'sliders' | 'logo' : imageType;
       const filename = isTypedPath ? parts.slice(3).join('/') : parts.slice(2).join('/');
       
-      // المتاجر الأساسية (Core Stores) التي لديها أصول محلية في مجلد public/assets
+      // المتاجر الأساسية والمجلدات العامة التي لديها أصول محلية في مجلد public/assets
       const CORE_STORES = [
         'nawaem', 
         'sheirine', 
@@ -55,7 +55,14 @@ export const getProxyImageUrl = (
         'delta',
         'sherine',
         'real-stores',
-        'stores'
+        'stores',
+        'DiscountSlider',
+        'banks',
+        'brands',
+        'partners',
+        'payment',
+        'shipping',
+        'slider'
       ];
       
       // إذا كان المتجر من المتاجر الأساسية، نفضل المسار المحلي أولاً
