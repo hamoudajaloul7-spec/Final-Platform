@@ -144,7 +144,7 @@ export default function PartnersPage({ onBack }: { onBack: () => void }) {
                 شركاء النجاح
               </span>
             </h1>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto text-justify">
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto text-center">
               نتعاون مع أفضل المؤسسات المالية والتقنية في ليبيا لنقدم لك خدمات التجارة الإلكترونية الأكثر تطوراً وأماناً
             </p>
           </div>
@@ -175,7 +175,7 @@ export default function PartnersPage({ onBack }: { onBack: () => void }) {
               <h3 className="text-2xl font-bold mb-3 text-primary">
                 {categories.find(c => c.id === activeCategory)?.title}
               </h3>
-              <p className="text-muted-foreground text-justify">
+              <p className="text-muted-foreground text-center">
                 {categories.find(c => c.id === activeCategory)?.description}
               </p>
             </div>
@@ -237,28 +237,28 @@ export default function PartnersPage({ onBack }: { onBack: () => void }) {
           <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center p-6 bg-white/50 backdrop-blur-sm rounded-2xl border border-primary/20">
               <div className="text-3xl font-bold text-primary mb-2">16+</div>
-              <div className="text-muted-foreground">مصرف تجاري</div>
+              <div className="text-muted-foreground text-center">مصرف تجاري</div>
             </div>
             <div className="text-center p-6 bg-white/50 backdrop-blur-sm rounded-2xl border border-primary/20">
               <div className="text-3xl font-bold text-primary mb-2">12+</div>
-              <div className="text-muted-foreground">شركة دفع إلكتروني</div>
+              <div className="text-muted-foreground text-center">شركة دفع إلكتروني</div>
             </div>
             <div className="text-center p-6 bg-white/50 backdrop-blur-sm rounded-2xl border border-primary/20">
               <div className="text-3xl font-bold text-primary mb-2">19+</div>
-              <div className="text-muted-foreground">شركة شحن وتوصيل</div>
+              <div className="text-muted-foreground text-center">شركة شحن وتوصيل</div>
             </div>
           </div>
 
           {/* دعوة للعمل */}
           <div className="text-center mt-16">
             <div className="max-w-2xl mx-auto p-8 bg-gradient-to-br from-primary/10 to-primary/5 backdrop-blur-sm rounded-3xl border border-primary/20">
-              <h3 className="text-2xl font-bold mb-4 text-primary">
+              <h3 className="text-2xl font-bold mb-4 text-primary text-center">
                 انضم إلى شبكة شركائنا
               </h3>
-              <p className="text-muted-foreground mb-6 text-justify">
+              <p className="text-muted-foreground mb-6 text-center">
                 هل تريد أن تكون جزءاً من منظومة إشرو للتجارة الإلكترونية؟
               </p>
-              <Button className="bg-primary hover:bg-primary/90 px-8 py-3">
+              <Button className="bg-primary hover:bg-primary/90 px-8 py-3 mx-auto flex items-center justify-center">
                 تواصل معنا للشراكة
               </Button>
             </div>
