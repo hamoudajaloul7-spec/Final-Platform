@@ -37,16 +37,34 @@ export const getProxyImageUrl = (
     // التحقق مما إذا كان هذا مساراً لمتجر ديناميكي يحتاج للتحويل إلى Supabase
     // النمط: /assets/[slug]/[type]/[filename]
     const parts = imagePath.split('/').filter(Boolean);
-    if (parts.length >= 4 && parts[0] === 'assets') {
+    if (parts.length >= 3 && parts[0] === 'assets') {
       const slug = parts[1]!;
-      const type = (parts[2] || 'products') as 'products' | 'sliders' | 'logo';
-      const filename = parts.slice(3).join('/');
+      // Determine type and filename based on path structure
+      const isTypedPath = parts.length >= 4 && ['products', 'sliders', 'logo'].includes(parts[2]);
+      const type = isTypedPath ? parts[2] as 'products' | 'sliders' | 'logo' : imageType;
+      const filename = isTypedPath ? parts.slice(3).join('/') : parts.slice(2).join('/');
       
-      // إذا كان المتجر معروفاً كمتجر ديناميكي (أو تم تمرير storeSlug مطابق)
-      // أضفنا shekha هنا لضمان معالجة صور السلايدر الخاصة بها بشكل صحيح
-      const isKnownDynamicStore = ['shekha', 'indeesh'].includes(slug);
+      // المتاجر الأساسية (Core Stores) التي لديها أصول محلية في مجلد public/assets
+      const CORE_STORES = [
+        'nawaem', 
+        'sheirine', 
+        'pretty', 
+        'delta-store', 
+        'magna-beauty', 
+        'indeesh',
+        'delta',
+        'sherine',
+        'real-stores',
+        'stores'
+      ];
       
-      if (slug === storeSlug || isKnownDynamicStore || (storeSlug === undefined && filename.includes('.'))) {
+      // إذا كان المتجر من المتاجر الأساسية، نفضل المسار المحلي أولاً
+      if (CORE_STORES.includes(slug)) {
+        return imagePath;
+      }
+      
+      // للمتاجر الديناميكية الأخرى، نقوم بالتحويل إلى Supabase
+      if (slug === storeSlug || (storeSlug === undefined && filename.includes('.'))) {
         const folder = type === 'products' ? 'products' : (type === 'sliders' ? 'sliders' : 'logo');
         return `${SUPABASE_PUBLIC_URL}/${folder}/stores/${slug}/${folder}/${filename}`;
       }

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -21,6 +21,12 @@ import {
   buildProductMediaConfig,
   getImageMimeType
 } from '@/lib/utils';
+import { getApiUrl } from '@/utils/apiConfig';
+
+const VISITOR_FLAG_KEY = 'eshro_logged_in_as_visitor';
+const VISITOR_DATA_KEY = 'eshro_visitor_user';
+const CUSTOMER_KEY = 'eshro_unavailable';
+const API_BASE_URL = getApiUrl();
 
 interface EnhancedNotifyModalProps {
   isOpen: boolean;
@@ -55,12 +61,97 @@ const EnhancedNotifyModal: React.FC<EnhancedNotifyModalProps> = ({
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // تحميل بيانات الزائر إذا كان مسجلاً
+  useEffect(() => {
+    if (isOpen) {
+      const loggedIn = localStorage.getItem(VISITOR_FLAG_KEY) === 'true';
+      if (loggedIn) {
+        const stored = localStorage.getItem(VISITOR_DATA_KEY);
+        if (stored) {
+          try {
+            const visitor = JSON.parse(stored);
+            setFormData(prev => ({
+              ...prev,
+              customerName: prev.customerName || visitor.name || `${visitor.firstName || ''} ${visitor.lastName || ''}`.trim(),
+              phone: prev.phone || visitor.phone || '',
+              email: prev.email || visitor.email || ''
+            }));
+          } catch (e) {
+            // Error parsing visitor data
+          }
+        }
+      }
+    }
+  }, [isOpen]);
+
   const mediaConfig = useMemo(
     () => buildProductMediaConfig(product, PRODUCT_IMAGE_FALLBACK_SRC),
     [product]
   );
 
   if (!isOpen) return null;
+
+  const persistCustomerRecord = (notificationData: NotificationRequest) => {
+    const existing = (() => {
+      try {
+        return JSON.parse(localStorage.getItem(CUSTOMER_KEY) || '[]');
+      } catch {
+        return [];
+      }
+    })();
+    
+    const entry = {
+      id: `notify-${Date.now()}`,
+      name: product.name,
+      images: product.images || [],
+      description: product.description,
+      price: 0,
+      originalPrice: product.originalPrice || product.price || 0,
+      storeSlug: product.storeSlug || 'eshro-store',
+      storeName: product.storeName || 'متجر إشرو',
+      notificationData,
+      requestedAt: new Date().toISOString()
+    };
+    
+    existing.push(entry);
+    localStorage.setItem(CUSTOMER_KEY, JSON.stringify(existing));
+    window.dispatchEvent(new Event('storage'));
+  };
+
+  const persistMerchantRecord = (notificationData: NotificationRequest) => {
+    const storeSlug = product.storeSlug || 'eshro-store';
+    const merchantStoreKey = `eshro_unavailable_orders_${storeSlug}`;
+    
+    const existing = (() => {
+      try {
+        return JSON.parse(localStorage.getItem(merchantStoreKey) || '[]');
+      } catch {
+        return [];
+      }
+    })();
+
+    const now = new Date();
+    const record = {
+      id: `notify-${Date.now()}`,
+      productCode: `ESHRO-${product.storeId || 'STD'}-${product.id || '0000'}`,
+      productName: product.name,
+      productImage: product.images?.[0] || '',
+      customerName: notificationData.customerName,
+      customerEmail: notificationData.email,
+      customerPhone: notificationData.phone,
+      requestedQuantity: notificationData.quantity,
+      requestedAt: now.toLocaleDateString('ar-LY'),
+      requestedTime: now.toLocaleTimeString('ar-LY', { hour: '2-digit', minute: '2-digit' }),
+      status: 'pending',
+      merchantStatus: 'pending',
+      notificationSent: false,
+      notificationChannels: notificationData.notificationMethods,
+      storeSlug
+    };
+
+    existing.push(record);
+    localStorage.setItem(merchantStoreKey, JSON.stringify(existing));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,6 +163,11 @@ const EnhancedNotifyModal: React.FC<EnhancedNotifyModalProps> = ({
 
     if (!formData.phone.trim()) {
       alert('يرجى إدخال رقم الهاتف');
+      return;
+    }
+
+    if (!/^09\d{8}$/.test(formData.phone.trim())) {
+      alert('يرجى إدخال رقم هاتف صحيح (مثال: 0912345678)');
       return;
     }
 
@@ -93,8 +189,34 @@ const EnhancedNotifyModal: React.FC<EnhancedNotifyModalProps> = ({
         quantity: formData.quantity
       };
 
-      // محاكاة إرسال الطلب
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // إرسال الطلب لـ API
+      try {
+        const response = await fetch(`${API_BASE_URL}/stores/unavailable/notify`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            storeId: product.storeId,
+            storeSlug: product.storeSlug,
+            productId: product.id,
+            productName: product.name,
+            customerName: notificationData.customerName,
+            phone: notificationData.phone,
+            email: notificationData.email,
+            quantity: notificationData.quantity,
+            notificationTypes: notificationData.notificationMethods,
+            requestedAt: new Date().toISOString()
+          })
+        });
+        
+        if (!response.ok) {
+          // Silent failure for API, proceed with local persistence
+        }
+      } catch (apiError) {
+        // API Offline or other error
+      }
+      
+      persistCustomerRecord(notificationData);
+      persistMerchantRecord(notificationData);
       
       onSubmit(notificationData);
       setCurrentStep(2); // الانتقال لشاشة التأكيد

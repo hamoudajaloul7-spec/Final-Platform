@@ -1,14 +1,17 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { getDefaultProductImageSync } from '@/utils/imageUtils';
 
 interface LazyImageProps {
   src: string;
   alt: string;
   placeholder?: string;
+  fallbackSrc?: string;
   width?: number;
   height?: number;
   className?: string;
   onLoad?: () => void;
   onError?: () => void;
+  storeSlug?: string;
 }
 
 /**
@@ -18,16 +21,19 @@ interface LazyImageProps {
 export const LazyImage: React.FC<LazyImageProps> = ({
   src,
   alt,
-  placeholder = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23e0e0e0" width="100" height="100"/%3E%3Ctext x="50" y="50" text-anchor="middle" dy=".3em" fill="%23999" font-size="12"%3ELoading...%3C/text%3E%3C/svg%3E',
+  placeholder = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23f3f4f6" width="100" height="100"/%3E%3Cpath fill="%23d1d5db" d="M30 35h40v30H30z"/%3E%3Ccircle fill="%239ca3af" cx="50" cy="50" r="10"/%3E%3C/svg%3E',
+  fallbackSrc,
   width,
   height,
   className,
   onLoad,
   onError,
+  storeSlug,
 }) => {
-  const [imageSrc, setImageSrc] = useState(placeholder);
+  const [imageSrc, setImageSrc] = useState<string>(placeholder);
   const [isLoaded, setIsLoaded] = useState(false);
   const [error, setError] = useState(false);
+  const [isInView, setIsInView] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
 
   useEffect(() => {
@@ -37,26 +43,13 @@ export const LazyImage: React.FC<LazyImageProps> = ({
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            const img = entry.target as HTMLImageElement;
-            img.src = src;
-
-            img.onload = () => {
-              setIsLoaded(true);
-              setImageSrc(src);
-              onLoad?.();
-            };
-
-            img.onerror = () => {
-              setError(true);
-              onError?.();
-            };
-
-            observer.unobserve(img);
+            setIsInView(true);
+            observer.unobserve(entry.target);
           }
         });
       },
       {
-        rootMargin: '50px',
+        rootMargin: '100px', // Start loading earlier
         threshold: 0.01,
       }
     );
@@ -66,29 +59,55 @@ export const LazyImage: React.FC<LazyImageProps> = ({
     return () => {
       observer.disconnect();
     };
-  }, [src, onLoad, onError]);
+  }, []);
+
+  useEffect(() => {
+    if (isInView && src) {
+      const img = new Image();
+      img.src = src;
+      
+      img.onload = () => {
+        setImageSrc(src);
+        setIsLoaded(true);
+        onLoad?.();
+      };
+
+      img.onerror = () => {
+        setError(true);
+        const fallback = fallbackSrc || getDefaultProductImageSync(storeSlug);
+        setImageSrc(fallback);
+        onError?.();
+      };
+    }
+  }, [isInView, src, fallbackSrc, storeSlug, onLoad, onError]);
 
   return (
-    <img
-      ref={imgRef}
-      src={placeholder}
-      alt={alt}
-      width={width}
-      height={height}
-      className={`
-        ${className || ''} 
-        ${isLoaded ? 'opacity-100' : 'opacity-50'} 
-        ${error ? 'opacity-50 bg-gray-200' : ''}
-        transition-opacity duration-300
-      `}
-      style={{
-        transition: 'opacity 0.3s ease-in-out',
-      }}
-      onError={(e) => {
-        setError(true);
-        onError?.();
-      }}
-    />
+    <div 
+      className={`relative overflow-hidden bg-gray-100 ${className || ''}`}
+      style={{ width, height }}
+    >
+      {!isLoaded && !error && (
+        <div className="absolute inset-0 flex items-center justify-center bg-gray-50 animate-pulse">
+           {/* Loading state indicator if needed */}
+        </div>
+      )}
+      <img
+        ref={imgRef}
+        src={imageSrc}
+        alt={alt}
+        width={width}
+        height={height}
+        className={`
+          w-full h-full object-cover
+          ${isLoaded ? 'opacity-100' : 'opacity-0'} 
+          ${error ? 'opacity-70 grayscale-[50%]' : ''}
+          transition-all duration-500 ease-in-out
+        `}
+        style={{
+          transition: 'opacity 0.5s ease-in-out, filter 0.5s ease-in-out',
+        }}
+      />
+    </div>
   );
 };
 

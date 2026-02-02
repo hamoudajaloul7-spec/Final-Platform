@@ -274,12 +274,6 @@ const ModernStorePage: React.FC<ModernStorePageProps> = ({
       window.removeEventListener('storeSliderUpdated', handleSliderUpdate as EventListener);
     };
   }, [dynamicStoreData, storeSlug, storeProducts]);
-  
-  useEffect(() => {
-    if (store) {
-      setEnhancedStore(store);
-    }
-  }, [store]);
 
   useEffect(() => {
     const loadDynamicStoreData = async () => {
@@ -482,11 +476,7 @@ const ModernStorePage: React.FC<ModernStorePageProps> = ({
   const handleSubmitNotification = (notificationData: any) => {
     if (onSubmitNotification && selectedProduct) {
       onSubmitNotification(selectedProduct, notificationData);
-    } else {
-      void 0;
     }
-    setShowNotifyModal(false);
-    setSelectedProduct(null);
   };
 
   return (
@@ -502,10 +492,10 @@ const ModernStorePage: React.FC<ModernStorePageProps> = ({
               </Button>
               <div className="flex items-center gap-3">
                 <div className="h-12 w-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center overflow-hidden">
-                  {enhancedStore?.logo && (
+                  {store?.logo && (
                     <img
-                      src={getProxyImageUrl(enhancedStore.logo, storeSlug, 'logo')}
-                      alt={enhancedStore.name}
+                      src={getProxyImageUrl(store.logo, storeSlug, 'logo')}
+                      alt={store.name}
                       className="h-12 w-12 rounded-xl object-contain"
                       onError={(e) => {
                         (e.target as HTMLImageElement).style.display = 'none';
@@ -514,8 +504,8 @@ const ModernStorePage: React.FC<ModernStorePageProps> = ({
                   )}
                 </div>
                 <div>
-                  <h1 className="text-xl font-bold text-gray-900">{enhancedStore?.name}</h1>
-                  <p className="text-sm text-gray-600">{enhancedStore?.description || 'متجر إلكتروني'}</p>
+                  <h1 className="text-xl font-bold text-gray-900">{store?.name}</h1>
+                  <p className="text-sm text-gray-600">{store?.description || 'متجر إلكتروني'}</p>
                 </div>
               </div>
             </div>
@@ -610,13 +600,24 @@ const ModernStorePage: React.FC<ModernStorePageProps> = ({
         </div>
 
         {displayProducts.length === 0 ? (
-          <div className="text-center py-16">
-            <div className="text-6xl mb-4">📦</div>
-            <h3 className="text-xl font-semibold text-gray-600 mb-2">لا توجد منتجات</h3>
-            <p className="text-gray-500">لا توجد منتجات في هذا التصنيف حالياً</p>
-          </div>
+          loadingStore ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {[...Array(8)].map((_, i) => (
+                <ProductSkeleton key={i} />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-16">
+              <div className="text-6xl mb-4">📦</div>
+              <h3 className="text-xl font-semibold text-gray-600 mb-2">لا توجد منتجات</h3>
+              <p className="text-gray-500">لا توجد منتجات في هذا التصنيف حالياً</p>
+            </div>
+          )
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {loadingStore && [...Array(4)].map((_, i) => (
+              <ProductSkeleton key={`loading-${i}`} />
+            ))}
             {displayProducts.map((product, index) => (
               <React.Fragment key={`product-${product.id}`}>
                 {(index === 3) && storeAds.filter(ad => ad.placement === 'between_products').length > 0 && (
@@ -1347,6 +1348,21 @@ const ProductCard: React.FC<{
           </div>
         </div>
       )}
+    </Card>
+  );
+};
+
+// مكون الهيكل العظمي للمنتج (Skeleton Loader)
+const ProductSkeleton: React.FC = () => {
+  return (
+    <Card className="bg-white rounded-2xl overflow-hidden border-none shadow-lg animate-pulse">
+      <div className="aspect-[4/5] bg-gray-200" />
+      <div className="p-4 space-y-3">
+        <div className="h-4 bg-gray-200 rounded w-3/4" />
+        <div className="h-3 bg-gray-200 rounded w-1/2" />
+        <div className="h-6 bg-gray-200 rounded w-1/3" />
+        <div className="h-10 bg-gray-200 rounded w-full" />
+      </div>
     </Card>
   );
 };
