@@ -138,8 +138,8 @@ export default function PartnersPage({ onBack }: { onBack: () => void }) {
         <FloatingCubes />
         
         <div className="w-full px-4 mx-auto max-w-7xl relative z-10">
-          <div className="flex items-center justify-center text-center mb-16 fade-in-up">
-            <h1 className="flex items-center justify-center text-4xl md:text-6xl font-bold mb-6">
+          <div className="flex flex-col items-center justify-center text-center mb-16 fade-in-up">
+            <h1 className="text-4xl md:text-6xl font-bold mb-6 text-center">
               <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
                 شركاء النجاح
               </span>
@@ -157,25 +157,27 @@ export default function PartnersPage({ onBack }: { onBack: () => void }) {
                 variant={activeCategory === category.id ? "default" : "outline"}
                 size="lg"
                 onClick={() => handleCategoryChange(category.id)}
-                className={`flex items-center gap-3 px-6 py-3 transition-all duration-300 ${
+                className={`flex items-center justify-center gap-3 px-6 py-3 transition-all duration-300 min-w-[220px] ${
                   activeCategory === category.id 
                     ? "bg-primary hover:bg-primary/90 scale-105 shadow-lg" 
                     : "hover:scale-102 hover:shadow-md"
                 }`}
               >
-                {category.icon}
-                {category.title}
+                <div className="flex items-center justify-center gap-3 w-full text-center">
+                  {category.icon}
+                  <span className="text-center w-full">{category.title}</span>
+                </div>
               </Button>
             ))}
           </div>
 
           {/* وصف الفئة النشطة */}
-          <div className="text-center mb-12">
-            <div className="max-w-2xl mx-auto p-6 bg-white/50 backdrop-blur-sm rounded-2xl border border-primary/20">
-              <h3 className="text-2xl font-bold mb-3 text-primary">
+          <div className="flex justify-center mb-12">
+            <div className="w-full max-w-2xl flex flex-col items-center justify-center text-center p-6 bg-white/50 backdrop-blur-sm rounded-2xl border border-primary/20">
+              <h3 className="text-2xl font-bold mb-3 text-primary text-center w-full">
                 {categories.find(c => c.id === activeCategory)?.title}
               </h3>
-              <p className="text-muted-foreground text-center">
+              <p className="text-muted-foreground text-center w-full">
                 {categories.find(c => c.id === activeCategory)?.description}
               </p>
             </div>
@@ -183,14 +185,14 @@ export default function PartnersPage({ onBack }: { onBack: () => void }) {
 
           {/* عرض الشركاء */}
           <div className="relative">
-            <div className={`grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6 mb-8 transition-all duration-500 ${isTransitioning ? 'opacity-0' : 'opacity-100'}`}>
+            <div className={`grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6 mb-8 justify-items-center transition-all duration-500 ${isTransitioning ? 'opacity-0' : 'opacity-100'}`}>
               {partnersData[activeCategory].map((partner, index) => (
                 <Card 
                   key={`${activeCategory}-${index}`}
-                  className="group hover:scale-105 transition-all duration-500 card-hover bg-white/80 backdrop-blur-sm border border-primary/10 hover:border-primary/30"
+                  className="w-full group hover:scale-105 transition-all duration-500 card-hover bg-white/80 backdrop-blur-sm border border-primary/10 hover:border-primary/30"
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
-                  <CardContent className="p-6 text-center">
+                  <CardContent className="p-6 flex flex-col items-center text-center">
                     <div className="mb-4 flex justify-center">
                       <div className="w-24 h-16 bg-white rounded-lg border border-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300 overflow-hidden shadow-sm">
                         <img 
@@ -235,32 +237,34 @@ export default function PartnersPage({ onBack }: { onBack: () => void }) {
 
           {/* إحصائيات */}
           <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center p-6 bg-white/50 backdrop-blur-sm rounded-2xl border border-primary/20">
-              <div className="text-3xl font-bold text-primary mb-2">16+</div>
-              <div className="text-muted-foreground text-center">مصرف تجاري</div>
+            <div className="flex flex-col items-center justify-center text-center p-6 bg-white/50 backdrop-blur-sm rounded-2xl border border-primary/20">
+              <div className="text-3xl font-bold text-primary mb-2 w-full text-center">16+</div>
+              <div className="text-muted-foreground w-full text-center">مصرف تجاري</div>
             </div>
-            <div className="text-center p-6 bg-white/50 backdrop-blur-sm rounded-2xl border border-primary/20">
-              <div className="text-3xl font-bold text-primary mb-2">12+</div>
-              <div className="text-muted-foreground text-center">شركة دفع إلكتروني</div>
+            <div className="flex flex-col items-center justify-center text-center p-6 bg-white/50 backdrop-blur-sm rounded-2xl border border-primary/20">
+              <div className="text-3xl font-bold text-primary mb-2 w-full text-center">12+</div>
+              <div className="text-muted-foreground w-full text-center">شركة دفع إلكتروني</div>
             </div>
-            <div className="text-center p-6 bg-white/50 backdrop-blur-sm rounded-2xl border border-primary/20">
-              <div className="text-3xl font-bold text-primary mb-2">19+</div>
-              <div className="text-muted-foreground text-center">شركة شحن وتوصيل</div>
+            <div className="flex flex-col items-center justify-center text-center p-6 bg-white/50 backdrop-blur-sm rounded-2xl border border-primary/20">
+              <div className="text-3xl font-bold text-primary mb-2 w-full text-center">19+</div>
+              <div className="text-muted-foreground w-full text-center">شركة شحن وتوصيل</div>
             </div>
           </div>
 
           {/* دعوة للعمل */}
-          <div className="text-center mt-16">
-            <div className="max-w-2xl mx-auto p-8 bg-gradient-to-br from-primary/10 to-primary/5 backdrop-blur-sm rounded-3xl border border-primary/20">
-              <h3 className="text-2xl font-bold mb-4 text-primary text-center">
+          <div className="flex justify-center mt-16">
+            <div className="w-full max-w-2xl flex flex-col items-center justify-center text-center p-8 bg-gradient-to-br from-primary/10 to-primary/5 backdrop-blur-sm rounded-3xl border border-primary/20">
+              <h3 className="text-2xl font-bold mb-4 text-primary w-full text-center">
                 انضم إلى شبكة شركائنا
               </h3>
-              <p className="text-muted-foreground mb-6 text-center">
+              <p className="text-muted-foreground mb-6 w-full text-center">
                 هل تريد أن تكون جزءاً من منظومة إشرو للتجارة الإلكترونية؟
               </p>
-              <Button className="bg-primary hover:bg-primary/90 px-8 py-3 mx-auto flex items-center justify-center">
-                تواصل معنا للشراكة
-              </Button>
+              <div className="flex justify-center w-full">
+                <Button className="bg-primary hover:bg-primary/90 px-8 py-3">
+                  تواصل معنا للشراكة
+                </Button>
+              </div>
             </div>
           </div>
         </div>
