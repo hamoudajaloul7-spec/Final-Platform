@@ -3,6 +3,7 @@ import fuzzySearch from './FuzzySearch';
 
 interface ChatContext {
   userId: string;
+  storeId?: number;
   conversationHistory: ChatMessage[];
   userPreferences?: {
     language: 'ar' | 'en';
@@ -109,9 +110,14 @@ class ChatBot {
   }
 
   // Analyze user message and generate response
-  generateResponse(userMessage: string, userId: string, language: 'ar' | 'en' = 'ar'): BotResponse {
+  generateResponse(userMessage: string, userId: string, language: 'ar' | 'en' = 'ar', storeId?: number): BotResponse {
     const message = userMessage.toLowerCase().trim();
     const context = this.getContext(userId);
+    
+    // Update store context if provided
+    if (storeId) {
+      context.storeId = storeId;
+    }
 
     // Update conversation history
     context.conversationHistory.push({
@@ -203,10 +209,15 @@ class ChatBot {
       // Search for products using fuzzy search
       const searchResults = fuzzySearch.searchWithCorrection(
         keywords.join(' '),
-        (query) => allStoreProducts.filter(product =>
-          product.name.toLowerCase().includes(query.toLowerCase()) ||
-          product.category?.toLowerCase().includes(query.toLowerCase())
-        )
+        (query) => {
+          const storeProducts = context.storeId 
+            ? allStoreProducts.filter(p => p.storeId === context.storeId)
+            : allStoreProducts;
+          return storeProducts.filter(product =>
+            product.name.toLowerCase().includes(query.toLowerCase()) ||
+            product.category?.toLowerCase().includes(query.toLowerCase())
+          );
+        }
       );
 
       if (searchResults.results.length > 0) {
@@ -241,7 +252,9 @@ class ChatBot {
     const priceMatch = message.match(/(\d+)/g);
     if (priceMatch) {
       const price = parseInt(priceMatch[0]);
-      const affordableProducts = allStoreProducts.filter(p => p.price <= price);
+      const affordableProducts = (context.storeId 
+        ? allStoreProducts.filter(p => p.storeId === context.storeId)
+        : allStoreProducts).filter(p => p.price <= price);
 
       return {
         message: language === 'ar'

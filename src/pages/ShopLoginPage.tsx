@@ -21,12 +21,13 @@ import {
   Users,
   X
 } from 'lucide-react';
+import { getApiUrl } from '@/utils/apiConfig';
 
 
 
 interface ShopLoginPageProps {
   onBack: () => void;
-  onLogin: (credentials: { username: string; password: string; userType?: string }) => void;
+  onLogin: (credentials: { username: string; password: string; userType?: string; serverData?: any }) => void;
   onNavigateToRegister: () => void;
   onNavigateToAccountTypeSelection?: () => void;
   onForgotPassword?: () => void;
@@ -96,7 +97,79 @@ const ShopLoginPage: React.FC<ShopLoginPageProps> = ({
     setIsLoading(true);
 
     try {
-      // محاكاة طلب تسجيل الدخول
+      // 1. محاولة تسجيل الدخول عبر الخادم للأتمتة الكاملة
+      try {
+        const response = await fetch(`${getApiUrl()}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: credentials.username,
+            password: credentials.password
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success) {
+            const serverUser = data.data.user;
+            const finalUserType = serverUser.role === 'merchant' ? 'merchant' : (serverUser.role === 'admin' ? 'admin' : 'user');
+            
+            // تحديث بيانات الجلسة للتأكد من المزامنة الكاملة
+            const sessionData = {
+              ...serverUser,
+              token: data.data.token,
+              refreshToken: data.data.refreshToken,
+              userType: finalUserType,
+              loginTime: new Date().toISOString()
+            };
+
+            // حفظ في عدة مفاتيح لضمان التوافق مع جميع المكونات
+            localStorage.setItem('eshro_current_user', JSON.stringify(sessionData));
+            localStorage.setItem('eshro_current_merchant', JSON.stringify(sessionData));
+            localStorage.setItem('eshro_logged_in_as_merchant', finalUserType === 'merchant' ? 'true' : 'false');
+            
+            // مزامنة البيانات مع التاجر في القائمة المحلية إذا لزم الأمر
+            if (finalUserType === 'merchant') {
+              const existingStores = JSON.parse(localStorage.getItem('eshro_stores') || '[]');
+              const storeSlug = serverUser.storeSlug || serverUser.subdomain;
+              if (storeSlug) {
+                const storeKey = `store_${storeSlug}`;
+                localStorage.setItem(storeKey, JSON.stringify({
+                  ...serverUser,
+                  subdomain: storeSlug,
+                  setupComplete: true
+                }));
+                
+                if (!existingStores.some((s: any) => s.subdomain === storeSlug)) {
+                  existingStores.push({
+                    ...serverUser,
+                    subdomain: storeSlug,
+                    setupComplete: true
+                  });
+                  localStorage.setItem('eshro_stores', JSON.stringify(existingStores));
+                }
+              }
+            }
+
+            alert(`تم تسجيل دخول ${finalUserType === 'merchant' ? 'التاجر' : (finalUserType === 'admin' ? 'المسؤول' : 'المستخدم')} بنجاح! 🎉`);
+            
+            // انتظار معالجة الدخول في التطبيق الرئيسي قبل تغيير حالة التحميل
+            await onLogin({ 
+              username: credentials.username, 
+              password: credentials.password, 
+              userType: finalUserType,
+              serverData: sessionData
+            });
+            
+            setIsLoading(false);
+            return;
+          }
+        }
+      } catch (apiError) {
+        console.warn('Backend login failed, falling back to local storage', apiError);
+      }
+
+      // 2. المحاكاة والبيانات المحلية (Fallback)
       await new Promise(resolve => setTimeout(resolve, 1500));
 
       // التحقق من بيانات مسؤول النظام
@@ -229,13 +302,17 @@ const ShopLoginPage: React.FC<ShopLoginPageProps> = ({
             subdomain: merchantData?.subdomain || 'new-store'
           };
 
-          localStorage.setItem('eshro_current_user', JSON.stringify({
+          const sessionData = {
             ...userData,
             token: 'demo-token-' + Date.now(),
             refreshToken: 'demo-refresh-token-' + Date.now(),
             userType: 'merchant',
             loginTime: new Date().toISOString()
-          }));
+          };
+
+          localStorage.setItem('eshro_current_user', JSON.stringify(sessionData));
+          localStorage.setItem('eshro_current_merchant', JSON.stringify(sessionData));
+          localStorage.setItem('eshro_logged_in_as_merchant', 'true');
 
 
           
@@ -249,7 +326,7 @@ const ShopLoginPage: React.FC<ShopLoginPageProps> = ({
           }
           
           alert('تم تسجيل دخول التاجر بنجاح! 🎉');
-          onLogin({ ...credentials, userType: 'merchant' });
+          await onLogin({ ...credentials, userType: 'merchant' });
           setIsLoading(false);
           return;
         } else {
@@ -287,7 +364,7 @@ const ShopLoginPage: React.FC<ShopLoginPageProps> = ({
         if (userData) {
 
           alert('تم تسجيل دخول المستخدم بنجاح! 🎉');
-          onLogin({ ...credentials, userType: 'user' });
+          await onLogin({ ...credentials, userType: 'user' });
           setIsLoading(false);
           return;
         } else {

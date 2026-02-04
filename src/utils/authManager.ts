@@ -9,16 +9,18 @@ interface LoginCredentials {
 }
 
 interface AuthSession {
-  merchantId: string;
+  id: string;
   email: string;
   name: string;
   storeName: string;
   loginTime: string;
-  lastActivity: string;
+  lastActivity?: string;
+  userType?: string;
+  token?: string;
 }
 
 class AuthManager {
-  private readonly SESSION_KEY = 'eishro_auth_session';
+  private readonly SESSION_KEY = 'eshro_current_merchant';
   private readonly SESSION_TIMEOUT = 24 * 60 * 60 * 1000; // 24 ساعة
 
   constructor() {
@@ -55,12 +57,13 @@ class AuthManager {
 
       // إنشاء جلسة جديدة
       const session: AuthSession = {
-        merchantId: merchant.id,
+        id: merchant.id,
         email: merchant.email,
         name: merchant.name,
         storeName: merchant.storeName,
         loginTime: new Date().toISOString(),
-        lastActivity: new Date().toISOString()
+        lastActivity: new Date().toISOString(),
+        userType: 'merchant'
       };
 
       // حفظ الجلسة
@@ -136,7 +139,7 @@ class AuthManager {
       const session = this.getSession();
       if (!session) return null;
 
-      return enhancedDatabase.getMerchantById(session.merchantId);
+      return enhancedDatabase.getMerchantById(session.id);
     } catch (error) {
       return null;
     }

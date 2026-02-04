@@ -107,6 +107,9 @@ class SmartCartService {
   getSmartSuggestions(cartItems: CartItem[]): CartSuggestion[] {
     const suggestions: CartSuggestion[] = [];
     const cartProductIds = cartItems.map(item => item.product.id);
+    
+    // الحصول على معرف المتجر من أول منتج في السلة إن وجد
+    const storeId = cartItems.length > 0 ? cartItems[0].product.storeId : null;
 
     // اقتراحات المنتجات المكملة (complementary)
     cartItems.forEach(cartItem => {
@@ -122,8 +125,8 @@ class SmartCartService {
       });
     });
 
-    // اقتراحات المنتجات الشائعة (popular)
-    const popularProducts = this.getPopularProducts();
+    // اقتراحات المنتجات الشائعة (popular) - تصفية حسب المتجر لضمان العزل
+    const popularProducts = this.getPopularProducts(storeId);
     popularProducts.forEach(product => {
       if (!cartProductIds.includes(product.id)) {
         suggestions.push({
@@ -206,10 +209,11 @@ class SmartCartService {
 
   // طرق مساعدة
   private findComplementaryProducts(product: any): any[] {
-    // منطق بسيط للعثور على المنتجات المكملة
+    // منطق بسيط للعثور على المنتجات المكملة من نفس المتجر لضمان عزل البيانات
     const category = product.category;
+    const storeId = product.storeId;
     return allStoreProducts
-      .filter(p => p.category === category && p.id !== product.id)
+      .filter(p => p.storeId === storeId && p.category === category && p.id !== product.id)
       .slice(0, 2);
   }
 
@@ -221,10 +225,14 @@ class SmartCartService {
       .slice(0, 2);
   }
 
-  private getPopularProducts(): any[] {
+  private getPopularProducts(storeId?: number | null): any[] {
     // محاكاة المنتجات الشائعة (في التطبيق الحقيقي سيأتي من التحليلات)
+    // تصفية حسب المتجر لضمان عزل البيانات
     return allStoreProducts
-      .filter(p => p.rating && p.rating >= 4.5)
+      .filter(p => {
+        const matchesStore = storeId ? p.storeId === storeId : true;
+        return matchesStore && p.rating && p.rating >= 4.5;
+      })
       .slice(0, 3);
   }
 

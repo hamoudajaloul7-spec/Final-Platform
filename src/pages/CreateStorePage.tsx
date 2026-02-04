@@ -791,7 +791,9 @@ const CreateStorePage: React.FC<CreateStorePageProps> = ({
         products: serverProducts,
         sliderImages: serverSliders,
         logo: logoDataUrl || serverStoreData.logo || apiResponse?.data?.logoPath || storeData.logo,
-        storeSlug: formData.subdomain
+        storeSlug: formData.subdomain,
+        token: apiResponse?.token || apiResponse?.data?.token,
+        refreshToken: apiResponse?.refreshToken || apiResponse?.data?.refreshToken
       };
       
       if (allowLocalFallback) {

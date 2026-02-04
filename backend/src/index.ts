@@ -59,14 +59,14 @@ const initializeDatabase = async (): Promise<void> => {
       }
 
       logger.info('🌱 Seeding database with initial data...');
-      if (config.environment === 'development' || process.env.SEED_DB === 'true') {
+      if (config.environment === 'development' || process.env.SEED_DB === 'true' || process.env.FORCE_SEED === 'true') {
         try {
           await seedDatabase();
         } catch (error) {
           logger.warn('⚠️ Database seeding failed, continuing:', error);
         }
       } else {
-        logger.info('ℹ️ Skipping database seeding');
+        logger.info('ℹ️ Skipping database seeding (standard production mode)');
       }
 
       logger.info('📦 Running data migrations...');

@@ -2011,12 +2011,14 @@ export default function Home() {
   }, [favorites]);
 
 
-  // حفظ بيانات التاجر الحالي
+  // حفظ بيانات التاجر الحالي والمزامنة مع المفتاح الموحد
   useEffect(() => {
     if (currentMerchant) {
       localStorage.setItem('eshro_current_merchant', JSON.stringify(currentMerchant));
+      localStorage.setItem('eshro_current_user', JSON.stringify(currentMerchant));
     } else {
       localStorage.removeItem('eshro_current_merchant');
+      localStorage.removeItem('eshro_current_user');
     }
   }, [currentMerchant]);
 
@@ -2338,8 +2340,30 @@ export default function Home() {
   const completedOrdersCount = validOrders.length;
 
   // معالج تسجيل الدخول
-  const handleLogin = async (credentials: { username: string; password: string; userType?: string }) => {
-    const { username, password, userType = 'merchant' } = credentials;
+  const handleLogin = async (credentials: { username: string; password: string; userType?: string; serverData?: any }) => {
+    const { username, password, userType = 'merchant', serverData } = credentials;
+
+    // 0. إذا كان هناك بيانات قادمة من الخادم مباشرة، استخدمها
+    if (serverData && (userType === 'merchant' || serverData.role === 'merchant')) {
+      const merchantData = {
+        ...serverData,
+        id: serverData.id,
+        nameAr: serverData.name || serverData.storeName || serverData.nameAr || serverData.store_name,
+        email: serverData.email,
+        subdomain: serverData.subdomain || serverData.storeSlug || serverData.store_slug,
+        token: serverData.token
+      };
+      
+      // حفظ بيانات التاجر والتوكن في localStorage قبل تغيير الصفحة لضمان المزامنة
+      localStorage.setItem('eshro_current_merchant', JSON.stringify(merchantData));
+      localStorage.setItem('eshro_current_user', JSON.stringify(merchantData));
+      localStorage.setItem('eshro_logged_in_as_merchant', 'true');
+      
+      setCurrentMerchant(merchantData);
+      setIsLoggedInAsMerchant(true);
+      setCurrentPage('merchant-dashboard');
+      return;
+    }
 
     
     
@@ -2619,6 +2643,7 @@ export default function Home() {
         setCurrentMerchant(enrichedMerchant);
         setIsLoggedInAsMerchant(true);
         setCurrentPage('merchant-dashboard');
+        localStorage.setItem('eshro_logged_in_as_merchant', 'true');
       } else {
         
         
@@ -3012,6 +3037,32 @@ export default function Home() {
 
           window.dispatchEvent(new CustomEvent('storeCreated', { detail: normalizedStore }));
 
+          // التكامل السحابي: التحقق من وجود توكن تسجيل الدخول الفوري
+          const serverToken = (storeData as any).token || (storeData as any).accessToken;
+          const createdOnServer = Boolean((storeData as any).serverCreated || (storeData as any).createdOnServer);
+
+          if (serverToken && createdOnServer) {
+            // تسجيل دخول فوري إذا كان المتجر قد تم إنشاؤه على الخادم وبحوزتنا توكن
+            const merchantSession = {
+              ...normalizedStore,
+              token: serverToken,
+              refreshToken: (storeData as any).refreshToken,
+              userType: 'merchant'
+            };
+            
+            // حفظ البيانات في localStorage أولاً لضمان توفرها عند رندر لوحة التحكم
+            localStorage.setItem('eshro_current_merchant', JSON.stringify(merchantSession));
+            localStorage.setItem('eshro_logged_in_as_merchant', 'true');
+            localStorage.setItem('eshro_current_user', JSON.stringify(merchantSession));
+
+            setCurrentMerchant(merchantSession);
+            setIsLoggedInAsMerchant(true);
+            setCurrentPage('merchant-dashboard');
+            
+            alert('تم إنشاء متجرك وتفعيل الدخول السحابي الفوري! 🎉');
+            return;
+          }
+
           setCurrentPage('store-creation-success');
           setStoreCreationData({
             ...normalizedStore,
@@ -3022,7 +3073,6 @@ export default function Home() {
             warehouseChoice: storeData.warehouseChoice || 'personal'
           });
 
-          const createdOnServer = Boolean((storeData as any)?.serverCreated || (storeData as any)?.createdOnServer);
           if (!createdOnServer) {
             setTimeout(() => {
               try {
@@ -3047,10 +3097,24 @@ export default function Home() {
         storeData={storeCreationData}
         onNavigateToHome={handleBackToHome}
         onNavigateToLogin={() => {
-          setCurrentPage('login');
-          setMerchantFlowStep('terms');
+          if (storeCreationData) {
+            setCurrentMerchant(storeCreationData);
+            setIsLoggedInAsMerchant(true);
+            setCurrentPage('merchant-dashboard');
+            localStorage.setItem('eshro_current_merchant', JSON.stringify(storeCreationData));
+            localStorage.setItem('eshro_logged_in_as_merchant', 'true');
+          } else {
+            setCurrentPage('login');
+            setMerchantFlowStep('terms');
+          }
         }}
         onContinueToProducts={() => {
+          if (storeCreationData) {
+            setCurrentMerchant(storeCreationData);
+            setIsLoggedInAsMerchant(true);
+            localStorage.setItem('eshro_current_merchant', JSON.stringify(storeCreationData));
+            localStorage.setItem('eshro_logged_in_as_merchant', 'true');
+          }
           setCurrentPage('merchant-flow');
           setMerchantFlowStep('products');
         }}
@@ -3152,6 +3216,8 @@ export default function Home() {
               localStorage.setItem(MERCHANT_PERMISSIONS_KEY, JSON.stringify(existingPermissions));
 
               setCurrentMerchant(newStore);
+              setIsLoggedInAsMerchant(true);
+              localStorage.setItem('eshro_logged_in_as_merchant', 'true');
               storeCreated = true;
               
             } catch (error) {
@@ -3176,7 +3242,7 @@ export default function Home() {
 
           // تأخير قصير للتأكد من معالجة تحديثات الحالة
           setTimeout(() => {
-            setCurrentPage('home');
+            setCurrentPage('merchant-dashboard');
             
           }, 100);
         }}

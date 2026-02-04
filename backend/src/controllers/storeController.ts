@@ -6,6 +6,7 @@ import { UserRole } from '@shared-types/index';
 import storeGeneratorService from '@services/storeGeneratorService';
 import logger from '@utils/logger';
 import { normalizeSliderImagePath } from '@utils/sliderPath';
+import { generateToken, generateRefreshToken } from '@utils/jwt';
 import { sendSuccess, sendError } from '@utils/response';
 import Store from '@models/Store';
 import User from '@models/User';
@@ -871,17 +872,29 @@ export const createStoreWithImages = async (
 
     logger.info(`🎉 Store creation completed successfully for: ${storeName}`);
 
+    const token = persistedMerchant ? generateToken({
+      id: persistedMerchant.id,
+      email: persistedMerchant.email,
+      role: persistedMerchant.role,
+    }) : undefined;
+    const refreshToken = persistedMerchant ? generateRefreshToken(persistedMerchant.id) : undefined;
+
     const merchantPayload = persistedMerchant
       ? {
           id: persistedMerchant.id,
           email: persistedMerchant.email,
           phone: persistedMerchant.phone,
+          role: persistedMerchant.role,
+          storeName: persistedMerchant.storeName,
+          storeSlug: persistedMerchant.storeSlug,
           storeRecordId: persistedStoreRecord?.id
         }
       : undefined;
 
     sendSuccess(res, {
       message: 'Store created successfully with permanent storage verification',
+      token,
+      refreshToken,
       store: {
         storeSlug,
         storeName,

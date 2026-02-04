@@ -223,28 +223,23 @@ const EnhancedProductPage: React.FC<EnhancedProductPageProps> = ({
 
   // دالة للحصول على منتجات مشابهة
   const getSimilarProducts = (currentProduct: Product) => {
-    // البحث عن منتجات من نفس الفئة
-    let similar = allStoreProducts.filter(p => 
-      p.id !== currentProduct.id && 
+    // التأكد من جلب المنتجات من نفس المتجر فقط لمنع تسريب البيانات
+    const sameStoreProducts = allStoreProducts.filter(p => 
+      p.storeId === currentProduct.storeId && 
+      p.id !== currentProduct.id
+    );
+
+    // البحث عن منتجات من نفس الفئة داخل المتجر
+    let similar = sameStoreProducts.filter(p => 
       p.category === currentProduct.category
     );
 
-    // إذا لم نجد منتجات كافية، نبحث عن منتجات من نفس المتجر
+    // إذا لم نجد منتجات كافية، نستخدم منتجات أخرى من نفس المتجر
     if (similar.length < 4) {
-      const sameStore = allStoreProducts.filter(p => 
-        p.id !== currentProduct.id && 
-        p.storeId === currentProduct.storeId
-      );
-      similar = [...similar, ...sameStore].slice(0, 8);
-    }
-
-    // إذا لم نجد منتجات كافية، نعود للمنتجات الأخرى العشوائية
-    if (similar.length < 4) {
-      const others = allStoreProducts.filter(p => 
-        p.id !== currentProduct.id && 
+      const otherFromStore = sameStoreProducts.filter(p => 
         !similar.find(s => s.id === p.id)
       );
-      similar = [...similar, ...others].slice(0, 8);
+      similar = [...similar, ...otherFromStore];
     }
 
     return similar.slice(0, 4);
