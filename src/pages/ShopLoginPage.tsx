@@ -286,6 +286,10 @@ const ShopLoginPage: React.FC<ShopLoginPageProps> = ({
           merchant => merchant.email === credentials.username && merchant.password === credentials.password
         );
 
+        const predefinedMerchantData = Object.entries(predefinedMerchants).find(
+          ([_, m]) => m.email === credentials.username
+        );
+
         if (merchantData || isPredefinedMerchant) {
           // Check if store is fully set up (for new merchants)
           if (merchantData && !isPredefinedMerchant && !merchantData.setupComplete) {
@@ -297,9 +301,9 @@ const ShopLoginPage: React.FC<ShopLoginPageProps> = ({
           // حفظ بيانات المستخدم الحالي في localStorage
           const userData = merchantData || {
             email: credentials.username,
-            name: 'تاجر جديد',
-            storeName: merchantData?.nameAr || 'متجر جديد',
-            subdomain: merchantData?.subdomain || 'new-store'
+            name: 'تاجر ' + (predefinedMerchantData ? predefinedMerchantData[0] : 'جديد'),
+            storeName: merchantData?.nameAr || (predefinedMerchantData ? predefinedMerchantData[0] : 'متجر جديد'),
+            subdomain: merchantData?.subdomain || (predefinedMerchantData ? predefinedMerchantData[0] : 'new-store')
           };
 
           const sessionData = {
@@ -331,7 +335,10 @@ const ShopLoginPage: React.FC<ShopLoginPageProps> = ({
           return;
         } else {
           // التحقق من وجود البريد الإلكتروني بدون كلمة مرور صحيحة
-          const emailExists = storedStores.some((store: any) => store.email === credentials.username) ||
+          const isPredefinedEmail = Object.values(predefinedMerchants).some(m => m.email === credentials.username);
+          
+          const emailExists = isPredefinedEmail || 
+                            storedStores.some((store: any) => store.email === credentials.username) ||
                             Array.from({ length: localStorage.length }, (_, i) => localStorage.key(i))
                               .filter(key => key && key.startsWith('merchant_'))
                               .some(key => {
@@ -346,7 +353,7 @@ const ShopLoginPage: React.FC<ShopLoginPageProps> = ({
           if (emailExists) {
             setError('كلمة المرور غير صحيحة');
           } else {
-            setError('البريد الإلكتروني غير مسجل في النظام');
+            setError('البريد الإلكتروني أو اسم المستخدم غير مسجل في النظام');
           }
           setIsLoading(false);
           return;
