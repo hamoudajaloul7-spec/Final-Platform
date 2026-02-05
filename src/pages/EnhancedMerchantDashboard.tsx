@@ -890,7 +890,10 @@ const EnhancedMerchantDashboard: React.FC<{ currentMerchant?: any; onLogout?: ()
   const [financeExpanded, setFinanceExpanded] = useState(false);
   const [settingsExpanded, setSettingsExpanded] = useState(false);
   const [servicesExpanded, setServicesExpanded] = useState(false);
-  const [merchantStoreData, setMerchantStoreData] = useState<any>(currentMerchant?.storeData || null);
+  const [merchantStoreData, setMerchantStoreData] = useState<any>(
+    currentMerchant?.storeData || 
+    (currentMerchant?.userType === 'merchant' || currentMerchant?.role === 'merchant' ? currentMerchant : null)
+  );
   const [storeDataLoading, setStoreDataLoading] = useState(false);
   const [storeDataError, setStoreDataError] = useState('');
 

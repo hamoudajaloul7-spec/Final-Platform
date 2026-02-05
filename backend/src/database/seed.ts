@@ -10,7 +10,8 @@ const seedDatabase = async (): Promise<void> => {
   try {
     logger.info('🌱 Starting database seeding...');
 
-    // قسرياً: حذف متجر شيخة والتاجر المرتبط به لتنظيف البيئة للاختبار اليدوي
+    // Removed forced cleanup to prevent data loss on every restart
+    /*
     try {
       const userToDelete = await User.findOne({ where: { email: 'salem.mfurjani@gmail.com' } });
       if (userToDelete) {
@@ -21,6 +22,7 @@ const seedDatabase = async (): Promise<void> => {
     } catch (cleanupErr) {
       logger.warn('⚠️ Cleanup skipped or failed:', cleanupErr);
     }
+    */
 
     const adminPassword = await bcrypt.hash('admin123', 10);
     const adminId = uuidv4();

@@ -51,6 +51,7 @@ import { allStoreProducts } from "@/data/allStoreProducts";
 import { loadStoreBySlug, getStoreProducts, getAllStoreProducts as getDynamicAllStoreProducts } from "@/utils/storeLoader";
 import { getApiBase, getApiUrl, stripApiBase } from "@/utils/apiConfig";
 import { getProxyImageUrl } from "@/utils/assetProxyUtil";
+import authService from "@/services/authService";
 
 const API_BASE = getApiUrl();
 
@@ -1588,12 +1589,9 @@ export default function Home() {
       }
     }
 
-    if (savedCurrentMerchant) {
-      try {
-        setCurrentMerchant(JSON.parse(savedCurrentMerchant));
-      } catch (error) {
-        // Error handling for orders parsing
-      }
+    const savedSession = authService.getCurrentSession();
+    if (savedSession) {
+      setCurrentMerchant(savedSession);
     }
 
     if (savedIsLoggedInAsMerchant === 'true') {
@@ -2352,13 +2350,12 @@ export default function Home() {
         nameAr: serverData.name || serverData.storeName || serverData.nameAr || serverData.store_name,
         email: serverData.email,
         subdomain: serverData.subdomain || serverData.storeSlug || serverData.store_slug,
-        token: serverData.token
+        token: serverData.token,
+        role: 'merchant',
+        userType: 'merchant'
       };
       
-      // حفظ بيانات التاجر والتوكن في localStorage قبل تغيير الصفحة لضمان المزامنة
-      localStorage.setItem('eshro_current_merchant', JSON.stringify(merchantData));
-      localStorage.setItem('eshro_current_user', JSON.stringify(merchantData));
-      localStorage.setItem('eshro_logged_in_as_merchant', 'true');
+      authService.saveSession(merchantData);
       
       setCurrentMerchant(merchantData);
       setIsLoggedInAsMerchant(true);
@@ -2977,8 +2974,7 @@ export default function Home() {
           setCurrentPage('merchant-flow');
         }}
         onNavigateToLogin={() => {
-          setIsLoggedInAsMerchant(true);
-          setCurrentPage('merchant-dashboard');
+          setCurrentPage('login');
         }}
         onStoreCreated={(storeData) => {
           
@@ -3044,17 +3040,16 @@ export default function Home() {
 
           if (serverToken && createdOnServer) {
             // تسجيل دخول فوري إذا كان المتجر قد تم إنشاؤه على الخادم وبحوزتنا توكن
-            const merchantSession = {
+            const merchantSession: any = {
               ...normalizedStore,
               token: serverToken,
               refreshToken: (storeData as any).refreshToken,
+              role: 'merchant',
               userType: 'merchant'
             };
             
-            // حفظ البيانات في localStorage أولاً لضمان توفرها عند رندر لوحة التحكم
-            localStorage.setItem('eshro_current_merchant', JSON.stringify(merchantSession));
-            localStorage.setItem('eshro_logged_in_as_merchant', 'true');
-            localStorage.setItem('eshro_current_user', JSON.stringify(merchantSession));
+            // استخدام authService لضمان توحيد منطق حفظ الجلسة
+            authService.saveSession(merchantSession);
 
             setCurrentMerchant(merchantSession);
             setIsLoggedInAsMerchant(true);
@@ -3099,11 +3094,15 @@ export default function Home() {
         onNavigateToHome={handleBackToHome}
         onNavigateToLogin={() => {
           if (storeCreationData) {
-            setCurrentMerchant(storeCreationData);
+            const merchantSession = {
+              ...storeCreationData,
+              role: 'merchant',
+              userType: 'merchant'
+            };
+            authService.saveSession(merchantSession);
+            setCurrentMerchant(merchantSession);
             setIsLoggedInAsMerchant(true);
             setCurrentPage('merchant-dashboard');
-            localStorage.setItem('eshro_current_merchant', JSON.stringify(storeCreationData));
-            localStorage.setItem('eshro_logged_in_as_merchant', 'true');
           } else {
             setCurrentPage('login');
             setMerchantFlowStep('terms');
