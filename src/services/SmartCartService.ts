@@ -109,7 +109,7 @@ class SmartCartService {
     const cartProductIds = cartItems.map(item => item.product.id);
     
     // الحصول على معرف المتجر من أول منتج في السلة إن وجد
-    const storeId = cartItems.length > 0 ? cartItems[0].product?.storeId : null;
+    const storeId = cartItems.length > 0 && cartItems[0] ? cartItems[0].product?.storeId : null;
 
     // اقتراحات المنتجات المكملة (complementary)
     cartItems.forEach(cartItem => {

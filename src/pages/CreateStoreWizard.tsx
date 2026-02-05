@@ -36,7 +36,7 @@ interface StoreWizardData {
 
 interface CreateStoreWizardProps {
   onBack: () => void;
-  onComplete: (data: StoreWizardData & { merchantEmail: string; merchantPhone: string }) => void;
+  onComplete: (data: StoreWizardData & { merchantEmail: string; merchantPhone: string; setupComplete?: boolean }) => void;
   merchantEmail: string;
   merchantPhone: string;
 }

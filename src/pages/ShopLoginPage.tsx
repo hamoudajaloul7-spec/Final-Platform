@@ -22,6 +22,7 @@ import {
   X
 } from 'lucide-react';
 import { getApiUrl } from '@/utils/apiConfig';
+import authService from '@/services/authService';
 
 
 
@@ -97,319 +98,43 @@ const ShopLoginPage: React.FC<ShopLoginPageProps> = ({
     setIsLoading(true);
 
     try {
-      // 1. محاولة تسجيل الدخول عبر الخادم للأتمتة الكاملة (المصدر الأساسي للحقيقة)
-      let backendSuccess = false;
-      let backendError: string | null = null;
+      const result = await authService.login(credentials.username, credentials.password);
 
-      try {
-        const response = await fetch(`${getApiUrl()}/auth/login`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            email: credentials.username,
-            password: credentials.password
-          })
+      if (result.success && result.user) {
+        const user = result.user;
+        const finalUserType = user.role;
+
+        // التحقق من اكتمال الإعداد للمتاجر
+        if (finalUserType === 'merchant' && !user.setupComplete) {
+          setError('يجب إكمال إعداد المتجر أولاً. يرجى إضافة المنتجات والصور قبل تسجيل الدخول.');
+          setIsLoading(false);
+          return;
+        }
+
+        // التعامل مع تنبيهات انتهاء الصلاحية
+        const subdomain = user.storeSlug || user.subdomain;
+        if (subdomain) {
+          const expiryProducts = getExpiryAlertProducts(subdomain);
+          if (expiryProducts.length > 0) {
+            setExpiryAlertProducts(expiryProducts);
+            setShowExpiryAlert(true);
+          }
+        }
+
+        alert(`تم تسجيل دخول ${finalUserType === 'merchant' ? 'التاجر' : (finalUserType === 'admin' ? 'المسؤول' : 'المستخدم')} بنجاح! 🎉`);
+        
+        await onLogin({
+          username: credentials.username,
+          password: credentials.password,
+          userType: finalUserType,
+          serverData: user
         });
-
-        const data = await response.json();
-
-        if (response.ok && data.success) {
-          backendSuccess = true;
-          const serverUser = data.data.user;
-          const finalUserType = serverUser.role === 'merchant' ? 'merchant' : (serverUser.role === 'admin' ? 'admin' : 'user');
-          
-          // تحديث بيانات الجلسة والمزامنة مع localStorage
-          const sessionData = {
-            ...serverUser,
-            token: data.data.token,
-            refreshToken: data.data.refreshToken,
-            userType: finalUserType,
-            loginTime: new Date().toISOString(),
-            setupComplete: true // المستخدم القادم من الخادم يعتبر مكتمل الإعداد تلقائياً
-          };
-
-          // حفظ في localStorage لضمان التوافق والمزامنة
-          localStorage.setItem('eshro_current_user', JSON.stringify(sessionData));
-          localStorage.setItem('eshro_current_merchant', JSON.stringify(sessionData));
-          localStorage.setItem('eshro_logged_in_as_merchant', finalUserType === 'merchant' ? 'true' : 'false');
-          
-          // تحديث قائمة المتاجر المحلية
-          if (finalUserType === 'merchant') {
-            const existingStores = JSON.parse(localStorage.getItem('eshro_stores') || '[]');
-            const storeSlug = serverUser.storeSlug || serverUser.subdomain;
-            if (storeSlug) {
-              const storeKey = `store_${storeSlug}`;
-              localStorage.setItem(storeKey, JSON.stringify({ ...serverUser, subdomain: storeSlug, setupComplete: true }));
-              
-              if (!existingStores.some((s: any) => s.email === serverUser.email)) {
-                existingStores.push(sessionData);
-                localStorage.setItem('eshro_stores', JSON.stringify(existingStores));
-              }
-            }
-          }
-
-          alert(`تم تسجيل دخول ${finalUserType === 'merchant' ? 'التاجر' : (finalUserType === 'admin' ? 'المسؤول' : 'المستخدم')} بنجاح! 🎉`);
-          
-          await onLogin({ 
-            username: credentials.username, 
-            password: credentials.password, 
-            userType: finalUserType,
-            serverData: sessionData
-          });
-          
-          setIsLoading(false);
-          return; // الخروج فوراً عند نجاح السيرفر ✅
-        } else {
-          // الخادم استجاب ولكن ببيانات خاطئة
-          if (response.status === 401) {
-            backendError = 'كلمة المرور غير صحيحة';
-          } else if (response.status === 404) {
-            backendError = 'البريد الإلكتروني غير مسجل في النظام';
-          } else {
-            backendError = data.message || 'فشل تسجيل الدخول من الخادم';
-          }
-        }
-      } catch (apiError) {
-        console.warn('Backend connection issue, will try local storage if available', apiError);
+      } else {
+        setError(result.error || 'فشل تسجيل الدخول');
       }
-
-      // 2. المحاكاة والبيانات المحلية (Fallback فقط في حالة فشل الاتصال بالسيرفر)
-      // إذا كان هناك خطأ محدد من السيرفر (مثل كلمة مرور خاطئة)، نظهره ولا ننتقل للمحلي
-      if (backendError) {
-        setError(backendError);
-        setIsLoading(false);
-        return;
-      }
-
-      // التحقق المحلي (للمتاجر القديمة أو حالة عدم الاتصال)
-      if (!backendSuccess) {
-        await new Promise(resolve => setTimeout(resolve, 500));
-
-      // التحقق من بيانات مسؤول النظام
-      if (userType === 'admin') {
-        if (credentials.username === 'admin@eshro.ly' && credentials.password === 'admin123') {
-          alert('تم تسجيل دخول مسؤول النظام بنجاح! 🎉');
-          // في التطبيق الحقيقي، سيتم توجيه مسؤول النظام للوحة التحكم الرئيسية
-          // هنا سنستخدم نفس نظام التاجر مؤقتاً لحين تطوير لوحة التحكم الإدارية الرئيسية
-          onLogin({ ...credentials, userType: 'admin' });
-          setIsLoading(false);
-          return;
-        } else {
-          setError('بيانات مسؤول النظام غير صحيحة');
-          setIsLoading(false);
-          return;
-        }
-      }
-
-      // معالجة تسجيل دخول التاجر
-      if (userType === 'merchant') {
-        // التحقق من بيانات التاجر المحفوظة في localStorage
-        const storedStores = JSON.parse(localStorage.getItem('eshro_stores') || '[]');
-        let merchantData = storedStores.find((store: any) =>
-          store.email === credentials.username && store.password === credentials.password
-        );
-
-        // إذا لم يتم العثور على التاجر في eshro_stores، ابحث في مفاتيح merchant_*
-        if (!merchantData) {
-          // ابحث عن merchant_${email} أولاً
-          const merchantKey = `merchant_${credentials.username}`;
-          try {
-            const merchantCredentials = JSON.parse(localStorage.getItem(merchantKey) || '{}');
-            if (merchantCredentials.email === credentials.username &&
-                merchantCredentials.password === credentials.password) {
-              // ابحث عن بيانات المتجر المقابلة
-              const storeData = storedStores.find((store: any) => store.subdomain === merchantCredentials.subdomain);
-              if (storeData) {
-                merchantData = {
-                  ...storeData,
-                  ...merchantCredentials
-                };
-              } else {
-                // إذا لم يتم العثور على بيانات المتجر، أنشئ بيانات من بيانات التاجر
-                merchantData = {
-                  id: merchantCredentials.storeId || Date.now(),
-                  nameAr: merchantCredentials.storeName,
-                  nameEn: merchantCredentials.storeName,
-                  email: merchantCredentials.email,
-                  phone: merchantCredentials.phone,
-                  subdomain: merchantCredentials.subdomain,
-                  password: merchantCredentials.password,
-                  ownerName: merchantCredentials.ownerName,
-                  setupComplete: merchantCredentials.setupComplete
-                };
-              }
-            }
-          } catch (e) {
-            // تجاهل الأخطاء
-          }
-          
-          // إذا لم يتم العثور على البيانات، ابحث في جميع مفاتيح merchant_*
-          if (!merchantData) {
-            for (let i = 0; i < localStorage.length; i++) {
-              const key = localStorage.key(i);
-              if (key && key.startsWith('merchant_')) {
-                try {
-                  const merchantCredentials = JSON.parse(localStorage.getItem(key) || '{}');
-                  if (merchantCredentials.email === credentials.username &&
-                      merchantCredentials.password === credentials.password) {
-                    // ابحث عن بيانات المتجر المقابلة
-                    const storeData = storedStores.find((store: any) => store.subdomain === merchantCredentials.subdomain);
-                    if (storeData) {
-                      merchantData = {
-                        ...storeData,
-                        ...merchantCredentials
-                      };
-                    } else {
-                      // إذا لم يتم العثور على بيانات المتجر، أنشئ بيانات أساسية
-                      merchantData = {
-                        id: merchantCredentials.storeId || Date.now(),
-                        nameAr: merchantCredentials.storeName,
-                        nameEn: merchantCredentials.storeName,
-                        email: merchantCredentials.email,
-                        phone: merchantCredentials.phone,
-                        subdomain: merchantCredentials.subdomain,
-                        password: merchantCredentials.password,
-                        ownerName: merchantCredentials.ownerName,
-                        setupComplete: merchantCredentials.setupComplete
-                      };
-                    }
-                    break;
-                  }
-                } catch (e) {
-                  // تجاهل الأخطاء في تحليل JSON
-                  continue;
-                }
-              }
-            }
-          }
-        }
-
-        // التحقق من بيانات التاجر المحددة مسبقاً
-        const predefinedMerchants = {
-          nawaem: { email: "mounir@gmail.com", password: "mounir123", phone: "218910000001" },
-          sherine: { email: "salem@gmail.com", password: "salem123", phone: "218910000002" },
-          delta: { email: "majed@gmail.com", password: "majed123", phone: "218910000003" },
-          pretty: { email: "kamel@gmail.com", password: "kamel123", phone: "218910000004" },
-          magna: { email: "hasan@gmail.com", password: "hasan123", phone: "218910000005" },
-          indeesh: { email: "salem.masgher@gmail.com", password: "salem1234", phone: "218910000006" },
-          shekha: { email: "salem.mfurjani@gmail.com", password: "S@lem2026", phone: "218910000007" }
-        };
-
-        const isPredefinedMerchant = Object.values(predefinedMerchants).some(
-          merchant => merchant.email === credentials.username && merchant.password === credentials.password
-        );
-
-        const predefinedMerchantData = Object.entries(predefinedMerchants).find(
-          ([_, m]) => m.email === credentials.username
-        );
-
-        if (merchantData || isPredefinedMerchant) {
-          // السماح بالدخول للمتاجر المنشأة بالفعل أو المحددة مسبقاً
-          // تم تبسيط الشرط لضمان وصول التاجر لمتجره فور إنشائه
-          const isFullySetup = isPredefinedMerchant || 
-                              (merchantData && (merchantData.setupComplete || (merchantData.products && merchantData.products.length > 0)));
-
-          if (merchantData && !isFullySetup) {
-            setError('يجب إكمال إعداد المتجر أولاً. يرجى إضافة المنتجات والصور قبل تسجيل الدخول.');
-            setIsLoading(false);
-            return;
-          }
-
-          // حفظ بيانات المستخدم الحالي في localStorage
-          const userData = merchantData || {
-            email: credentials.username,
-            name: 'تاجر ' + (predefinedMerchantData ? predefinedMerchantData[0] : 'جديد'),
-            storeName: merchantData?.nameAr || (predefinedMerchantData ? predefinedMerchantData[0] : 'متجر جديد'),
-            subdomain: merchantData?.subdomain || (predefinedMerchantData ? predefinedMerchantData[0] : 'new-store')
-          };
-
-          const sessionData = {
-            ...userData,
-            token: 'demo-token-' + Date.now(),
-            refreshToken: 'demo-refresh-token-' + Date.now(),
-            userType: 'merchant',
-            loginTime: new Date().toISOString()
-          };
-
-          localStorage.setItem('eshro_current_user', JSON.stringify(sessionData));
-          localStorage.setItem('eshro_current_merchant', JSON.stringify(sessionData));
-          localStorage.setItem('eshro_logged_in_as_merchant', 'true');
-
-
-          
-          const subdomain = userData.subdomain || merchantData?.subdomain;
-          if (subdomain) {
-            const expiryProducts = getExpiryAlertProducts(subdomain);
-            if (expiryProducts.length > 0) {
-              setExpiryAlertProducts(expiryProducts);
-              setShowExpiryAlert(true);
-            }
-          }
-          
-          alert('تم تسجيل دخول التاجر بنجاح! 🎉');
-          await onLogin({ ...credentials, userType: 'merchant' });
-          setIsLoading(false);
-          return;
-        } else {
-          // التحقق من وجود البريد الإلكتروني بدون كلمة مرور صحيحة
-          const isPredefinedEmail = Object.values(predefinedMerchants).some(m => m.email === credentials.username);
-          
-          const emailExists = isPredefinedEmail || 
-                            storedStores.some((store: any) => store.email === credentials.username) ||
-                            Array.from({ length: localStorage.length }, (_, i) => localStorage.key(i))
-                              .filter(key => key && key.startsWith('merchant_'))
-                              .some(key => {
-                                try {
-                                  const merchantCredentials = JSON.parse(localStorage.getItem(key!) || '{}');
-                                  return merchantCredentials.email === credentials.username;
-                                } catch {
-                                  return false;
-                                }
-                              });
-
-          if (emailExists) {
-            setError('كلمة المرور غير صحيحة');
-          } else {
-            setError('البريد الإلكتروني أو اسم المستخدم غير مسجل في النظام');
-          }
-          setIsLoading(false);
-          return;
-        }
-      }
-
-      if (userType === 'user') {
-        // البحث عن بيانات المستخدم في localStorage
-        const users = JSON.parse(localStorage.getItem('eshro_users') || '[]');
-        const userData = users.find((user: any) =>
-          (user.email === credentials.username || user.phone === credentials.username) &&
-          user.password === credentials.password
-        );
-
-        if (userData) {
-
-          alert('تم تسجيل دخول المستخدم بنجاح! 🎉');
-          await onLogin({ ...credentials, userType: 'user' });
-          setIsLoading(false);
-          return;
-        } else {
-          // التحقق من وجود المستخدم بدون كلمة مرور صحيحة
-          const userExists = users.find((user: any) => user.email === credentials.username || user.phone === credentials.username);
-          if (userExists) {
-            setError('كلمة المرور غير صحيحة');
-            setIsLoading(false);
-            return;
-          } else {
-            setError('اسم المستخدم أو البريد الإلكتروني غير موجود');
-            setIsLoading(false);
-            return;
-          }
-        }
-      }
-
-      onLogin({ ...credentials, userType });
-      } // نهاية شرط !backendSuccess
-    } catch (error) {
-      setError('حدث خطأ في تسجيل الدخول. يرجى المحاولة مرة أخرى.');
+    } catch (err) {
+      console.error('Login Error:', err);
+      setError('حدث خطأ غير متوقع أثناء تسجيل الدخول');
     } finally {
       setIsLoading(false);
     }
