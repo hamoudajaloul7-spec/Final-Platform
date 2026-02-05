@@ -97,8 +97,10 @@ const ShopLoginPage: React.FC<ShopLoginPageProps> = ({
     setIsLoading(true);
 
     try {
-      // 1. محاولة تسجيل الدخول عبر الخادم للأتمتة الكاملة
+      // 1. محاولة تسجيل الدخول عبر الخادم للأتمتة الكاملة (المصدر الأساسي للحقيقة)
       let backendSuccess = false;
+      let backendError: string | null = null;
+
       try {
         const response = await fetch(`${getApiUrl()}/auth/login`, {
           method: 'POST',
@@ -109,71 +111,79 @@ const ShopLoginPage: React.FC<ShopLoginPageProps> = ({
           })
         });
 
-        if (response.ok) {
-          const data = await response.json();
-          if (data.success) {
-            backendSuccess = true;
-            const serverUser = data.data.user;
-            const finalUserType = serverUser.role === 'merchant' ? 'merchant' : (serverUser.role === 'admin' ? 'admin' : 'user');
-            
-            // تحديث بيانات الجلسة للتأكد من المزامنة الكاملة
-            const sessionData = {
-              ...serverUser,
-              token: data.data.token,
-              refreshToken: data.data.refreshToken,
-              userType: finalUserType,
-              loginTime: new Date().toISOString(),
-              setupComplete: true // المستخدم القادم من الخادم يعتبر مكتمل الإعداد تلقائياً
-            };
+        const data = await response.json();
 
-            // حفظ في عدة مفاتيح لضمان التوافق مع جميع المكونات
-            localStorage.setItem('eshro_current_user', JSON.stringify(sessionData));
-            localStorage.setItem('eshro_current_merchant', JSON.stringify(sessionData));
-            localStorage.setItem('eshro_logged_in_as_merchant', finalUserType === 'merchant' ? 'true' : 'false');
-            
-            // مزامنة البيانات مع التاجر في القائمة المحلية إذا لزم الأمر
-            if (finalUserType === 'merchant') {
-              const existingStores = JSON.parse(localStorage.getItem('eshro_stores') || '[]');
-              const storeSlug = serverUser.storeSlug || serverUser.subdomain;
-              if (storeSlug) {
-                const storeKey = `store_${storeSlug}`;
-                localStorage.setItem(storeKey, JSON.stringify({
-                  ...serverUser,
-                  subdomain: storeSlug,
-                  setupComplete: true
-                }));
-                
-                if (!existingStores.some((s: any) => s.subdomain === storeSlug)) {
-                  existingStores.push({
-                    ...serverUser,
-                    subdomain: storeSlug,
-                    setupComplete: true
-                  });
-                  localStorage.setItem('eshro_stores', JSON.stringify(existingStores));
-                }
+        if (response.ok && data.success) {
+          backendSuccess = true;
+          const serverUser = data.data.user;
+          const finalUserType = serverUser.role === 'merchant' ? 'merchant' : (serverUser.role === 'admin' ? 'admin' : 'user');
+          
+          // تحديث بيانات الجلسة والمزامنة مع localStorage
+          const sessionData = {
+            ...serverUser,
+            token: data.data.token,
+            refreshToken: data.data.refreshToken,
+            userType: finalUserType,
+            loginTime: new Date().toISOString(),
+            setupComplete: true // المستخدم القادم من الخادم يعتبر مكتمل الإعداد تلقائياً
+          };
+
+          // حفظ في localStorage لضمان التوافق والمزامنة
+          localStorage.setItem('eshro_current_user', JSON.stringify(sessionData));
+          localStorage.setItem('eshro_current_merchant', JSON.stringify(sessionData));
+          localStorage.setItem('eshro_logged_in_as_merchant', finalUserType === 'merchant' ? 'true' : 'false');
+          
+          // تحديث قائمة المتاجر المحلية
+          if (finalUserType === 'merchant') {
+            const existingStores = JSON.parse(localStorage.getItem('eshro_stores') || '[]');
+            const storeSlug = serverUser.storeSlug || serverUser.subdomain;
+            if (storeSlug) {
+              const storeKey = `store_${storeSlug}`;
+              localStorage.setItem(storeKey, JSON.stringify({ ...serverUser, subdomain: storeSlug, setupComplete: true }));
+              
+              if (!existingStores.some((s: any) => s.email === serverUser.email)) {
+                existingStores.push(sessionData);
+                localStorage.setItem('eshro_stores', JSON.stringify(existingStores));
               }
             }
+          }
 
-            alert(`تم تسجيل دخول ${finalUserType === 'merchant' ? 'التاجر' : (finalUserType === 'admin' ? 'المسؤول' : 'المستخدم')} بنجاح! 🎉`);
-            
-            await onLogin({ 
-              username: credentials.username, 
-              password: credentials.password, 
-              userType: finalUserType,
-              serverData: sessionData
-            });
-            
-            setIsLoading(false);
-            return; // توقف هنا ولا تواصل للمرحلة المحلية
+          alert(`تم تسجيل دخول ${finalUserType === 'merchant' ? 'التاجر' : (finalUserType === 'admin' ? 'المسؤول' : 'المستخدم')} بنجاح! 🎉`);
+          
+          await onLogin({ 
+            username: credentials.username, 
+            password: credentials.password, 
+            userType: finalUserType,
+            serverData: sessionData
+          });
+          
+          setIsLoading(false);
+          return; // الخروج فوراً عند نجاح السيرفر ✅
+        } else {
+          // الخادم استجاب ولكن ببيانات خاطئة
+          if (response.status === 401) {
+            backendError = 'كلمة المرور غير صحيحة';
+          } else if (response.status === 404) {
+            backendError = 'البريد الإلكتروني غير مسجل في النظام';
+          } else {
+            backendError = data.message || 'فشل تسجيل الدخول من الخادم';
           }
         }
       } catch (apiError) {
-        console.warn('Backend login connection error, falling back to local storage', apiError);
+        console.warn('Backend connection issue, will try local storage if available', apiError);
       }
 
-      // 2. المحاكاة والبيانات المحلية (فقط إذا فشل السيرفر تماماً)
+      // 2. المحاكاة والبيانات المحلية (Fallback فقط في حالة فشل الاتصال بالسيرفر)
+      // إذا كان هناك خطأ محدد من السيرفر (مثل كلمة مرور خاطئة)، نظهره ولا ننتقل للمحلي
+      if (backendError) {
+        setError(backendError);
+        setIsLoading(false);
+        return;
+      }
+
+      // التحقق المحلي (للمتاجر القديمة أو حالة عدم الاتصال)
       if (!backendSuccess) {
-        await new Promise(resolve => setTimeout(resolve, 800)); // تقليل وقت الانتظار
+        await new Promise(resolve => setTimeout(resolve, 500));
 
       // التحقق من بيانات مسؤول النظام
       if (userType === 'admin') {
