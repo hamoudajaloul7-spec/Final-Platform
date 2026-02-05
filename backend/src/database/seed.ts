@@ -87,18 +87,6 @@ const seedDatabase = async (): Promise<void> => {
         storeSlug: 'magna-beauty',
         storeCategory: 'مستحضرات تجميل',
         storeDescription: 'متجر متخصص في مستحضرات التجميل والعناية بالبشرة'
-      },
-      {
-        id: uuidv4(),
-        email: 'salem.mfurjani@gmail.com',
-        password: await bcrypt.hash('S@lem2026', 10),
-        firstName: 'سالم',
-        lastName: 'الفرجاني',
-        phone: '218910000007',
-        storeName: 'شيخة',
-        storeSlug: 'shekha',
-        storeCategory: 'عبايات وملابس نسائية',
-        storeDescription: 'متجر شيخة للعبايات والملابس النسائية الراقية'
       }
     ];
 
