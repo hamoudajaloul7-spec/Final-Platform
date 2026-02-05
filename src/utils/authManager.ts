@@ -389,7 +389,7 @@ class AuthManager {
       const loginTime = new Date(session.loginTime).getTime();
       const now = Date.now();
       sessionAge = Math.floor((now - loginTime) / (1000 * 60)); // بالدقائق
-      lastActivity = session.lastActivity;
+      lastActivity = session.lastActivity || null;
     }
 
     return {

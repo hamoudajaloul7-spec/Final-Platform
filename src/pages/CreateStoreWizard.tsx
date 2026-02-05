@@ -116,7 +116,8 @@ const CreateStoreWizard: React.FC<CreateStoreWizardProps> = ({
     onComplete({
       ...formData,
       merchantEmail,
-      merchantPhone
+      merchantPhone,
+      setupComplete: true
     });
   };
 

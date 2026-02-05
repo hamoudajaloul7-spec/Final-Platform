@@ -336,7 +336,8 @@ export { default as ${storeSlug.charAt(0).toUpperCase() + storeSlug.slice(1)}Sli
     products: productsWithIds,
     sliderImages: storeData.sliderImages || [],
     createdAt: storeData.createdAt || new Date().toISOString(),
-    status: storeData.status || 'active'
+    status: storeData.status || 'active',
+    setupComplete: true
   };
 
   // Save products to localStorage in the format expected by ModernStorePage

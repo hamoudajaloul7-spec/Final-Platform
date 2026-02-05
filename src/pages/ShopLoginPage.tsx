@@ -291,8 +291,12 @@ const ShopLoginPage: React.FC<ShopLoginPageProps> = ({
         );
 
         if (merchantData || isPredefinedMerchant) {
-          // Check if store is fully set up (for new merchants)
-          if (merchantData && !isPredefinedMerchant && !merchantData.setupComplete) {
+          // السماح بالدخول للمتاجر المنشأة بالفعل أو المحددة مسبقاً
+          // تم تبسيط الشرط لضمان وصول التاجر لمتجره فور إنشائه
+          const isFullySetup = isPredefinedMerchant || 
+                              (merchantData && (merchantData.setupComplete || (merchantData.products && merchantData.products.length > 0)));
+
+          if (merchantData && !isFullySetup) {
             setError('يجب إكمال إعداد المتجر أولاً. يرجى إضافة المنتجات والصور قبل تسجيل الدخول.');
             setIsLoading(false);
             return;

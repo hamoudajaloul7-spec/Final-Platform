@@ -108,7 +108,7 @@ const EnhancedNotifyModal: React.FC<EnhancedNotifyModalProps> = ({
       price: 0,
       originalPrice: product.originalPrice || product.price || 0,
       storeSlug: product.storeSlug || 'eshro-store',
-      storeName: product.storeName || 'متجر إشرو',
+      storeName: (product as any).storeName || 'متجر إشرو',
       notificationData,
       requestedAt: new Date().toISOString()
     };

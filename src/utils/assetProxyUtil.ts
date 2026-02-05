@@ -40,7 +40,7 @@ export const getProxyImageUrl = (
     if (parts.length >= 3 && parts[0] === 'assets') {
       const slug = parts[1]!;
       // Determine type and filename based on path structure
-      const isTypedPath = parts.length >= 4 && ['products', 'sliders', 'logo'].includes(parts[2]);
+      const isTypedPath = parts.length >= 4 && ['products', 'sliders', 'logo'].includes(parts[2] as string);
       const type = isTypedPath ? parts[2] as 'products' | 'sliders' | 'logo' : imageType;
       const filename = isTypedPath ? parts.slice(3).join('/') : parts.slice(2).join('/');
       
