@@ -98,6 +98,7 @@ const ShopLoginPage: React.FC<ShopLoginPageProps> = ({
 
     try {
       // 1. محاولة تسجيل الدخول عبر الخادم للأتمتة الكاملة
+      let backendSuccess = false;
       try {
         const response = await fetch(`${getApiUrl()}/auth/login`, {
           method: 'POST',
@@ -111,6 +112,7 @@ const ShopLoginPage: React.FC<ShopLoginPageProps> = ({
         if (response.ok) {
           const data = await response.json();
           if (data.success) {
+            backendSuccess = true;
             const serverUser = data.data.user;
             const finalUserType = serverUser.role === 'merchant' ? 'merchant' : (serverUser.role === 'admin' ? 'admin' : 'user');
             
@@ -120,7 +122,8 @@ const ShopLoginPage: React.FC<ShopLoginPageProps> = ({
               token: data.data.token,
               refreshToken: data.data.refreshToken,
               userType: finalUserType,
-              loginTime: new Date().toISOString()
+              loginTime: new Date().toISOString(),
+              setupComplete: true // المستخدم القادم من الخادم يعتبر مكتمل الإعداد تلقائياً
             };
 
             // حفظ في عدة مفاتيح لضمان التوافق مع جميع المكونات
@@ -153,7 +156,6 @@ const ShopLoginPage: React.FC<ShopLoginPageProps> = ({
 
             alert(`تم تسجيل دخول ${finalUserType === 'merchant' ? 'التاجر' : (finalUserType === 'admin' ? 'المسؤول' : 'المستخدم')} بنجاح! 🎉`);
             
-            // انتظار معالجة الدخول في التطبيق الرئيسي قبل تغيير حالة التحميل
             await onLogin({ 
               username: credentials.username, 
               password: credentials.password, 
@@ -162,15 +164,16 @@ const ShopLoginPage: React.FC<ShopLoginPageProps> = ({
             });
             
             setIsLoading(false);
-            return;
+            return; // توقف هنا ولا تواصل للمرحلة المحلية
           }
         }
       } catch (apiError) {
-        console.warn('Backend login failed, falling back to local storage', apiError);
+        console.warn('Backend login connection error, falling back to local storage', apiError);
       }
 
-      // 2. المحاكاة والبيانات المحلية (Fallback)
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // 2. المحاكاة والبيانات المحلية (فقط إذا فشل السيرفر تماماً)
+      if (!backendSuccess) {
+        await new Promise(resolve => setTimeout(resolve, 800)); // تقليل وقت الانتظار
 
       // التحقق من بيانات مسؤول النظام
       if (userType === 'admin') {
@@ -394,6 +397,7 @@ const ShopLoginPage: React.FC<ShopLoginPageProps> = ({
       }
 
       onLogin({ ...credentials, userType });
+      } // نهاية شرط !backendSuccess
     } catch (error) {
       setError('حدث خطأ في تسجيل الدخول. يرجى المحاولة مرة أخرى.');
     } finally {
