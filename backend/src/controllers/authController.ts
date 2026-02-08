@@ -104,18 +104,26 @@ export const login = async (
   try {
     const { email, password } = req.body;
 
+    logger.info(`[AUTH] Login attempt for email: ${email}`);
+
     const user = await User.findOne({ where: { email: email.toLowerCase() } });
+    
     if (!user) {
+      logger.warn(`[AUTH] User not found: ${email}`);
       sendUnauthorized(res, 'Invalid email or password');
       return;
     }
 
+    logger.info(`[AUTH] User found: ${user.email}, role: ${user.role}, storeSlug: ${user.storeSlug}`);
+
     // التحقق من كلمة المرور
     let isPasswordValid = await comparePassword(password, user.password);
     
+    logger.info(`[AUTH] Password valid (hash check): ${isPasswordValid}`);
+
     // إذا لم تتطابق، تحقق مما إذا كانت كلمة المرور مخزنة كنص واضح (للتوافق مع البيانات القديمة)
     if (!isPasswordValid && user.password === password) {
-      logger.info(`User ${email} has plain text password, updating to hash...`);
+      logger.info(`[AUTH] Plain text password detected, updating to hash...`);
       // تحديث كلمة المرور لتكون مشفرة
       const hashedPassword = await hashPassword(password);
       await user.update({ password: hashedPassword });
@@ -123,6 +131,7 @@ export const login = async (
     }
 
     if (!isPasswordValid) {
+      logger.warn(`[AUTH] Invalid password for user: ${email}`);
       sendUnauthorized(res, 'Invalid email or password');
       return;
     }
@@ -136,7 +145,7 @@ export const login = async (
 
     await user.update({ lastLogin: new Date() });
 
-    logger.info(`User logged in: ${email}`);
+    logger.info(`[AUTH] Login successful for: ${email}`);
 
     const userData = {
       id: user.id,
@@ -164,7 +173,7 @@ export const login = async (
       'Login successful'
     );
   } catch (error) {
-    logger.error('Login error:', error);
+    logger.error('[AUTH] Login error:', error);
     next(error);
   }
 };
