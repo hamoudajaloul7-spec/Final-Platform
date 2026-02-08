@@ -38,7 +38,7 @@ const getDynamicMerchants = (): MerchantProfile[] => {
     if (!stored) return [];
 
     const stores = JSON.parse(stored);
-      const hardcodedSubdomains = new Set(['nawaem', 'sheirine', 'pretty', 'delta-store', 'magna-beauty', 'indeesh']);
+      const hardcodedSubdomains = new Set(['nawaem', 'sheirine', 'pretty', 'delta-store', 'magna-beauty', 'indeesh', 'shekha']);
       return stores
   .filter((store: any) => !hardcodedSubdomains.has(store.subdomain))
     .map((store: any) => ({

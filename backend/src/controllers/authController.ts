@@ -110,7 +110,18 @@ export const login = async (
       return;
     }
 
-    const isPasswordValid = await comparePassword(password, user.password);
+    // التحقق من كلمة المرور
+    let isPasswordValid = await comparePassword(password, user.password);
+    
+    // إذا لم تتطابق، تحقق مما إذا كانت كلمة المرور مخزنة كنص واضح (للتوافق مع البيانات القديمة)
+    if (!isPasswordValid && user.password === password) {
+      logger.info(`User ${email} has plain text password, updating to hash...`);
+      // تحديث كلمة المرور لتكون مشفرة
+      const hashedPassword = await hashPassword(password);
+      await user.update({ password: hashedPassword });
+      isPasswordValid = true;
+    }
+
     if (!isPasswordValid) {
       sendUnauthorized(res, 'Invalid email or password');
       return;

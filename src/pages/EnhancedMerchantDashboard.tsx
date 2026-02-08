@@ -603,7 +603,9 @@ const MERCHANT_ALIAS_ENTRIES: Array<[string, string]> = [
   ['indeesh.ly', 'indeesh'],
   ['andish', 'indeesh'],
   ['indesh', 'indeesh'],
-  ['owner@indeesh.ly', 'indeesh']
+  ['owner@indeesh.ly', 'indeesh'],
+  ['shekha', 'shekha'],
+  ['shekha.store', 'shekha']
 ];
 
 const MERCHANT_ALIAS_MAP = (() => {
@@ -753,6 +755,25 @@ const resolveMerchantId = (merchant?: any): string | null => {
   if (!merchant) {
     return null;
   }
+  
+  // إذا كان للمتجر slug subdomain، استخدمه مباشرة للمتاجر الجديدة
+  if (merchant.subdomain && typeof merchant.subdomain === 'string') {
+    console.log('[resolveMerchantId] Using subdomain directly for new store:', merchant.subdomain);
+    return merchant.subdomain.toLowerCase();
+  }
+  
+  // إذا كان للمتجر storeSlug، استخدمه مباشرة
+  if (merchant.storeSlug && typeof merchant.storeSlug === 'string') {
+    console.log('[resolveMerchantId] Using storeSlug directly:', merchant.storeSlug);
+    return merchant.storeSlug.toLowerCase();
+  }
+  
+  // إذا كان للمتجر slug، استخدمه مباشرة
+  if (merchant.slug && typeof merchant.slug === 'string') {
+    console.log('[resolveMerchantId] Using slug directly:', merchant.slug);
+    return merchant.slug.toLowerCase();
+  }
+  
   const candidates: string[] = [];
   const pushCandidate = (value?: string) => {
     if (value && typeof value === 'string') {
@@ -787,6 +808,16 @@ const resolveMerchantId = (merchant?: any): string | null => {
       return resolved;
     }
   }
+  
+  // Fallback: إذا لم يتم التعرف على المتجر، استخدم أول معرف متاح
+  if (candidates.length > 0) {
+    const fallbackId = candidates.find(c => c && typeof c === 'string' && c.length > 0 && /^[a-z0-9-]+$/.test(c));
+    if (fallbackId) {
+      console.log('[resolveMerchantId] Using fallback:', fallbackId);
+      return fallbackId.toLowerCase();
+    }
+  }
+  
   console.warn('[resolveMerchantId] Could not resolve merchant from candidates:', candidates);
   return null;
 };

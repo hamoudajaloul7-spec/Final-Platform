@@ -23,6 +23,7 @@ import AbandonedCart from '@models/AbandonedCart';
 import { moveUploadedFiles, cleanupTempUploads } from '@middleware/storeImageUpload';
 import { uploadMultipleImagesToSupabase, purgeStoreFromSupabase, uploadBufferToSupabase } from '@services/supabaseImageUpload';
 import path from 'path';
+import { hashPassword } from '@utils/password';
 
 interface ProductData {
   id: number;
@@ -237,6 +238,7 @@ export const createStoreWithImages = async (
     const ownerLastName = nameParts.slice(1).join(' ') || ownerFirstName;
     const primaryOwnerPhone = (ownerPhone || phone || '').toString().trim();
     const ownerPlainPassword = (ownerPassword || password || '').toString();
+    const ownerHashedPassword = await hashPassword(ownerPlainPassword); // ✅ تشفير كلمة المرور
 
     if (!primaryOwnerEmail || !ownerPlainPassword) {
       sendError(res, 'Owner email and password are required', 400);
@@ -690,7 +692,7 @@ export const createStoreWithImages = async (
           where: { email: primaryOwnerEmail },
           defaults: {
             email: primaryOwnerEmail,
-            password: ownerPlainPassword,
+            password: ownerHashedPassword, // ✅ كلمة المرور المشفرة
             firstName: ownerFirstName,
             lastName: ownerLastName,
             phone: primaryOwnerPhone || '000000000',
