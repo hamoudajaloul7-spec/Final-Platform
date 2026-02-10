@@ -1,0 +1,19 @@
+{
+  "slug": "shekha",
+  "name": "متجر شيخة",
+  "nameAr": "متجر شيخة",
+  "nameEn": "Shekha Store",
+  "description": "متجر شيخة - متجركم الشامل لجميع احتياجاتكم",
+  "logo": "/assets/shekha/logo.png",
+  "icon": "🏪",
+  "color": "from-amber-400 to-orange-600",
+  "categories": [
+    "المنتجات المميزة",
+    "العروض الخاصة",
+    "جديد المنتجات"
+  ],
+  "products": [],
+  "sliders": [],
+  "createdAt": "2026-02-08T10:00:00.000Z",
+  "updatedAt": "2026-02-08T10:00:00.000Z"
+}

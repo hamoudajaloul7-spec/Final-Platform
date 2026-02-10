@@ -30,6 +30,10 @@
   ],
   "rewrites": [
     {
+      "source": "/api/auth/login",
+      "destination": "/api/auth/login.js"
+    },
+    {
       "source": "/api/(.*)",
       "destination": "https://final-platform-eshro.onrender.com/api/$1"
     },

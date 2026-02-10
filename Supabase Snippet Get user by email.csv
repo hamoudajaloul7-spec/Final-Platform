@@ -1,8 +1,0 @@
-id,merchant_id,name,slug,category,description,logo,banner,is_active,rating,created_at,updated_at
-1,799d6ecd-04d4-44ef-98c6-b82d18f18564,نواعم,nawaem,ملابس نسائية,متجر متخصص في الملابس النسائية الأنيقة والعصرية,null,null,true,null,2025-12-17 15:04:45.388+00,2025-12-17 15:04:45.388+00
-2,092dac18-2ebc-46ac-aca4-8a9b069d4f54,شيرين,sheirine,إكسسوارات ومجوهرات,متجر متخصص في الإكسسوارات والمجوهرات الراقية,null,null,true,null,2025-12-17 15:04:48.673+00,2025-12-17 15:04:48.673+00
-3,ea048a14-5771-47af-ab5f-0fbc2deadfa4,Pretty,pretty,عطور وجمال,متجر متخصص في العطور ومنتجات الجمال,null,null,true,null,2025-12-17 15:04:51.883+00,2025-12-17 15:04:51.883+00
-4,c84c2a05-48f2-43f9-a33b-56b039db922c,Delta Store,delta-store,إلكترونيات وأجهزة,متجر متخصص في الإلكترونيات والأجهزة الكهربائية,null,null,true,null,2025-12-17 15:04:55.081+00,2025-12-17 15:04:55.081+00
-5,87ba0da6-8a54-4bde-a60b-4043f3f5f1ba,Magna Beauty,magna-beauty,مستحضرات تجميل,متجر متخصص في مستحضرات التجميل والعناية بالبشرة,null,null,true,null,2025-12-17 15:04:58.274+00,2025-12-17 15:04:58.274+00
-6,9712f83c-b3b7-46a4-8e86-5d460002031a,indeesh,indeesh,general,Auto-created legacy merchant for indeesh,null,null,true,null,2025-12-20 03:36:13.75+00,2025-12-20 03:36:15.06+00
-26,bce7953a-515d-4418-b81d-af84b8d4817a,شيخه,shekha,fashion,أحدث الملابس النسائية الفاخرة,https://wbakbuqvdbmweujkbzxn.supabase.co/storage/v1/object/public/ishro-assets/stores/shekha/logo/logo.webp,https://wbakbuqvdbmweujkbzxn.supabase.co/storage/v1/object/public/ishro-assets/stores/shekha/sliders/slider2.webp,true,null,2026-02-08 09:26:59.757+00,2026-02-08 09:26:59.757+00

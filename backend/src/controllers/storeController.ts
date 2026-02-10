@@ -692,7 +692,7 @@ export const createStoreWithImages = async (
           where: { email: primaryOwnerEmail },
           defaults: {
             email: primaryOwnerEmail,
-            password: ownerHashedPassword, // ✅ كلمة المرور المشفرة
+            password: ownerHashedPassword,
             firstName: ownerFirstName,
             lastName: ownerLastName,
             phone: primaryOwnerPhone || '000000000',
@@ -706,6 +706,8 @@ export const createStoreWithImages = async (
           },
           transaction
         });
+
+        logger.info(`✅ User ${created ? 'created' : 'found'}: ${primaryOwnerEmail}`);
 
         if (!created) {
           logger.info(`ℹ️ Updating existing merchant user: ${primaryOwnerEmail}`);
@@ -849,25 +851,25 @@ export const createStoreWithImages = async (
           );
         }
         logger.info(`✅ Default ads created for store`);
-        });
-        logger.info(`✅ Merchant credentials, store, sliders, and ads stored for ${storeSlug}`);
-      } catch (dbError: any) {
-        logger.error('❌ Failed to persist store data:', dbError);
-        // Provide more specific error message based on the error type
-        let errorMessage = 'Failed to save store data';
-        
-        if (dbError.name === 'SequelizeValidationError') {
-          const validationErrors = dbError.errors?.map((e: any) => `${e.path}: ${e.message}`).join(', ');
-          errorMessage = `Validation error: ${validationErrors || dbError.message}`;
-        } else if (dbError.name === 'SequelizeUniqueConstraintError') {
-          errorMessage = 'A store with this name or slug already exists';
-        } else if (dbError.message) {
-          errorMessage = dbError.message;
-        }
-        
-        sendError(res, errorMessage, 500);
-        return;
+      });
+      logger.info(`✅ Merchant credentials, store, sliders, and ads stored for ${storeSlug}`);
+    } catch (dbError: any) {
+      logger.error('❌ Failed to persist store data:', dbError);
+      // Provide more specific error message based on the error type
+      let errorMessage = 'Failed to save store data';
+      
+      if (dbError.name === 'SequelizeValidationError') {
+        const validationErrors = dbError.errors?.map((e: any) => `${e.path}: ${e.message}`).join(', ');
+        errorMessage = `Validation error: ${validationErrors || dbError.message}`;
+      } else if (dbError.name === 'SequelizeUniqueConstraintError') {
+        errorMessage = 'A store with this name or slug already exists';
+      } else if (dbError.message) {
+        errorMessage = dbError.message;
       }
+      
+      sendError(res, errorMessage, 500);
+      return;
+    }
 
     logger.info(`🔍 Verifying permanent storage for: ${storeSlug}`);
     const verificationResult = await verifyStorePermanentStorage(storeSlug);

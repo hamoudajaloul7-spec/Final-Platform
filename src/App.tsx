@@ -1336,8 +1336,7 @@ export default function Home() {
                 }
               }
             }
-          } catch (error) {
-            console.error("Fallback fetch failed:", error);
+            } catch {
           } finally {
             setIsLoadingProducts(false);
           }
@@ -2075,8 +2074,7 @@ export default function Home() {
         if (storeData?.products && storeData.products.length > 0) {
           setCurrentStoreProducts(storeData.products);
         }
-      } catch (e) {
-        console.error('Error loading products in click handler:', e);
+      } catch {
       } finally {
         setIsLoadingProducts(false);
       }
@@ -3473,6 +3471,7 @@ export default function Home() {
           setShowNotifyModal(true);
         }}
         storeSlug={currentStore || undefined}
+        storeProducts={currentStoreProducts}
         isFavorite={favorites.some(f => f.id === currentProduct)}
       />
     );
@@ -3741,6 +3740,11 @@ export default function Home() {
           storeName={createdStoreName}
           onClose={() => setShowStoreSuccessModal(false)}
           onStartDashboard={handleStartMerchantDashboard}
+          onNavigateToPlatform={() => {
+            // Navigate to platform home (stores list)
+            setCurrentPage('home');
+            setShowStoreSuccessModal(false);
+          }}
         />
       )}
 

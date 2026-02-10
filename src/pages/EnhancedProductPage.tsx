@@ -27,6 +27,7 @@ import NotifyWhenAvailable from '@/components/NotifyWhenAvailable';
 import { getStoresData } from '@/data/ecommerceData';
 import { getTagColor, getButtonConfig } from '@/utils/badgeCalculator';
 import { getProxyImageUrl } from '@/utils/assetProxyUtil';
+import { getApiUrl } from '@/utils/apiConfig';
 
 interface Color {
   name: string;
@@ -44,6 +45,8 @@ interface EnhancedProductPageProps {
   onProductSelect?: (product: Product) => void;
   isFavorite: boolean;
   storeSlug?: string | undefined;
+  // Allow passing store products directly for similar products
+  storeProducts?: Product[];
 }
 
 const EnhancedProductPage: React.FC<EnhancedProductPageProps> = ({
@@ -55,7 +58,8 @@ const EnhancedProductPage: React.FC<EnhancedProductPageProps> = ({
   onNotifyWhenAvailable,
   onProductSelect,
   isFavorite = false,
-  storeSlug
+  storeSlug,
+  storeProducts = []
 }) => {
   const [selectedSize, setSelectedSize] = useState<string>('');
   const [selectedColor, setSelectedColor] = useState<string>('');
@@ -223,7 +227,32 @@ const EnhancedProductPage: React.FC<EnhancedProductPageProps> = ({
 
   // دالة للحصول على منتجات مشابهة
   const getSimilarProducts = (currentProduct: Product) => {
-    // التأكد من جلب المنتجات من نفس المتجر فقط لمنع تسريب البيانات
+    // Priority 1: Use products passed via props (from dynamic store loading)
+    const dynamicStoreProducts = storeProducts && storeProducts.length > 0 ? storeProducts : [];
+    
+    if (dynamicStoreProducts.length > 0) {
+      const sameStoreProducts = dynamicStoreProducts.filter(p => 
+        p.storeId === currentProduct.storeId && 
+        p.id !== currentProduct.id
+      );
+      
+      if (sameStoreProducts.length > 0) {
+        let similar = sameStoreProducts.filter(p => 
+          p.category === currentProduct.category
+        );
+        
+        if (similar.length < 4) {
+          const otherFromStore = sameStoreProducts.filter(p => 
+            !similar.find(s => s.id === p.id)
+          );
+          similar = [...similar, ...otherFromStore];
+        }
+        
+        return similar.slice(0, 4);
+      }
+    }
+    
+    // Priority 2: Fallback to allStoreProducts (for static stores)
     const sameStoreProducts = allStoreProducts.filter(p => 
       p.storeId === currentProduct.storeId && 
       p.id !== currentProduct.id

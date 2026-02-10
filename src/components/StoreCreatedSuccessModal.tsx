@@ -17,13 +17,15 @@ interface StoreCreatedSuccessModalProps {
   onClose: () => void;
   storeName: string;
   onStartDashboard: () => void;
+  onNavigateToPlatform?: () => void;
 }
 
 const StoreCreatedSuccessModal: React.FC<StoreCreatedSuccessModalProps> = ({
   isOpen,
   onClose,
   storeName,
-  onStartDashboard
+  onStartDashboard,
+  onNavigateToPlatform
 }) => {
   const [isAnimating, setIsAnimating] = useState(false);
 
@@ -137,16 +139,37 @@ const StoreCreatedSuccessModal: React.FC<StoreCreatedSuccessModalProps> = ({
               ) : (
                 <div className="flex items-center justify-center gap-2">
                   <Store className="h-6 w-6" />
-                  ادخل لوحة التحكم
+                  تعديل المتجر
                   <ArrowRight className="h-5 w-5" />
                 </div>
               )}
             </Button>
             
+            {onNavigateToPlatform && (
+              <Button
+                onClick={() => {
+                  setIsAnimating(true);
+                  setTimeout(() => {
+                    onNavigateToPlatform();
+                    onClose();
+                  }, 500);
+                }}
+                disabled={isAnimating}
+                variant="outline"
+                className="w-full border-2 border-primary text-primary hover:bg-primary/10 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 text-lg"
+              >
+                <div className="flex items-center justify-center gap-2">
+                  <ShoppingBag className="h-6 w-6" />
+                  منصة إشرو
+                  <ArrowRight className="h-5 w-5" />
+                </div>
+              </Button>
+            )}
+            
             <Button
               onClick={onClose}
-              variant="outline"
-              className="w-full border-gray-300 text-gray-600 hover:bg-gray-50 py-3 rounded-xl"
+              variant="ghost"
+              className="w-full text-gray-500 hover:bg-gray-100 py-3 rounded-xl"
             >
               إغلاق
             </Button>
