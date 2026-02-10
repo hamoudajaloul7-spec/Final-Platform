@@ -1,4 +1,9 @@
 export default async function handler(request, response) {
+  // Handle CORS preflight
+  if (request.method === 'OPTIONS') {
+    return response.status(200).end();
+  }
+
   // Only allow POST
   if (request.method !== 'POST') {
     return response.status(405).json({
@@ -8,7 +13,22 @@ export default async function handler(request, response) {
   }
 
   try {
-    const { email, password } = request.body;
+    let body = request.body;
+    
+    // Ensure body is parsed
+    if (typeof body === 'string') {
+      try {
+        body = JSON.parse(body);
+      } catch (e) {
+        return response.status(400).json({
+          success: false,
+          error: 'Invalid JSON body',
+          message: e.message
+        });
+      }
+    }
+
+    const { email, password } = body || {};
 
     // Validate required fields
     if (!email || !password) {
@@ -19,7 +39,8 @@ export default async function handler(request, response) {
         details: {
           email: email ? [] : ['Email is required'],
           password: password ? [] : ['Password is required']
-        }
+        },
+        receivedBody: body // Helpful for debugging
       });
     }
 
