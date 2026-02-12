@@ -3,7 +3,7 @@ import { AuthRequest, UserRole } from '@shared-types/index';
 import User from '@models/User';
 import { hashPassword, comparePassword, validatePasswordStrength } from '@utils/password';
 import { generateToken, generateRefreshToken, verifyRefreshToken } from '@utils/jwt';
-import { sendSuccess, sendCreated, sendError, sendUnauthorized } from '@utils/response';
+import { sendSuccess, sendCreated, sendError, sendUnauthorized, sendNotFound } from '@utils/response';
 import { generateUUID, slugify, validateEmail } from '@utils/helpers';
 import logger, { logLoginAttempt, logStoreCreation } from '@utils/logger';
 
