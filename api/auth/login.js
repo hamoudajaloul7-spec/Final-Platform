@@ -58,13 +58,20 @@ export default async function handler(request, response) {
 
     const responseData = await backendResponse.json();
 
+    // Ensure response has a message field if not present, to avoid "Login failed from server" generic message
+    if (responseData && !responseData.message && responseData.error) {
+      responseData.message = responseData.error;
+    } else if (responseData && !responseData.message && !responseData.success) {
+      responseData.message = 'فشل تسجيل الدخول: البريد الإلكتروني أو كلمة المرور غير صحيحة';
+    }
+
     // Return the backend response
     return response.status(backendResponse.status).json(responseData);
-  } catch {
+  } catch (err) {
     return response.status(500).json({
       success: false,
       error: 'Internal server error',
-      message: 'Failed to connect to authentication service'
+      message: 'تعذر الاتصال بخادم المصادقة: ' + err.message
     });
   }
 }
