@@ -297,6 +297,20 @@ const merchants: MerchantProfile[] = [
     logo: "/assets/indeesh/logo/1764003949069-2wl3b2-Indeesh.png",
     stats: { orders: 640, satisfaction: 95, growth: "+14%" },
     disabled: []
+  },
+  {
+    id: "shekha",
+    name: "متجر شيخة",
+    tagline: "متجر شيخة - أرقى الموديلات الفاخرة",
+    owner: "سالم الفرجياني",
+    plan: "Enterprise",
+    tier: "بلاتيني",
+    color: "from-amber-600 to-yellow-500",
+    icon: Sparkles,
+    emblem: "👑",
+    logo: "/assets/stores/shekha.webp",
+    stats: { orders: 450, satisfaction: 98, growth: "+22%" },
+    disabled: []
   }
 ];
 

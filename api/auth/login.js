@@ -44,16 +44,20 @@ export default async function handler(request, response) {
       });
     }
 
-    // Forward request to Render backend
+    // Forward request to Render backend with explicit headers
     const backendUrl = process.env.BACKEND_URL || 'https://final-platform-eshro.onrender.com';
     
     const backendResponse = await fetch(`${backendUrl}/api/auth/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Accept': 'application/json'
+        'Accept': 'application/json',
+        'User-Agent': 'Vercel-Serverless-Function'
       },
-      body: JSON.stringify({ email, password })
+      body: JSON.stringify({ 
+        email: email.toLowerCase().trim(), 
+        password: password 
+      })
     });
 
     const responseData = await backendResponse.json();

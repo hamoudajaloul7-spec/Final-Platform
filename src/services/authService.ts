@@ -185,6 +185,44 @@ class AuthService {
   }
 
   /**
+   * مزامنة بيانات الجلسة مع الخادم للتأكد من أنها لا تزال صالحة وتحديث البيانات المحلية
+   */
+  async verifySession(): Promise<AuthSession | null> {
+    const session = this.getCurrentSession();
+    if (!session || !session.email) return null;
+
+    try {
+      const response = await fetch(`${this.API_URL}/auth/verify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: session.email })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.data?.user) {
+          const serverUser = data.data.user;
+          const updatedSession: AuthSession = {
+            ...session,
+            id: serverUser.id || session.id,
+            email: serverUser.email || session.email,
+            storeName: serverUser.storeName || session.storeName,
+            storeSlug: serverUser.storeSlug || session.storeSlug,
+            role: serverUser.role || session.role,
+            lastActivity: new Date().toISOString()
+          };
+          this.saveSession(updatedSession);
+          return updatedSession;
+        }
+      }
+      return session;
+    } catch (error) {
+      // Session verification failed, using cache
+      return session;
+    }
+  }
+
+  /**
    * تسجيل الخروج وتطهير الجلسة
    */
   logout(): void {

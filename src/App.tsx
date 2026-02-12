@@ -494,7 +494,8 @@ const MERCHANT_LOGIN_CREDENTIALS: Record<string, { email: string; password: stri
   delta: { email: "majed@gmail.com", password: "majed123", phone: "218910000003" },
   pretty: { email: "kamel@gmail.com", password: "kamel123", phone: "218910000004" },
   magna: { email: "hasan@gmail.com", password: "hasan123", phone: "218910000005" },
-  indeesh: { email: "salem.masgher@gmail.com", password: "salem1234", phone: "218910000006" }
+  indeesh: { email: "salem.masgher@gmail.com", password: "salem1234", phone: "218910000006" },
+  shekha: { email: "salem.mfurjani@gmail.com", password: "S@lem2026", phone: "+218927774442" }
 };
 
 const PRESERVED_MERCHANT_FIELDS = [
@@ -1591,6 +1592,12 @@ export default function Home() {
     const savedSession = authService.getCurrentSession();
     if (savedSession) {
       setCurrentMerchant(savedSession);
+      // مزامنة بيانات التاجر مع الخادم لضمان أحدث البيانات وتجنب مشاكل تسجيل الدخول
+      void authService.verifySession().then(updated => {
+        if (updated) {
+          setCurrentMerchant(updated);
+        }
+      });
     }
 
     if (savedIsLoggedInAsMerchant === 'true') {

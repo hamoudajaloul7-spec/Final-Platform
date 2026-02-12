@@ -62,5 +62,17 @@
     ],
     "productsCount": 20,
     "lastUpdated": "2025-11-24T17:05:51.261Z"
+  },
+  {
+    "slug": "shekha",
+    "name": "متجر شيخة",
+    "nameAr": "متجر شيخة",
+    "description": "متجر شيخة - أرقى الموديلات الفاخرة",
+    "logo": "/assets/shekha/logo.png",
+    "categories": [
+      "ملابس وأزياء"
+    ],
+    "productsCount": 0,
+    "lastUpdated": "2026-02-08T10:00:00.000Z"
   }
 ]
