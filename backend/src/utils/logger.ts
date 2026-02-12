@@ -44,4 +44,23 @@ const logger = winston.createLogger({
   transports,
 });
 
+export const logStoreCreation = (storeData: any, createdBy: string) => {
+  logger.info(`[STORE_CREATION] New store created: ${storeData.name || storeData.storeName} by ${createdBy}`, {
+    storeId: storeData.id || storeData.storeId,
+    email: storeData.email || storeData.ownerEmail,
+    subdomain: storeData.subdomain || storeData.storeSlug,
+    isAutomated: storeData.isAutomated || false,
+    timestamp: new Date().toISOString()
+  });
+};
+
+export const logLoginAttempt = (email: string, success: boolean, method: string) => {
+  logger.info(`[LOGIN_ATTEMPT] ${email} - ${success ? 'SUCCESS' : 'FAILED'} via ${method}`, {
+    email,
+    success,
+    method,
+    timestamp: new Date().toISOString()
+  });
+};
+
 export default logger;

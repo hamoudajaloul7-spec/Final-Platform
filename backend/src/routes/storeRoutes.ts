@@ -4,8 +4,40 @@ import { uploadBothImages, storeImageUpload } from '@middleware/storeImageUpload
 import logger from '@utils/logger';
 import { sendSuccess } from '@utils/response';
 import Store from '@models/Store';
+import User from '@models/User';
 
 const router = Router();
+
+router.get('/activity', async (req, res, next) => {
+  try {
+    const stores = await Store.findAll({
+      include: [{
+        model: User,
+        as: 'merchant',
+        attributes: ['email', 'firstName', 'lastName']
+      }],
+      order: [['createdAt', 'DESC']]
+    });
+
+    const stats = {
+      totalStores: stores.length,
+      automatedStores: stores.filter(s => (s as any).isAutomated).length,
+      activeStores: stores.filter(s => s.isActive).length,
+      recentActivity: stores.slice(0, 10).map(s => {
+        const plain = typeof (s as any).get === 'function' ? (s as any).get({ plain: true }) : (s as any);
+        return {
+          ...plain,
+          merchantEmail: plain.merchant?.email
+        };
+      })
+    };
+
+    sendSuccess(res, stats, 200, 'Activity data retrieved');
+  } catch (error) {
+    logger.error('Store activity error:', error);
+    next(error);
+  }
+});
 
 router.get('/public/:slug', getStorePublicData);
 router.post('/create-with-files', createStoreWithFiles);

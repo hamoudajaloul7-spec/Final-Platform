@@ -105,7 +105,7 @@ const seedDatabase = async (): Promise<void> => {
       {
         id: uuidv4(),
         email: 'salem.mfurjani@gmail.com',
-        password: await bcrypt.hash('shekha123', 10),
+        password: await bcrypt.hash('S@lem2026', 10),
         firstName: 'سالم',
         lastName: 'الفرجياني',
         phone: '+218927774442',

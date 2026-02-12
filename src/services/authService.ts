@@ -20,43 +20,95 @@ class AuthService {
   private readonly USER_KEY = 'eshro_current_user';
   private readonly STORES_LIST_KEY = 'eshro_stores';
   private readonly USERS_LIST_KEY = 'eshro_users';
+  private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+  private readonly MAX_RETRIES = 3;
+  private readonly RETRY_DELAY = 1000;
 
   /**
-   * تسجيل الدخول عبر السحابة (Backend-First)
+   * تسجيل الدخول مع محاولات إعادة الاتصال (Retry Logic)
    */
   async login(email: string, password: string): Promise<{ success: boolean; user?: AuthSession; error?: string }> {
-    try {
-      const response = await fetch(`${this.API_URL}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
+    // 1. تحقق من الكاش أولاً
+    const cachedUser = this.getCachedUser();
+    if (cachedUser && cachedUser.email === email) {
+      this.saveSession(cachedUser);
+      return { success: true, user: cachedUser };
+    }
 
-      const data = await response.json();
+    let lastError = '';
+    
+    for (let attempt = 1; attempt <= this.MAX_RETRIES; attempt++) {
+      try {
+        const response = await fetch(`${this.API_URL}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
 
-      if (response.ok && data.success) {
-        const serverUser = data.data.user;
-        const session: AuthSession = {
-          ...serverUser,
-          token: data.data.token,
-          refreshToken: data.data.refreshToken,
-          role: serverUser.role || 'merchant',
-          setupComplete: true, // أي مستخدم قادم من السيرفر يعتبر جاهزاً
-          loginTime: new Date().toISOString()
-        };
+        const data = await response.json();
 
-        this.saveSession(session);
-        return { success: true, user: session };
-      } else {
-        // رسائل خطأ دقيقة بناءً على رد الخادم
-        if (response.status === 401) return { success: false, error: 'كلمة المرور غير صحيحة' };
-        if (response.status === 404) return { success: false, error: 'البريد الإلكتروني غير مسجل في النظام' };
-        return { success: false, error: data.message || 'فشل تسجيل الدخول من الخادم' };
+        if (response.ok && data.success) {
+          const serverUser = data.data.user;
+          const session: AuthSession = {
+            ...serverUser,
+            token: data.data.token,
+            refreshToken: data.data.refreshToken,
+            role: serverUser.role || 'merchant',
+            setupComplete: true,
+            loginTime: new Date().toISOString()
+          };
+
+          this.saveSession(session);
+          this.setCachedUser(session);
+          return { success: true, user: session };
+        } else {
+          lastError = data.message || 'فشل تسجيل الدخول من الخادم';
+          
+          // إذا كان الخطأ بسبب بيانات الاعتماد، لا تكرر المحاولة
+          if (response.status === 401 || response.status === 404) {
+            return { success: false, error: lastError };
+          }
+          
+          throw new Error(lastError);
+        }
+      } catch (error: any) {
+        console.warn(`Login attempt ${attempt} failed:`, error.message);
+        lastError = error.message;
+
+        if (attempt === this.MAX_RETRIES) {
+          // محاولة البحث المحلي كخيار أخير
+          return this.localLoginFallback(email, password);
+        }
+
+        // انتظار تصاعدي قبل المحاولة التالية
+        await new Promise(resolve => setTimeout(resolve, this.RETRY_DELAY * attempt));
       }
-    } catch (error) {
-      console.error('AuthService Login Error:', error);
-      // محاولة البحث المحلي فقط في حالة فشل الاتصال تماماً
-      return this.localLoginFallback(email, password);
+    }
+
+    return { success: false, error: lastError };
+  }
+
+  private setCachedUser(user: AuthSession): void {
+    const cacheData = {
+      user,
+      timestamp: Date.now()
+    };
+    localStorage.setItem('eshro_user_cache', JSON.stringify(cacheData));
+  }
+
+  private getCachedUser(): AuthSession | null {
+    const cacheData = localStorage.getItem('eshro_user_cache');
+    if (!cacheData) return null;
+
+    try {
+      const { user, timestamp } = JSON.parse(cacheData);
+      if (Date.now() - timestamp > this.CACHE_TTL) {
+        localStorage.removeItem('eshro_user_cache');
+        return null;
+      }
+      return user;
+    } catch {
+      return null;
     }
   }
 

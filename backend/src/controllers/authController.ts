@@ -5,7 +5,7 @@ import { hashPassword, comparePassword, validatePasswordStrength } from '@utils/
 import { generateToken, generateRefreshToken, verifyRefreshToken } from '@utils/jwt';
 import { sendSuccess, sendCreated, sendError, sendUnauthorized } from '@utils/response';
 import { generateUUID, slugify, validateEmail } from '@utils/helpers';
-import logger from '@utils/logger';
+import logger, { logLoginAttempt, logStoreCreation } from '@utils/logger';
 
 export const register = async (
   req: AuthRequest,
@@ -70,6 +70,9 @@ export const register = async (
     const refreshToken = generateRefreshToken(newUser.id);
 
     logger.info(`User registered: ${email} (${role})`);
+    if (role === UserRole.MERCHANT) {
+      logStoreCreation(newUser, 'self-registration');
+    }
 
     const userData = {
       id: newUser.id,
@@ -110,7 +113,9 @@ export const login = async (
     
     if (!user) {
       logger.warn(`[AUTH] User not found: ${email}`);
-      sendUnauthorized(res, 'Invalid email or password');
+      logLoginAttempt(email, false, 'password');
+      // Use 404 to allow frontend to show "Email not registered"
+      sendNotFound(res, 'البريد الإلكتروني غير مسجل في النظام');
       return;
     }
 
@@ -132,7 +137,9 @@ export const login = async (
 
     if (!isPasswordValid) {
       logger.warn(`[AUTH] Invalid password for user: ${email}`);
-      sendUnauthorized(res, 'Invalid email or password');
+      logLoginAttempt(email, false, 'password');
+      // Use 401 for invalid password
+      sendUnauthorized(res, 'كلمة المرور غير صحيحة');
       return;
     }
 
@@ -146,6 +153,7 @@ export const login = async (
     await user.update({ lastLogin: new Date() });
 
     logger.info(`[AUTH] Login successful for: ${email}`);
+    logLoginAttempt(email, true, 'password');
 
     const userData = {
       id: user.id,
@@ -248,6 +256,36 @@ export const getProfile = async (
   } catch (error) {
     logger.error('Get profile error:', error);
     next(error);
+  }
+};
+
+export const verifyUser = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      sendError(res, 'Email is required', 400);
+      return;
+    }
+
+    const user = await User.findOne({ 
+      where: { email: email.toLowerCase() },
+      attributes: { exclude: ['password'] }
+    });
+
+    if (!user) {
+      sendNotFound(res, 'المستخدم غير موجود');
+      return;
+    }
+
+    sendSuccess(res, {
+      user,
+      isValid: true,
+      lastUpdated: user.updatedAt
+    });
+  } catch (error) {
+    logger.error('User verification error:', error);
+    sendError(res, 'فشل التحقق من المستخدم', 500);
   }
 };
 

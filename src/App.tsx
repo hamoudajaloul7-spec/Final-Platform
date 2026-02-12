@@ -3026,6 +3026,18 @@ export default function Home() {
           };
           localStorage.setItem(`merchant_${storeSlug}`, JSON.stringify(merchantCredentials));
 
+          // Auto-login to prevent login issues
+          const sessionData = {
+            ...normalizedStore,
+            role: 'merchant',
+            loginTime: new Date().toISOString()
+          };
+          localStorage.setItem('eshro_current_merchant', JSON.stringify(sessionData));
+          localStorage.setItem('eshro_current_user', JSON.stringify(sessionData));
+          localStorage.setItem('eshro_logged_in_as_merchant', 'true');
+          setCurrentMerchant(sessionData);
+          setIsLoggedInAsMerchant(true);
+
           
           
           

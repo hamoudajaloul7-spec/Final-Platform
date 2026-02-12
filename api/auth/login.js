@@ -13,18 +13,18 @@ export default async function handler(request, response) {
   }
 
   try {
+    // Robust body parsing for Vercel environments
     let body = request.body;
-    
-    // Ensure body is parsed
-    if (typeof body === 'string') {
-      try {
-        body = JSON.parse(body);
-      } catch (e) {
-        return response.status(400).json({
-          success: false,
-          error: 'Invalid JSON body',
-          message: e.message
-        });
+
+    // If body is empty or not parsed, try to parse it from raw (if available)
+    if (!body || Object.keys(body).length === 0) {
+      // In some Vercel versions, we might need to handle the stream or it's already in request.body as a string
+      if (typeof request.body === 'string' && request.body.trim().startsWith('{')) {
+        try {
+          body = JSON.parse(request.body);
+        } catch (e) {
+          console.error('Error parsing body string:', e);
+        }
       }
     }
 

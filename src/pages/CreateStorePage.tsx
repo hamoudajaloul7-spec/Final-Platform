@@ -858,6 +858,16 @@ const CreateStorePage: React.FC<CreateStorePageProps> = ({
         };
         localStorage.setItem(`merchant_${formData.email}`, JSON.stringify(merchantCredentials));
         localStorage.setItem(`merchant_credentials_${formData.subdomain}`, JSON.stringify(merchantCredentials));
+
+        // Auto-login after store creation to ensure immediate access
+        const sessionData = {
+          ...merchantCredentials,
+          role: 'merchant',
+          loginTime: new Date().toISOString()
+        };
+        localStorage.setItem('eshro_current_merchant', JSON.stringify(sessionData));
+        localStorage.setItem('eshro_current_user', JSON.stringify(sessionData));
+        localStorage.setItem('eshro_logged_in_as_merchant', 'true');
       }
 
       
